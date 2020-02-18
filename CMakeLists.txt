@@ -16,6 +16,7 @@ set(CMAKE_BUILD_DIR build)
 
 set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
+set(LIB_DIR ${CMAKE_SOURCE_DIR}/libs)
 
 
 file(GLOB_RECURSE SOURCE_FILES ${SOURCE_DIR}/*.cpp)
@@ -26,6 +27,8 @@ add_executable(
 	${SOURCE_FILES}
 	${HEADER_FILES}
 )
+
+include(${LIB_DIR}/lib.cmake)
 
 
 #find_package(OpenMP)
