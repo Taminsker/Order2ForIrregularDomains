@@ -16,17 +16,17 @@
 
 
 # --------------- VTK --------------- #
-set(VTK_DIR "${LIB_DIR}/VTK-8.2.0//lib/cmake/vtk-8.2")
-set(_vtk_installed_prefix "${CMAKE_SOURCE_DIR}/lib/VTK-8.2.0/lib/cmake/vtk-8.2")
+#set(VTK_DIR "${LIB_DIR}/VTK-8.2.0//lib/cmake/vtk-8.2")
+#set(_vtk_installed_prefix "${CMAKE_SOURCE_DIR}/lib/VTK-8.2.0/lib/cmake/vtk-8.2")
 
-find_package(VTK REQUIRED PATHS ${VTK_DIR})
-if (NOT VTK_FOUND)
-    message(STATUS "find_package : NOT found VTK library in ${CMAKE_SOURCE_DIR}/lib/VTK-8.2.0/lib/cmake/vtk-8.2 ")
-else()
-    message(STATUS "find_package : found VTK library in ${CMAKE_SOURCE_DIR}/lib/VTK-8.2.0/lib/cmake/vtk-8.2 ")
-    include(${VTK_USE_FILE})
-    target_link_libraries(${TARGET} ${VTK_LIBRARIES})
-endif()
+#find_package(VTK REQUIRED PATHS ${VTK_DIR})
+#if (NOT VTK_FOUND)
+#    message(STATUS "find_package : NOT found VTK library in ${CMAKE_SOURCE_DIR}/lib/VTK-8.2.0/lib/cmake/vtk-8.2 ")
+#else()
+#    message(STATUS "find_package : found VTK library in ${CMAKE_SOURCE_DIR}/lib/VTK-8.2.0/lib/cmake/vtk-8.2 ")
+#    include(${VTK_USE_FILE})
+#    target_link_libraries(${TARGET} ${VTK_LIBRARIES})
+#endif()
 
 
 # --------------- QT --------------- #
