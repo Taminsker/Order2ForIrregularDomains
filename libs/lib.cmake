@@ -52,7 +52,6 @@ else()
     include(${EIGEN3_USE_FILE})
     include_directories(${EIGEN3_INCLUDE_DIR})
     include_directories("${EIGEN3_INCLUDE_DIR}/Eigen/unsupported")
-    target_link_libraries(${TARGET} ${EIGEN3_LIBRARIES})
 endif()
 
 
