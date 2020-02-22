@@ -1,6 +1,7 @@
 #include "border.h"
 
-Border::Border()
+Border::Border (Mesh * mesh) :
+    AbstractBase (mesh)
 {
 
 }

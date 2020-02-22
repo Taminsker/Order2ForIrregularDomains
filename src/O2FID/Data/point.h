@@ -13,15 +13,24 @@
 class Cell;
 
 /**
- * @brief La classe Point : stock un point.
+ * @brief La classe Point implémente les informations nécessaires pour définir un point.
+ * Cette classe met permet des points 3D via plusieurs constructeurs. L'opérateur d'égalité est aussi surchargé ainsi que l'opérateur d'affichage.
  */
 class Point
 {
 
 public:
-    double x = 0.; /**< Coordonnées x. **/
-    double y = 0.; /**< Coordonnées y. **/
-    double z = 0.; /**< Coordonnées z. **/
+    /**
+     * @brief Coordonnée x du point.
+     */
+    double x = 0.;
+    /**
+     * @brief Coordonnée z du point.
+     */double y = 0.;
+    /**
+     * @brief Coordonnée y du point.
+     */
+    double z = 0.;
 
     /**
      * @brief Créer un point (0, 0, 0).
@@ -30,7 +39,7 @@ public:
 
     /**
      * @brief Créer une copie du point entré p.
-     * @param p Point.
+     * @param p Point
      */
     Point (const Point &p);
 
@@ -62,7 +71,8 @@ protected:
 };
 
 /**
- * @brief operator << : utiliser pour std::cout << p << std::endl, similaire à printf ("%f, %f, %f", p.x, p.y, p.z).
+ * @brief Opérateur d'affichage (surcharge des doubles chevrons)
+ * operator << : utiliser pour std::cout << p << std::endl, similaire à printf ("%f, %f, %f", p.x, p.y, p.z).
  * @param p Point
  * @param out flux
  * @return flux

@@ -13,10 +13,6 @@
 
 #include "../Data/data.h"
 
-/**
- * @brief Abréviation du type Matrix
- */
-typedef Eigen::SparseMatrix<double> Matrix;
 
 /**
  * @brief La classe Mesh : stock un maillage, liste des points et des cellules.

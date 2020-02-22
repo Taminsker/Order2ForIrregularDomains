@@ -6,7 +6,8 @@
 class Point;
 
 /**
- * @brief La classe Cell : stock une cellule
+ * @brief La classe Cell implémente les informations nécessaires pour définir une cellule.
+ * Cette classe met en lien les cellules voisines, les points définissant la cellule et calcule le barycentre.
  */
 class Cell
 {
@@ -82,13 +83,35 @@ public:
     Point GetBarycenter ();
 
 private:
-    Cell * m_cell_n; /**< Cellule au Nord **/
-    Cell * m_cell_s; /**< Cellule au Sud **/
-    Cell * m_cell_o; /**< Cellule à l'Ouest **/
-    Cell * m_cell_e; /**< Cellule à l'Est **/
+    /**
+     * @brief Cellule au Nord
+     */
+    Cell * m_cell_n;
 
-    std::vector<Point *> m_points; /**< Liste des points de la cellule **/
-    Point * m_bary; /**< Barycentre de la cellule **/
+    /**
+     * @brief Cellule au Sud
+     */
+    Cell * m_cell_s;
+
+    /**
+     * @brief Cellule à l'Ouest
+     */
+    Cell * m_cell_o;
+
+    /**
+     * @brief Cellule à l'Est.
+     */
+    Cell * m_cell_e;
+
+    /**
+     * @brief Liste des points de la cellule
+     */
+    std::vector<Point *> m_points;
+
+    /**
+     * @brief Barycentre de la cellule.
+     */
+    Point * m_bary;
 };
 
 #endif // CELL_H
