@@ -19,9 +19,9 @@ Point::~Point () {}
 bool Point::operator== (const Point &p)
 {
     double eps = 1e-6;
-    if (    std::abs (x - p.x) < eps &&
-            std::abs (y - p.y) < eps &&
-            std::abs (z - p.z) < eps)
+    if (    fabs (x - p.x) < eps &&
+            fabs (y - p.y) < eps &&
+            fabs (z - p.z) < eps)
         return true;
     return false;
 }
