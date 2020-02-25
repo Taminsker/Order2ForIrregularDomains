@@ -17,9 +17,9 @@ class Cell;
  */
 typedef enum
 {
-    BORDER,
-    DOMAIN
-} POINT_LOCATE;
+    ON_BORDER_OMEGA,
+    ON_DOMAIN_OMEGA
+} POINT_LOCATION;
 
 /**
  * @brief La classe Point implémente les informations nécessaires pour définir un point.
