@@ -13,14 +13,6 @@
 
 #include "../Data/data.h"
 
-/**
- * Énumérateur des différentes dimensions possibles
- */
-typedef enum {
-    DIM_1D,
-    DIM_2D,
-    DIM_3D
-} DIM;
 
 /**
  * @brief La classe Mesh : stock un maillage, liste des points et des cellules.
@@ -59,8 +51,8 @@ public:
 
     /**
      * @brief Configurer les points définissant le domaine [a, b] x [c, d] x [e, f].
-     * @param Origin Point (a, c, e)
-     * @param Extrema Point (b, d, f)
+     * @param Origin Point : (a, c, e)
+     * @param Extrema Point : (b, d, f)
      */
     void SetBounds (Point Origin, Point Extrema);
 
@@ -71,60 +63,10 @@ public:
 
     /**
      * @brief Retourne le i-ème point du maillage.
-     * @param i int numéro du point
+     * @param i int : numéro du point
      * @return Point
      */
     Point operator() (int i) const;
-
-    /**
-     * @brief operator ()
-     * @param i
-     * @param j
-     * @param k
-     * @return
-     */
-    Point operator() (int i, int j, int k) const;
-
-    /**
-     * @brief operator +
-     * @param a
-     * @return
-     */
-    Point operator+ (const Point & a);
-
-    /**
-     * @brief operator -
-     * @param a
-     * @return
-     */
-    Point operator- (const Point & a);
-
-    /**
-     * @brief operator *
-     * @param v
-     * @return
-     */
-    Point operator* (double v);
-
-    /**
-     * @brief operator /
-     * @param v
-     * @return
-     */
-    Point operator/ (double v);
-
-    /**
-     * @brief ForceDimensionTo
-     * @param dim
-     * @return
-     */
-    int ForceDimensionTo (int dim);
-
-    /**
-     * @brief GetDimension
-     * @return
-     */
-    int GetDimension ();
 
     /**
      * @brief Retourne un vecteur contenant Origin et Extrema.
@@ -177,30 +119,12 @@ public:
     /**
      * @brief Affiche à l'écran les infos et la liste de points.
      */
-    void Print () const;
+    void Print ();
 
     /**
-     * @brief SortPoints
+     * @brief Reorder
      */
-    void SortPoints ();
-
-    /**
-     * @brief AddPointOnBorder
-     * @param a
-     */
-    void AddPointOnBorder (Point a);
-
-    /**
-     * @brief AddPointOnDomain
-     * @param a
-     */
-    void AddPointOnDomain (Point a);
-
-    /**
-     * @brief GetListOfIndexPoints
-     * @return
-     */
-    std::vector <int> GetListOfIndexPoints ();
+    void Reorder ();
 
 protected:
 
@@ -208,8 +132,6 @@ protected:
      * @brief Vecteur de Point.
      */
     std::vector<Point> m_points;
-
-    int m_dim;
 
     /**
      * @brief Point d'origine du maillage.
@@ -258,7 +180,7 @@ protected:
      * @param k int ordre dans la direction z
      * @return index int index global
      */
-    int Index (int i, int j, int k) const;
+    int Index (int i, int j, int k);
 };
 
 #endif // MESH_H

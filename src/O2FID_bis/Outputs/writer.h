@@ -80,8 +80,6 @@ protected:
      */
     int m_index;
 
-    bool m_domain;
-
     /**
      * @brief m_sol_num
      */

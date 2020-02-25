@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-double phi (Point a); // fonction levelset
-double f (Point a); // fonction de second membre
-double g (Point a); // fonction des conditions aux limites
+double phi (Point a, double t = 0); // fonction levelset
+double f_laplace (Point a, double t = 0.); // fonction de second membre
+double g_laplace (Point a, double t = 0.); // fonction des conditions aux limites
 
 double f_chaleur (Point a, double t); // fonction de second membre equation chaleur
 double g_chaleur (Point a, double t); // fonction des conditions aux limites equation chaleur
@@ -21,56 +21,45 @@ int main(int argc, char* argv[])
         // ---- Création du maillage ---
         Mesh maillage = Mesh (); // Création d'un maillage vide
 
-        maillage.SetBounds (Point(), Point (1, 1, 1)); // Configuration des points définissant le maillage ie [0, 1] ^3
+        maillage.SetBounds (Point(), Point (1, 1, 1)); // Configuration des points définissant le maillage ie [0, 1]^3
         maillage.Set_Nx (3); // Le maillage aura 3 points dans la direction x
         maillage.Set_Ny (3); // 3 points dans la direction y
         maillage.Set_Nz (4); // et 4 points dans la direction z
 
         //! OBLIGATOIRE
-        maillage.Build ();// Génération du maillage selon les paramètres précécdement choisis
+        maillage.Build ();// Génération du maillage selon les paramètres précédemment choisis
 
         /// Optionnel
         //mesh.Print (); // Affichage des points
         ///
 
         // ---- Frontiere de Omega ---
-        Border frontiere = Border (&maillage); // Création de la frontière
-        frontiere.SetLevelSet (&phi); // Configuration de la fonction levelset utilisée
-        std::vector <int> liste_index_points_frontiere = frontiere.MakeListOfIndexPoints (); // Création de la liste d'index de points sur la frontière ie les points de zéros de phi
+        std::vector <int> liste_index_points_frontiere = MakeListOfIndexPoints (&maillage, &phi); // Création de la liste d'index de points sur la frontière ie les points de zéros de phi
+
 
         // ---- Construction de la matrice ---
-        MatrixBuilder construcMatrice = MatrixBuilder (&maillage); // Création du monsieur qui va construire la matrice
-        construcMatrice.Set3D (); // On lui précise que la matrice sera un problème 3D
-        Matrix matrice = construcMatrice.MakeLaplaceEquation (); // On construit la matrice du problème de Laplace
+        Matrix matrice = BuildMatrixLaplaceEquation (&maillage); // On construit la matrice du problème de Laplace
 
         // ---- Création du Terme source ---
-        FunToVec construTermeSource = FunToVec (&maillage);
-        Vector secondMembre = construTermeSource.Make (&f); // On construit le second membre associé à la fonction f
+        Vector secondMembre = FunToVec (&maillage, &f_laplace); // On construit le second membre associé à la fonction f
 
-        // ---- Imposition des conditions de Dirichlet ---
-        Impose imposeur = Impose (&maillage); // Création du monsieur qui va imposer les conditions aux bords
-        imposeur.SetIndexPoints (liste_index_points_frontiere); // On lui dit sur quels noeuds il va devoir imposer les conditions
-        secondMembre -= imposeur.MakeDirichlet (&matrice, &g); // On soustrait on second membre les conditions qu'on impose
+        // ---- Imposition des conditions de Dirichlet ----
+        secondMembre -= ImposeDirichlet (&maillage, &matrice, &g_laplace, liste_index_points_frontiere); // On soustrait on second membre les conditions qu'on impose
 
-        // ---- Résolution du système en implicite ---
-        Solver resolveur = Solver (&maillage); // Création du monsieur qui va résoudre
-        resolveur.SetSolverToImplicit (); // On lui dit que ça va être une résolution en implicite
-        Vector solution_numerique = resolveur.Solve (matrice, secondMembre); // On résout en précisant la matrice et le second membre
+        // ---- Résolution du système en implicite ----
+        Vector solution_numerique = Solve (matrice, secondMembre, IMPLICIT); // On résout en précisant la matrice et le second membre
 
-        // ---- Création du vecteur de solution analytique ---
-        FunToVec construSolAna = FunToVec (&maillage);
-        Vector solution_analytique = construSolAna.Make (&f); // On construit le second membre associé à la fonction f
+        // ---- Création du vecteur de solution analytique ----
+        Vector solution_analytique = FunToVec (&maillage, &f_laplace); // On construit le second membre associé à la fonction f
 
-        // ---- Calcul des erreurs ---
-        ErrorsBuilder construcErreurs = ErrorsBuilder (&maillage); // On construit le monsieur qui va calculer toutes nos erreurs
-        construcErreurs.SetVectorNumerical (&solution_numerique); // On lui donne le vecteur de la solution numérique
-        construcErreurs.SetVectorAnalytical (&solution_analytique); // On lui donne le vecteur de la solution analytique
-        double erreurL2 = construcErreurs.GetErrorL2 (); // On récupère l'erreur L2
-        double erreurLinf = construcErreurs.GetErrorLinf (); // On récupère l'erreur Linf
-        double erreurRela = construcErreurs.GetErrorRela (); // On récupère l'erreur relative
-        Vector erreurAbs = construcErreurs.GetErrorAbs (); // On récupère le vecteur d'erreurs en valeur absolue
+        // ---- Calcul des erreurs ----
 
-        // --- Écriture des fichiers ---
+        double erreurL2 = GetErrorL2 (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur L2
+        double erreurLinf = GetErrorLinf (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur Linf
+        double erreurRela = GetErrorRela (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur relative
+        Vector erreurAbs = GetErrorAbs(&maillage, solution_analytique, solution_numerique); // On récupère le vecteur d'erreurs en valeur absolue
+
+        // ---- Écriture des fichiers ----
         Writer ecrivain = Writer (&maillage); // Création du monsieur qui va sauver les fichiers
         ecrivain.SetFilename ("Laplace_3D"); // On lui dit sous quel nom le sauver
         ecrivain.WriteBothDomainsOff (); // On lui dit d'écrire que ce qui est dans le domaine Omega 1
@@ -80,7 +69,7 @@ int main(int argc, char* argv[])
         ecrivain.SetVectorErrorAbs (&erreurAbs); // On lui donne le vecteur des erreurs absolues
         ecrivain.WriteNow (); // Maintenant on lui demande d'écrire les fichiers !!
 
-        // --- Affichage dans le terminal
+        // ---- Affichage dans le terminal ----
         std::cout << "O2FID : Équation de la Laplace" << std::endl;
         std::cout << "\tDim = 3D" << std::endl;
         std::cout << "\tOuvert = [" << maillage.GetBounds () [0] << "]x[" << maillage.GetBounds ()[1] << "]" << std::endl;
@@ -95,9 +84,7 @@ int main(int argc, char* argv[])
         std::cout << "\nFichiers d'écriture : Laplace_3D" << std::endl;
     }
 
-
 // ------------------------------------------------------------------------------------------------
-
 
     //!!
     /// -------- Équation de la chaleur  -------
@@ -106,51 +93,28 @@ int main(int argc, char* argv[])
         double coeffChaleur = 14.5; // Exemple
         double dt = 1e-6; // Exemple
         double T = 3; // Exemple temps limite
-        int nombreIteration = int (T / dt); // Nombre d'itération temporelle
+        int nombreIterations = int (T / dt); // Nombre d'itération temporelles
 
 
-        // ---- Création du maillage ---
+        // ---- Création du maillage ----
         Mesh maillage = Mesh ();
 
-        maillage.SetBounds (Point(), Point (1)); // [0, 1]
+        maillage.SetBounds (Point (), Point (1)); // [0, 1]
 
         //! OBLIGATOIRE
         maillage.Build ();
 
-        // ---- Frontiere de Omega ---
-        Border frontiere = Border (&maillage);
-        frontiere.SetLevelSet (&phi);
-        std::vector <int> liste_index_points_frontiere = frontiere.MakeListOfIndexPoint ();
+        // ---- Frontiere de Omega ----
+        std::vector <int> liste_index_points_frontiere = MakeListOfIndexPoints (&maillage, &phi);
 
-        // ---- Construction de la matrice ---
-        MatrixBuilder construcMatrice = MatrixBuilder (&maillage);
-        construcMatrice.Set1D (); // On lui précise que la matrice sera un problème 1D
-        construcMatrice.SetDeltaT (dt); // On lui précise le dt
-        Matrix matrice = construcMatrice.MakeHeatEquation (coeffChaleur); // On construit la matrice du problème de la chaleur
+        // ---- Construction de la matrice ----
+        Matrix matrice = BuildMatrixHeatEquation (&maillage, dt, coeffChaleur); // On construit la matrice du problème de la chaleur
 
-        // ---- Création du Terme source ---
-        FunToVec construTermeSource = FunToVec (&maillage);
-
-        // ---- Imposition des conditions de Neumann ---
-        Impose imposeur = Impose (&maillage);
-        imposeur.SetIndexPoints (liste_index_points_frontiere);
-
-        // ---- Résolution du système en explicite ---
-        Solver resolveur = Solver (&maillage);
-        resolveur.SetSolverToExplicit (); // On lui dit que ça va être une résolution en explicite
-
-        // ---- Création du vecteur de solution analytique ---
-        FunToVec construSolAna = FunToVec (&maillage);
-
-        // ---- Calcul des erreurs
-        ErrorsBuilder construcErreurs = ErrorsBuilder (&maillage);
-
-        // --- Écriture des fichiers ---
+        // ---- Écriture des fichiers ----
         Writer ecrivain = Writer (&maillage);
         ecrivain.SetFilename ("Chaleur_1D"); // On lui dit sous quel nom le sauver
 
-
-        // --- Affichage dans le terminal
+        // ---- Affichage dans le terminal ----
         std::cout << "O2FID : Équation de la Laplace" << std::endl;
         std::cout << "\tDim = 3D" << std::endl;
         std::cout << "\tOuvert = [" << maillage.GetBounds () [0] << "]x[" << maillage.GetBounds ()[1] << "]" << std::endl;
@@ -159,32 +123,30 @@ int main(int argc, char* argv[])
         std::cout << "\tNz = " << maillage.Get_Nz () << "; hz = " << maillage.Get_hz () << std::endl;
         std::cout << "\tNombre total de points = " << maillage.GetNumberOfTotalPoints () << std::endl;
 
-        // ---- Résolution ---
-        for (int i = 0; i < nombreIteration ; i++)
+        // ---- Résolution ----
+        for (int i = 0; i < nombreIterations ; i++)
         {
             std::cout << "\nOn résout pour le temps t = " << double (i) * dt << std::endl;
 
-            // ---- Création du Terme source ---
-            Vector secondMembre = construTermeSource.Make (&f);
+            // ---- Création du Terme source ----
+            Vector secondMembre = FunToVec (&maillage, &f_chaleur, double (i) * dt);
 
-            // ---- Imposition des conditions de Neumann ---
-            secondMembre -= imposeur.MakeNeumann (&matrice, &g); // On soustrait on second membre les conditions qu'on impose
+            // ---- Imposition des conditions de Neumann ----
+            secondMembre -= ImposeNeumann (&maillage, &matrice, &g_chaleur, liste_index_points_frontiere, double (i) * dt); // On soustrait on second membre les conditions qu'on impose
 
-            // ---- Résolution du système en explicite ---
-            Vector solution_numerique = resolveur.Solve (matrice, secondMembre);
+            // ---- Résolution du système en explicite ----
+            Vector solution_numerique = Solve (matrice, secondMembre, EXPLICIT);
 
-            // ---- Création du vecteur de solution analytique ---
-            Vector solution_analytique = construSolAna.Make (&f);
+            // ---- Création du vecteur de solution analytique ----
+            Vector solution_analytique = FunToVec (&maillage, &f_chaleur, double (i) * dt);
 
-            // ---- Calcul des erreurs
-            construcErreurs.SetVectorNumerical (&solution_numerique);
-            construcErreurs.SetVectorAnalytical (&solution_analytique);
-            double erreurL2 = construcErreurs.GetErrorL2 ();
-            double erreurLinf = construcErreurs.GetErrorLinf ();
-            double erreurRela = construcErreurs.GetErrorRela ();
-            Vector erreurAbs = construcErreurs.GetErrorAbs ();
+            // ---- Calcul des erreurs ----
+            double erreurL2 = GetErrorL2 (&maillage, solution_analytique, solution_numerique);
+            double erreurLinf = GetErrorLinf (&maillage, solution_analytique, solution_numerique);
+            double erreurRela = GetErrorRela (&maillage, solution_analytique, solution_numerique);
+            Vector erreurAbs = GetErrorAbs(&maillage, solution_analytique, solution_numerique);
 
-            // --- Écriture des fichiers ---
+            // ---- Écriture des fichiers ----
             ecrivain.SetCurrentIteration (i); // Il n'y a pas d'itération sur le temps donc 0
             ecrivain.SetVectorNumerical (&solution_numerique);
             ecrivain.SetVectorAnalytical (&solution_analytique);
@@ -201,18 +163,21 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-double phi (Point a)
+double phi (Point a, double t)
 {
+    (void)t;
     return 0. * (a.x + a.y + a.z);
 }
 
-double f (Point a)
+double f_laplace (Point a, double t)
 {
+    (void)t;
     return 0. * (a.x + a.y + a.z);
 }
 
-double g (Point a)
+double g_laplace (Point a, double t)
 {
+    (void)t;
     return 0. * (a.x + a.y + a.z);
 }
 

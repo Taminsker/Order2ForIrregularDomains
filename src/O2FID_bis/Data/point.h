@@ -13,15 +13,6 @@
 class Cell;
 
 /**
- * @brief Enumerateur pour la localisation des points.
- */
-typedef enum
-{
-    BORDER,
-    DOMAIN
-} POINT_LOCATE;
-
-/**
  * @brief La classe Point implémente les informations nécessaires pour définir un point.
  * Cette classe met permet des points 3D via plusieurs constructeurs. L'opérateur d'égalité est aussi surchargé ainsi que l'opérateur d'affichage.
  */
@@ -59,23 +50,7 @@ public:
      * @param c double.
      */
     Point (double a, double b = 0., double c = 0.);
-
-    /**
-     * @brief Destructeur
-     */
     ~Point ();
-
-    /**
-     * @brief SetLocate
-     * @param loc
-     */
-    void SetLocate (int loc);
-
-    /**
-     * @brief GetLocate
-     * @return
-     */
-    bool GetLocate ();
 
     /**
      * @brief operator == : operateur de test d'égalité sur les 3 coordonnées.
@@ -92,15 +67,7 @@ public:
     friend std::ostream & operator<< (std::ostream &out, const Point &p);
 
 protected:
-    /**
-     * @brief Liste des cellules connectées en ce point
-     */
-    std::vector <Cell *> m_cells;
-
-    /**
-     * @brief m_locate
-     */
-    bool m_locate;
+    std::vector <Cell *> m_cells; /**< Liste des cellules connectées en ce point. **/
 };
 
 /**

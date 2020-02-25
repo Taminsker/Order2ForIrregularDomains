@@ -118,27 +118,12 @@ int Mesh::Get_Nz () const
     return m_Nz;
 }
 
-double Mesh::Get_hx () const
-{
-    return m_hx;
-}
-
-double Mesh::Get_hy () const
-{
-    return m_hy;
-}
-
-double Mesh::Get_hz () const
-{
-    return m_hz;
-}
-
 int Mesh::GetNumberOfTotalPoints () const
 {
     return int (m_points.size ());
 }
 
-void Mesh::Print () const
+void Mesh::Print ()
 {
     std::cout << "-- MESH CLASS INTERNAL PRINT ---" << std::endl;
     std::cout << "Origin  = " << m_origin << std::endl;
@@ -160,7 +145,7 @@ void Mesh::Print () const
     return;
 }
 
-int Mesh::Index (int i, int j, int k) const
+int Mesh::Index (int i, int j, int k)
 {
     return int ((k * m_Ny + j) * m_Nx + i);
 }

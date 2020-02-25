@@ -3,6 +3,6 @@
 
 #include "point.h"
 #include "cell.h"
-#include "datatypedefinitions.h"
+#include "typedefinitions.h"
 
 #endif // DATA_H
