@@ -11,7 +11,9 @@
  */
 
 /**
- * @brief Cette fonction prend en argument un pointeur vers un object Mesh, une fonction qui retourne un double et qui prend en arguments un point de la classe Point et un double représentant le temps .
+ * @brief Cette fonction prend en argument un pointeur vers un object Mesh,
+          une fonction qui retourne un double et qui prend en arguments un point
+          de la classe Point et un double représentant le temps .
  * @param mesh pointeur vers un maillage.
  * @param f pointeur vers une fonction définit sur des coordonnées spatiales et une cooordonnée temporelle t.
  * @param t la coordonnée temporelle utilisée pour construire le vecteur.

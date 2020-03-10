@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 
         // ---- Calcul des erreurs ----
 
-        double erreurL2 = GetErrorL2 (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur L2
+        double erreurL2 = GetErrorL1 (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur L2
         double erreurLinf = GetErrorLinf (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur Linf
         double erreurRela = GetErrorRela (&maillage, solution_analytique, solution_numerique); // On récupère l'erreur relative
         Vector erreurAbs = GetErrorAbs(&maillage, solution_analytique, solution_numerique); // On récupère le vecteur d'erreurs en valeur absolue
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
             Vector solution_analytique = FunToVec (&maillage, &f_chaleur, double (i) * dt);
 
             // ---- Calcul des erreurs ----
-            double erreurL2 = GetErrorL2 (&maillage, solution_analytique, solution_numerique);
+            double erreurL2 = GetErrorL1 (&maillage, solution_analytique, solution_numerique);
             double erreurLinf = GetErrorLinf (&maillage, solution_analytique, solution_numerique);
             double erreurRela = GetErrorRela (&maillage, solution_analytique, solution_numerique);
             Vector erreurAbs = GetErrorAbs(&maillage, solution_analytique, solution_numerique);

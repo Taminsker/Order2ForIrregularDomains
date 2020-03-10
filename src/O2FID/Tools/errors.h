@@ -5,6 +5,8 @@
 #include "../Mesh/mesh.h"
 #include "../Data/data.h"
 
+#include <Eigen/Dense>
+
 /*!
  *  \addtogroup Outils
  *  @{
@@ -17,7 +19,7 @@
  * @param u_num un vecteur de la solution numérique sur le maillage
  * @return \f$\|u_{ana} - u_{num}\|_{L^2}\f$
  */
-double GetErrorL2 (Mesh * mesh,
+double GetErrorL1 (Mesh * mesh,
                    const Vector &u_ana,
                    const Vector &u_num);
 
