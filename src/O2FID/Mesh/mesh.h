@@ -86,41 +86,6 @@ public:
     Point operator() (int i, int j, int k) const;
 
     /**
-     * @brief operator +
-     * @param a
-     * @return
-     */
-    Point operator+ (const Point & a);
-
-    /**
-     * @brief operator -
-     * @param a
-     * @return
-     */
-    Point operator- (const Point & a);
-
-    /**
-     * @brief operator *
-     * @param v
-     * @return
-     */
-    Point operator* (double v);
-
-    /**
-     * @brief operator /
-     * @param v
-     * @return
-     */
-    Point operator/ (double v);
-
-    /**
-     * @brief ForceDimensionTo
-     * @param dim
-     * @return
-     */
-    int ForceDimensionTo (int dim);
-
-    /**
      * @brief GetDimension
      * @return
      */
@@ -180,21 +145,16 @@ public:
     void Print () const;
 
     /**
-     * @brief SortPoints
-     */
-    void SortPoints ();
-
-    /**
      * @brief AddPointOnBorder
      * @param a
      */
-    void AddPointOnBorder (Point a);
+    int AddPointOnBorder (Point a);
 
     /**
      * @brief AddPointOnDomain
      * @param a
      */
-    void AddPointOnDomain (Point a);
+    int AddPointOnDomain (Point a);
 
     /**
      * @brief GetListOfIndexPoints

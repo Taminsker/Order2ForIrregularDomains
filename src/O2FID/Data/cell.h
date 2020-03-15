@@ -50,7 +50,7 @@ public:
      * @brief Ajout du point p à la cellule
      * @param p Point
      */
-    void AddPoint (const Point &p);
+    void AddPoint (Point &p);
 
     /**
      * @brief Retourne la cellule située au Nord
@@ -107,11 +107,6 @@ private:
      * @brief Liste des points de la cellule
      */
     std::vector<Point *> m_points;
-
-    /**
-     * @brief Barycentre de la cellule.
-     */
-    Point * m_bary;
 };
 
 #endif // CELL_H
