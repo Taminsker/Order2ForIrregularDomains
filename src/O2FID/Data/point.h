@@ -35,7 +35,8 @@ public:
     double x = 0.;
     /**
      * @brief Coordonnée z du point.
-     */double y = 0.;
+     */
+    double y = 0.;
     /**
      * @brief Coordonnée y du point.
      */
@@ -75,13 +76,41 @@ public:
      * @brief GetLocate
      * @return
      */
-    bool GetLocate ();
+    int GetLocate () const;
 
     /**
      * @brief operator == : operateur de test d'égalité sur les 3 coordonnées.
      * @param p Point
      */
     bool operator== (const Point &p);
+
+    /**
+     * @brief operator +
+     * @param a
+     * @return
+     */
+    Point operator+ (const Point & a);
+
+    /**
+     * @brief operator -
+     * @param a
+     * @return
+     */
+    Point operator- (const Point & a);
+
+    /**
+     * @brief operator *
+     * @param v
+     * @return
+     */
+    Point operator* (double v);
+
+    /**
+     * @brief operator /
+     * @param v
+     * @return
+     */
+    Point operator/ (double v);
 
     /**
      * @brief operator << : utiliser pour std::cout << p << std::endl, similaire à printf ("%f, %f, %f", p.x, p.y, p.z).
@@ -100,7 +129,7 @@ protected:
     /**
      * @brief m_locate
      */
-    bool m_locate;
+    int m_locate;
 };
 
 /**

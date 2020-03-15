@@ -16,6 +16,17 @@ Point::Point (double a, double b, double c) :
 
 Point::~Point () {}
 
+void Point::SetLocate (int loc)
+{
+    m_locate = loc;
+    return;
+}
+
+int Point::GetLocate () const
+{
+    return m_locate;
+}
+
 bool Point::operator== (const Point &p)
 {
     double eps = 1e-6;
@@ -24,6 +35,28 @@ bool Point::operator== (const Point &p)
             fabs (z - p.z) < eps)
         return true;
     return false;
+}
+
+Point Point::operator+ (const Point &a)
+{
+    return Point (x + a.x, y + a.y, z + a.z);
+}
+
+Point Point::operator- (const Point &a)
+{
+    return Point (x - a.x, y - a.y, z - a.z);
+}
+
+Point Point::operator* (double v)
+{
+    return Point (v * x, v * y, v * z);
+}
+
+Point Point::operator/ (double v)
+{
+    if (std::abs(v) < 1e-10)
+        return *this;
+    return Point (x / v, y / v, z / v);
 }
 
 std::ostream & operator<< (std::ostream &out, const Point &p)

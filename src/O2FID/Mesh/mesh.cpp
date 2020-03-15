@@ -59,7 +59,7 @@ void Mesh::Build ()
     m_hy = (m_extrema.y - m_origin.y) / double (std::max (m_Ny - 1, 1));
     m_hz = (m_extrema.z - m_origin.z) / double (std::max (m_Nz - 1, 1));
 
-    double eps = 1e-7;
+    double eps = 1e-8;
     if (m_hx < eps)
         m_Nx = 1;
     if (m_hy < eps)
@@ -67,7 +67,7 @@ void Mesh::Build ()
     if (m_hz < eps)
         m_Nz = 1;
 
-    m_points = std::vector<Point> (int (m_Nx * m_Ny * m_Nz));
+    m_points = std::vector<Point> (static_cast<unsigned int> (m_Nx * m_Ny * m_Nz));
 
     for (int i = 0; i < m_Nx; ++i)
     {
@@ -81,7 +81,7 @@ void Mesh::Build ()
             {
                 double z = m_origin.z + k * m_hz;
 
-                m_points [Index (i, j, k)] = Point (x, y, z);
+                m_points [static_cast<unsigned int> (Index (i, j, k))] = Point (x, y, z);
             }
         }
     }
@@ -91,17 +91,28 @@ void Mesh::Build ()
 
 Point Mesh::operator() (int index) const
 {
-    return m_points [index];
+    return m_points [static_cast<unsigned int>(index)];
+}
+
+Point Mesh::operator()(int i, int j, int k) const
+{
+    return m_points [static_cast<unsigned int>(Index (i, j, k))];
+}
+
+int Mesh::GetDimension ()
+{
+    return m_dim;
 }
 
 std::vector<Point> Mesh::GetBounds () const
 {
-    auto r = std::vector<Point> (2);
+    std::vector<Point> r = std::vector<Point> (2);
     r [0] = m_origin;
     r [1] = m_extrema;
 
     return r;
 }
+
 
 int Mesh::Get_Nx () const
 {
@@ -155,9 +166,34 @@ void Mesh::Print () const
             for (int i = 0; i < m_Nx; ++i)
             {
                 int index = Index (i, j, k);
-                std::cout << "p_" << index << ":\t" << m_points [index] << std::endl;
+                std::cout << "p_" << index << ":\t" << m_points [static_cast<unsigned int>(index)] << std::endl;
             }
     return;
+}
+
+int Mesh::AddPointOnBorder (Point a)
+{
+    a.SetLocate (ON_BORDER_OMEGA);
+    m_points.push_back (a);
+    return m_points.size () - 1;
+}
+
+int Mesh::AddPointOnDomain (Point a)
+{
+    a.SetLocate (ON_DOMAIN_OMEGA);
+    m_points.push_back (a);
+    return m_points.size () - 1;
+}
+
+std::vector <int> Mesh::GetListOfIndexPoints ()
+{
+    std::vector <int> indexes = {};
+    for (unsigned int i = 0; i < m_points.size (); ++i)
+    {
+        if (m_points.at (i).GetLocate () == ON_BORDER_OMEGA)
+            indexes.push_back (int (i));
+    }
+    return indexes;
 }
 
 int Mesh::Index (int i, int j, int k) const
