@@ -81,7 +81,9 @@ void Mesh::Build ()
             {
                 double z = m_origin.z + k * m_hz;
 
-                m_points [static_cast<unsigned int> (Index (i, j, k))] = Point (x, y, z);
+                Point p = Point (x, y, z);
+                p.SetGlobalIndex (Index (i, j, k));
+                m_points [static_cast<unsigned int> (Index (i, j, k))] = p;
             }
         }
     }
@@ -174,6 +176,7 @@ void Mesh::Print () const
 int Mesh::AddPointOnBorder (Point a)
 {
     a.SetLocate (ON_BORDER_OMEGA);
+    a.SetGlobalIndex (m_points.size ());
     m_points.push_back (a);
     return m_points.size () - 1;
 }
@@ -181,6 +184,7 @@ int Mesh::AddPointOnBorder (Point a)
 int Mesh::AddPointOnDomain (Point a)
 {
     a.SetLocate (ON_DOMAIN_OMEGA);
+    a.SetGlobalIndex (m_points.size ());
     m_points.push_back (a);
     return m_points.size () - 1;
 }

@@ -67,6 +67,17 @@ public:
     ~Point ();
 
     /**
+     * @brief SetGlobalIndex
+     * @param index
+     */
+    void SetGlobalIndex (int index);
+
+    /**
+     * @brief GetGlobalIndex
+     * @return
+     */
+    int GetGlobalIndex ();
+    /**
      * @brief SetLocate
      * @param loc
      */
@@ -77,6 +88,22 @@ public:
      * @return
      */
     int GetLocate () const;
+
+    /**
+     * @brief ClearListNeighboors
+     */
+    void ClearListNeighboors ();
+
+    /**
+     * @brief AddPointNeighbour
+     */
+    void AddPointNeighbour (Point p);
+
+    /**
+     * @brief GetListNeighbours
+     * @return
+     */
+    std::vector <Point> GetListNeighbours ();
 
     /**
      * @brief operator == : operateur de test d'égalité sur les 3 coordonnées.
@@ -130,6 +157,16 @@ protected:
      * @brief m_locate
      */
     int m_locate;
+
+    /**
+     * @brief m_globalIndex
+     */
+    int m_globalIndex;
+
+    /**
+    * @brief m_listNeighbours
+    */
+    std::vector<Point> m_listNeighbours;
 };
 
 /**

@@ -145,6 +145,15 @@ public:
     void Print () const;
 
     /**
+     * @brief TagPoint
+     * @param i
+     * @param j
+     * @param k
+     * @param tag
+     */
+    void TagPoint (int i, int j, int k, int tag);
+
+    /**
      * @brief AddPointOnBorder
      * @param a
      */

@@ -16,6 +16,17 @@ Point::Point (double a, double b, double c) :
 
 Point::~Point () {}
 
+void Point::SetGlobalIndex (int index)
+{
+    m_globalIndex = index;
+    return;
+}
+
+int Point::GetGlobalIndex ()
+{
+    return m_globalIndex;
+}
+
 void Point::SetLocate (int loc)
 {
     m_locate = loc;
@@ -25,6 +36,23 @@ void Point::SetLocate (int loc)
 int Point::GetLocate () const
 {
     return m_locate;
+}
+
+void Point::AddPointNeighbour (Point p)
+{
+    m_listNeighbours.push_back (p);
+    return;
+}
+
+void Point::ClearListNeighboors ()
+{
+    m_listNeighbours.clear ();
+    return;
+}
+
+std::vector <Point> Point::GetListNeighbours ()
+{
+    return m_listNeighbours;
 }
 
 bool Point::operator== (const Point &p)

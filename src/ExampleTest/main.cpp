@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
         Vector secondMembre = FunToVec (&maillage, &f_laplace); // On construit le second membre associé à la fonction f
 
         // ---- Imposition des conditions de Dirichlet ----
-        secondMembre -= ImposeDirichlet (&maillage, &matrice, &g_laplace, liste_index_points_frontiere); // On soustrait on second membre les conditions qu'on impose
+        secondMembre ;//-= ImposeDirichlet (maillage, &matrice, &g_laplace, liste_index_points_frontiere); // On soustrait on second membre les conditions qu'on impose
 
         // ---- Résolution du système en implicite ----
         Vector solution_numerique = Solve (matrice, secondMembre, IMPLICIT); // On résout en précisant la matrice et le second membre
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
         std::vector <int> liste_index_points_frontiere = MakeListOfIndexPoints (&maillage, &phi);
 
         // ---- Construction de la matrice ----
-        Matrix matrice = BuildMatrixHeatEquation (&maillage, dt, coeffChaleur); // On construit la matrice du problème de la chaleur
+        Matrix matrice; //= BuildMatrixHeatEquation (&maillage, dt, coeffChaleur); // On construit la matrice du problème de la chaleur
 
         // ---- Écriture des fichiers ----
         Writer ecrivain = Writer (&maillage);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
             Vector secondMembre = FunToVec (&maillage, &f_chaleur, double (i) * dt);
 
             // ---- Imposition des conditions de Neumann ----
-            secondMembre -= ImposeNeumann (&maillage, &matrice, &g_chaleur, liste_index_points_frontiere, double (i) * dt); // On soustrait on second membre les conditions qu'on impose
+            secondMembre -= ImposeNeumann (maillage, &matrice, &g_chaleur, &phi, liste_index_points_frontiere, double (i) * dt); // On soustrait on second membre les conditions qu'on impose
 
             // ---- Résolution du système en explicite ----
             Vector solution_numerique = Solve (matrice, secondMembre, EXPLICIT);
