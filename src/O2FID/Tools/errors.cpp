@@ -28,12 +28,12 @@ Vector GetErrorAbs (Mesh * mesh,
                     const Vector &u_ana,
                     const Vector &u_num)
 {
-
+  return (u_ana - u_num).cwiseAbs ();
 }
 
 double GetErrorRela (Mesh * mesh,
                      const Vector &u_ana,
                      const Vector &u_num)
 {
-
+  return ( (u_ana - u_num).squaredNorm () ) / u_ana.squaredNorm ();
 }
