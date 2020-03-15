@@ -21,10 +21,10 @@ Matrix BuildMatrixLaplaceEquation (Mesh * mesh);
  * @brief Cette fonction retourne une sparsematrix du problème de Laplace sans préoccupation des conditions aux limites
  * @param mesh un pointeur vers un objet Mesh
  * @param dt un réel
- * @param coeff le coefficient de l'équation de la chaleur
- * @return Matrix du problème de Laplace
+ * @param D le coefficient de l'équation de la chaleur
+ * @return Matrix du problème de la chaleur
  */
-Matrix BuildMatrixHeatEquation (Mesh * mesh, double dt, double coeff);
+Matrix BuildMatrixHeatEquation (Mesh * mesh, double dt, double D,int TYPE);
 
 /*! @} End of Doxygen Groups*/
 

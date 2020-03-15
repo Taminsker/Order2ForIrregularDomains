@@ -4,6 +4,7 @@
 #define TYPEDEFINITIONS_H
 
 #include <Eigen/Sparse>
+#include <Eigen/Dense>
 
 /**
  * @brief Abréviation du type Matrix
