@@ -3,6 +3,7 @@
 #define WRITER_H
 
 #include <string>
+#include <fstream>
 
 #include "../Data/data.h"
 #include "../Mesh/mesh.h"
@@ -49,12 +50,12 @@ public:
     /**
      * @brief WriteBothDomainsOn
      */
-    void WriteBothDomainsOn ();
+    void SetWriteBothDomainsOn ();
 
     /**
      * @brief WriteBothDomainsOff
      */
-    void WriteBothDomainsOff ();
+    void SetWriteBothDomainsOff ();
 
     /**
      * @brief SetCurrentIteration
@@ -80,7 +81,10 @@ protected:
      */
     int m_index;
 
-    bool m_domain;
+    /**
+     * @brief m_domain
+     */
+    bool m_bothDomain;
 
     /**
      * @brief m_sol_num
@@ -98,4 +102,5 @@ protected:
     Vector * m_error_abs;
 };
 
+void WriteInFile (std::ofstream &file, std::string name, Vector * vec);
 #endif // WRITER_H

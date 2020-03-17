@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
     (void)argc;
     (void)argv;
 
+
     //!!
     /// -------- Problème de Laplace  -------
     //!!
@@ -62,7 +63,7 @@ int main(int argc, char* argv[])
         // ---- Écriture des fichiers ----
         Writer ecrivain = Writer (&maillage); // Création du monsieur qui va sauver les fichiers
         ecrivain.SetFilename ("Laplace_3D"); // On lui dit sous quel nom le sauver
-        ecrivain.WriteBothDomainsOff (); // On lui dit d'écrire que ce qui est dans le domaine Omega 1
+        ecrivain.SetWriteBothDomainsOff (); // On lui dit d'écrire que ce qui est dans le domaine Omega 1
         ecrivain.SetCurrentIteration (0); // Il n'y a pas d'itération sur le temps donc 0
         ecrivain.SetVectorNumerical (&solution_numerique); // On lui donne la solution numerique
         ecrivain.SetVectorAnalytical (&solution_analytique); // On lui donne la solution analytique

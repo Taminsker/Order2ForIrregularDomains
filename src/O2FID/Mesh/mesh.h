@@ -83,13 +83,77 @@ public:
      * @param k
      * @return
      */
+    Point GetPoint (int i, int j, int k) const;
+
+    /**
+     * @brief Retourne le i-ème point du maillage.
+     * @param i int numéro du point
+     * @return Point
+     */
+    Point GetPoint (int i) const;
+
+    /**
+     * @brief GetPoint
+     * @param i
+     * @param j
+     * @param k
+     * @return
+     */
+    Point * GetPointPtr (int i, int j, int k);
+
+    /**
+     * @brief GetPoint
+     * @param i
+     * @return
+     */
+    Point * GetPointPtr (int i);
+
+    /**
+     * @brief operator ()
+     * @param i
+     * @param j
+     * @param k
+     * @return
+     */
     Point operator() (int i, int j, int k) const;
+
+    /**
+     * @brief GetCell
+     * @param i
+     * @param j
+     * @param k
+     * @return
+     */
+    Cell GetCell (int i, int j, int k) const;
+
+    /**
+     * @brief GetCell
+     * @param i
+     * @return
+     */
+    Cell GetCell (int i) const;
+
+    /**
+     * @brief GetCellPtr
+     * @param i
+     * @param j
+     * @param k
+     * @return
+     */
+    Cell * GetCellPtr (int i, int j, int k);
+
+    /**
+     * @brief GetCellPtr
+     * @param i
+     * @return
+     */
+    Cell * GetCellPtr (int i);
 
     /**
      * @brief GetDimension
      * @return
      */
-    int GetDimension ();
+    DIM GetDimension ();
 
     /**
      * @brief Retourne un vecteur contenant Origin et Extrema.
@@ -140,6 +204,12 @@ public:
     int GetNumberOfTotalPoints () const;
 
     /**
+    * @brief GetNumberOfTotalCells
+    * @return
+    */
+    int GetNumberOfTotalCells () const;
+
+    /**
      * @brief Affiche à l'écran les infos et la liste de points.
      */
     void Print () const;
@@ -151,25 +221,45 @@ public:
      * @param k
      * @param tag
      */
-    void TagPoint (int i, int j, int k, int tag);
+    void TagPoint (int i, int j, int k, POINT_LOCATION tag);
+
+    /**
+     * @brief TagPoint
+     * @param index
+     * @param tag
+     */
+    void TagPoint (int index, POINT_LOCATION tag);
 
     /**
      * @brief AddPointOnBorder
      * @param a
      */
-    int AddPointOnBorder (Point a);
+    void AddPointOnBorder (Point a);
 
     /**
      * @brief AddPointOnDomain
      * @param a
      */
-    int AddPointOnDomain (Point a);
+    void AddPointOnDomain (Point a, POINT_LOCATION tag = ON_DOMAIN_EXTERN_OMEGA);
 
     /**
      * @brief GetListOfIndexPoints
      * @return
      */
-    std::vector <int> GetListOfIndexPoints ();
+    std::vector <int> GetListOfIndexPoints (POINT_LOCATION tag = ON_BORDER_OMEGA);
+
+    /**
+     * @brief GetListOfIndexCells
+     * @param tag
+     * @return
+     */
+    std::vector <int> GetListOfIndexCells (CELL_LOCATION tag = IN_DOMAIN_INTERN_OMEGA);
+
+    /**
+     * @brief GetNumberOfInfosCells
+     * @return
+     */
+    int GetNumberOfInfosCells () const;
 
 protected:
 
@@ -178,7 +268,10 @@ protected:
      */
     std::vector<Point> m_points;
 
-    int m_dim;
+    /**
+     * @brief Vecteur de Cell.
+     */
+    std::vector<Cell> m_cells;
 
     /**
      * @brief Point d'origine du maillage.
@@ -227,7 +320,9 @@ protected:
      * @param k int ordre dans la direction z
      * @return index int index global
      */
-    int Index (int i, int j, int k) const;
+    int IndexPoints (int i, int j, int k) const;
+    int IndexCells (int i, int j, int k) const;
+
 };
 
 #endif // MESH_H

@@ -41,9 +41,9 @@ Vector ImposeNeumann (Mesh &mesh,
             phi_neigh [j] = phi (neigh.at (j), t);
 
         // Stock l'index du point qui est dans la zone (+) du domaine
-        int index_normal;
+        int index_n;
         // Récupère l'indice du point de la normale
-        double coeff = phi_neigh.maxCoeff (&index_normal); // Récupère l'indice du phi max
+        double coeff = phi_neigh.maxCoeff (&index_n); // Récupère l'indice du phi max
 
         if (coeff <= 0) // Oups il semblerait qu'aucun des points de voisinages ne soit à l'exterieur du domaine
         {
@@ -53,7 +53,7 @@ Vector ImposeNeumann (Mesh &mesh,
         }
 
         // Récupère le point "normal"
-        Point p_normal = mesh (neigh.at (index_normal).GetGlobalIndex ());
+        Point p_normal = mesh (neigh.at (index_n).GetGlobalIndex ());
         Point diff = (p_normal - p);
 
         // u_p = u_N - g (x_p) * h
@@ -70,5 +70,5 @@ Vector ImposeNeumann (Mesh &mesh,
     }
 
     sparsematrix->makeCompressed ();
-    return;
+    return cond_border;
 }

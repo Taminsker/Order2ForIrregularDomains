@@ -89,14 +89,14 @@ Matrix BuildMatrixHeatEquation (Mesh * mesh, double dt, double D, int TYPE)
 
 //  // On construit la partie supérieure de la matrice à partir de la liste de triplets
 
-//  SparseMatrix<double, RowMajor> A (N, N);
+//  Matrix A (N, N);
 //  A.setFromTriplets(ListOfTriplets.begin(), ListOfTriplets.end());
 
 //  // Si on résout en explicite, A devient -A + 2*identité
 
 //  if (TYPE == EXPLICIT)
 //  {
-//    SparseMatrix<double, RowMajor> C (N, N);
+//    Matrix C (N, N);
 //    C.setIdentity ();
 //    A *= -1.;
 //    A += 2. * C;

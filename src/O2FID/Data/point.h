@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <initializer_list>
 
 #define SPACE std::left << std::setw(12)
 
@@ -18,7 +19,8 @@ class Cell;
 typedef enum
 {
     ON_BORDER_OMEGA,
-    ON_DOMAIN_OMEGA
+    ON_DOMAIN_INTERN_OMEGA,
+    ON_DOMAIN_EXTERN_OMEGA
 } POINT_LOCATION;
 
 /**
@@ -37,6 +39,7 @@ public:
      * @brief Coordonnée z du point.
      */
     double y = 0.;
+
     /**
      * @brief Coordonnée y du point.
      */
@@ -81,13 +84,13 @@ public:
      * @brief SetLocate
      * @param loc
      */
-    void SetLocate (int loc);
+    void SetLocate (POINT_LOCATION loc);
 
     /**
      * @brief GetLocate
      * @return
      */
-    int GetLocate () const;
+    POINT_LOCATION GetLocate () const;
 
     /**
      * @brief ClearListNeighboors
@@ -140,6 +143,13 @@ public:
     Point operator/ (double v);
 
     /**
+     * @brief operator *
+     * @param v
+     * @return
+     */
+    Point operator* (int v);
+
+    /**
      * @brief operator << : utiliser pour std::cout << p << std::endl, similaire à printf ("%f, %f, %f", p.x, p.y, p.z).
      * @param p Point
      * @param out flux
@@ -156,7 +166,7 @@ protected:
     /**
      * @brief m_locate
      */
-    int m_locate;
+    POINT_LOCATION m_locate;
 
     /**
      * @brief m_globalIndex
