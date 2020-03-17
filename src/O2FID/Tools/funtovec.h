@@ -26,7 +26,7 @@ Vector FunToVec (Mesh * mesh, double (*f) (Point, double), double t = 0.);
  * @brief Cette fonction prend en argument un pointeur vers un object Mesh et un simple double.
  * @param mesh pointeur vers un maillage.
  * @param value valeur qui initialise tout le vecteur à cette valeur.
- * @return Vector vecteur sur le maillage.
+ * @return Vector vecteur sur le maillage initialisé à la valeur value.
  * @see La classe Point et la classe Mesh.
  *
  */
