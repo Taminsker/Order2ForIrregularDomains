@@ -28,6 +28,17 @@ Vector ImposeDirichlet (Mesh &mesh,
                         std::vector <int> listIndex,
                         double t = 0.);
 
+
+/**
+  * @brief Énumération sur le degré de l'interpolation utilisée pour imposer une condition de Neumann
+  */
+typedef enum {
+    DEGRE_1,
+    DEGRE_2
+} INTERPOLATION_NORMAL;
+
+static INTERPOLATION_NORMAL TYPE_INTERPOLATION = DEGRE_1;
+
 /**
  * @brief Cette fonction modifie la sparsematrix pour imposer la conditions de Neumann et elle retourne le vecteur des conditions imposées (voir calculs).
  * @param mesh un pointeur vers un objet Mesh

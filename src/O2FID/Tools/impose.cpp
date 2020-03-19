@@ -18,13 +18,13 @@ Vector ImposeNeumann (Mesh &mesh,
 {
 
     // Récupère le nombre points sur le bord
-    int NBorder = listIndex.size ();
+    size_t NBorder = listIndex.size ();
 
     // Créer le vecteur de conditions aux bords
     Vector cond_border (mesh.GetNumberOfTotalPoints ());
 
     // Boucle sur les indices des points sur le bords
-    for (int i = 0; i < NBorder; i++)
+    for (size_t i = 0; i < NBorder; i++)
     {
         // Récupère l'indice du point courant
         int index_p = listIndex.at (i);
@@ -36,14 +36,14 @@ Vector ImposeNeumann (Mesh &mesh,
         std::vector <Point> neigh = p.GetListNeighbours ();
 
         // Créer un vecteur des phi des voisins
-        Vector phi_neigh (neigh.size ());
-        for (int j = 0; j < neigh.size (); ++j)
-            phi_neigh [j] = phi (neigh.at (j), t);
+        Vector phi_neighbour (neigh.size ());
+        for (size_t j = 0; j < neigh.size (); ++j)
+            phi_neighbour (int (j)) = phi (neigh.at (j), t);
 
-        // Stock l'index du point qui est dans la zone (+) du domaine
+        // Stocke l'index du point qui est dans la zone (+) du domaine
         int index_n;
         // Récupère l'indice du point de la normale
-        double coeff = phi_neigh.maxCoeff (&index_n); // Récupère l'indice du phi max
+        double coeff = phi_neighbour.maxCoeff (&index_n); // Récupère l'indice du phi max
 
         if (coeff <= 0) // Oups il semblerait qu'aucun des points de voisinages ne soit à l'exterieur du domaine
         {
@@ -53,22 +53,27 @@ Vector ImposeNeumann (Mesh &mesh,
         }
 
         // Récupère le point "normal"
-        Point p_normal = mesh (neigh.at (index_n).GetGlobalIndex ());
+        int indexGlobal_p_normal = neigh.at (size_t (index_n)).GetGlobalIndex ();
+        Point p_normal = mesh.GetPoint (indexGlobal_p_normal);
         Point diff = (p_normal - p);
 
-        // u_p = u_N - g (x_p) * h
-        double h = std::max (diff.x, std::max (diff.y, diff.z)); // Définition de la distance entre le point p et p_normal
-        double g_p = g (p, t); // Définition de la valeur g (x_p)
+        if (TYPE_INTERPOLATION == DEGRE_1)
+        {
+            // u_p = u_N - g (x_p) * h
+            double h = std::max (diff.x, std::max (diff.y, diff.z)); // Définition de la distance entre le point p et p_normal
+            double g_p = g (p, t); // Définition de la valeur g (x_p)
 
-        sparsematrix->row (index_p) *= 0.; // Met la ligne_p à 0
-        cond_border += g_p * h * sparsematrix->col (index_p); // Passe les conditions aux limites de l'autre coté
+            sparsematrix->row (index_p) *= 0.; // Met la ligne_p à 0
+            cond_border += g_p * h * sparsematrix->col (index_p); // Passe les conditions aux limites de l'autre coté
 
-        sparsematrix->col (index_n) += sparsematrix->col (index_p); // Ajoute colonne_p à la colonne_n (correspond à remplace u_p par u_n)
+            sparsematrix->col (index_n) += sparsematrix->col (index_p); // Ajoute colonne_p à la colonne_n (correspond à remplace u_p par u_n)
 
-        sparsematrix->col (index_p) *= 0.; // Met la colonne_p à 0
-        sparsematrix->coeffRef (index_p, index_p) = 1.; // Ajoute le coefficient diagonal à 1;
+            sparsematrix->col (index_p) *= 0.; // Met la colonne_p à 0
+            sparsematrix->coeffRef (index_p, index_p) = 1.; // Ajoute le coefficient diagonal à 1;
+        }
     }
 
+    sparsematrix->pruned ();
     sparsematrix->makeCompressed ();
     return cond_border;
 }

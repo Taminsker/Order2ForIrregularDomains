@@ -14,7 +14,7 @@
 #include "../Data/data.h"
 
 /**
- * Énumérateur des différentes dimensions possibles
+ * @brief Énumérateur des différentes dimensions possibles
  */
 typedef enum {
     DIM_1D,
@@ -77,11 +77,11 @@ public:
     Point operator() (int i) const;
 
     /**
-     * @brief operator ()
-     * @param i
-     * @param j
-     * @param k
-     * @return
+     * @brief Retourne le point (i, j, k) ie le point situé sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return Point
      */
     Point GetPoint (int i, int j, int k) const;
 
@@ -93,65 +93,65 @@ public:
     Point GetPoint (int i) const;
 
     /**
-     * @brief GetPoint
-     * @param i
-     * @param j
-     * @param k
-     * @return
+     * @brief Retourne un pointeur vers le point (i, j, k) ie le point situé sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return Point*
      */
     Point * GetPointPtr (int i, int j, int k);
 
     /**
-     * @brief GetPoint
-     * @param i
-     * @return
+     * @brief Retourne un pointeur vers le i-ème point du maillage.
+     * @param i int numéro du point
+     * @return Point*
      */
     Point * GetPointPtr (int i);
 
     /**
-     * @brief operator ()
-     * @param i
-     * @param j
-     * @param k
-     * @return
+     * @brief Retourne le point (i, j, k) ie le point situé sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return Point
      */
     Point operator() (int i, int j, int k) const;
 
     /**
-     * @brief GetCell
-     * @param i
-     * @param j
-     * @param k
-     * @return
+     * @brief Retourne la cellule (i, j, k) ie la cellule située sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return Cell
      */
     Cell GetCell (int i, int j, int k) const;
 
     /**
-     * @brief GetCell
-     * @param i
-     * @return
+     * @brief Retourne la i-ème cellule du maillage.
+     * @param i int numéro de la cellule
+     * @return Cell
      */
     Cell GetCell (int i) const;
 
     /**
-     * @brief GetCellPtr
-     * @param i
-     * @param j
-     * @param k
-     * @return
+     * @brief Retourne un pointeur vers la cellule (i, j, k) ie la cellule située sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return Cell*
      */
     Cell * GetCellPtr (int i, int j, int k);
 
     /**
-     * @brief GetCellPtr
-     * @param i
-     * @return
+     * @brief Retourne un pointeur vers la i-ème cellule du maillage.
+     * @param i int numéro de la cellule
+     * @return Cell*
      */
     Cell * GetCellPtr (int i);
 
     /**
-     * @brief GetDimension
-     * @return
+     * @brief Retourne la dimension du maillage (voir l'énumération DIM)
+     * @return tag de l'énumération DIM
      */
     DIM GetDimension ();
 
@@ -204,9 +204,9 @@ public:
     int GetNumberOfTotalPoints () const;
 
     /**
-    * @brief GetNumberOfTotalCells
-    * @return
-    */
+     * @brief Retourne le nombre total de cellules du maillage.
+     * @return N int
+     */
     int GetNumberOfTotalCells () const;
 
     /**
@@ -215,49 +215,51 @@ public:
     void Print () const;
 
     /**
-     * @brief TagPoint
-     * @param i
-     * @param j
-     * @param k
-     * @param tag
+     * @brief Tague le point (i, j, k)
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @param tag un tag de POINT_LOCATION
      */
     void TagPoint (int i, int j, int k, POINT_LOCATION tag);
 
     /**
-     * @brief TagPoint
-     * @param index
-     * @param tag
+     * @brief Tague le index-ieme point
+     * @param index indice global du point
+     * @param tag un tag de POINT_LOCATION
      */
     void TagPoint (int index, POINT_LOCATION tag);
 
     /**
-     * @brief AddPointOnBorder
-     * @param a
+     * @brief Ajoute le point au maillage et le tag comme un point de bord (voir POINT_LOCATION)
+     * @param a le point considéré
      */
     void AddPointOnBorder (Point a);
 
     /**
-     * @brief AddPointOnDomain
-     * @param a
+     * @brief Ajoute le point au maillage et le tag comme un point de du maillage (voir POINT_LOCATION)
+     * @param a le point considéré
+     * @param tag voir POINT_LOCATION
      */
     void AddPointOnDomain (Point a, POINT_LOCATION tag = ON_DOMAIN_EXTERN_OMEGA);
 
     /**
-     * @brief GetListOfIndexPoints
-     * @return
+     * @brief Retourne un vecteur d'indices globaux de points avec le tag 'tag'
+     * @param tag voir POINT_LOCATION
+     * @return un vecteur d'indices globaux
      */
     std::vector <int> GetListOfIndexPoints (POINT_LOCATION tag = ON_BORDER_OMEGA);
 
     /**
-     * @brief GetListOfIndexCells
-     * @param tag
-     * @return
+     * @brief Retourne un vecteur d'indices globaux de cellules avec le tag 'tag'
+     * @param tag voir CELL_LOCATION
+     * @return un vecteur d'indices globaux
      */
     std::vector <int> GetListOfIndexCells (CELL_LOCATION tag = IN_DOMAIN_INTERN_OMEGA);
 
     /**
-     * @brief GetNumberOfInfosCells
-     * @return
+     * @brief Retourne le nombre total d'information sur les cellules disponibles (fonction utilisée pour écrire un fichier VTK, partie CELLS)
+     * @return N un entier
      */
     int GetNumberOfInfosCells () const;
 
@@ -314,15 +316,22 @@ protected:
     int m_Nz;
 
     /**
-     * @brief Retourne la position du point dans le vecteur de Point de numéro (i, j, k).
+     * @brief Retourne la position du point dans le vecteur de Point de numéro (i, j, k) ie son indice global.
      * @param i int ordre dans la direction x
      * @param j int ordre dans la direction y
      * @param k int ordre dans la direction z
-     * @return index int index global
+     * @return index int indice global
      */
     int IndexPoints (int i, int j, int k) const;
-    int IndexCells (int i, int j, int k) const;
 
+    /**
+     * @brief Retourne la position de la cellule dans le vecteur de Cell de numéro (i, j, k) ie son indice global.
+     * @param i int ordre dans la direction x
+     * @param j int ordre dans la direction y
+     * @param k int ordre dans la direction z
+     * @return index int indice global
+     */
+    int IndexCells (int i, int j, int k) const;
 };
 
 #endif // MESH_H

@@ -29,13 +29,13 @@ Il s'agira de commenter les actions les plus importantes effectuées dans les fo
 Cette fonction trouve les noeuds qui sont supposés définir la frontière $\Omega$ et elle les rajoute au maillage. Elle retourne ensuite les indices des points sur cette frontière.
 
 \subsection{Fichier errors}
-\textbf{GetErrorL2 :}\elodie
+\textbf{GetErrorL1 :}\elodie
 \begin{itemize}
 \item Un pointeur vers un objet Mesh,
 \item un vecteur de la solution analytique sur le maillage,
 \item et un vecteur de la solution numérique sur le maillage.
 \end{itemize}
-Cette fonction calcule $\|u_{ana} - u_{num}\|_{L^2}$.\\
+Cette fonction calcule $\|u_{ana} - u_{num}\|_{l^1}$.\\
 
 \textbf{GetErrorLinf :}\elodie
 \begin{itemize}
@@ -43,7 +43,7 @@ Cette fonction calcule $\|u_{ana} - u_{num}\|_{L^2}$.\\
 \item un vecteur de la solution analytique sur le maillage,
 \item et un vecteur de la solution numérique sur le maillage.
 \end{itemize}
-Cette fonction calcule $\|u_{ana} - u_{num}\|_{L^\infty}$.\\
+Cette fonction calcule $\|u_{ana} - u_{num}\|_{l^\infty}$.\\
 
 \textbf{GetErrorRela :}\alexis
 \begin{itemize}

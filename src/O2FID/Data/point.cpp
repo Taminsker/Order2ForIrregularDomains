@@ -4,8 +4,8 @@
 
 Point::Point () :
     x (0.), y (0.), z (0.),
-    m_locate (ON_DOMAIN_EXTERN_OMEGA),
-    m_globalIndex (-1)
+    m_locate (ON_DOMAIN_EXTERN_OMEGA), // Par défaut le point est considéré à l'extèrieur
+    m_globalIndex (-1) // Il n'a pas encore d'indice global
 {}
 
 Point::Point (const Point &p) :
@@ -17,7 +17,9 @@ Point::Point (const Point &p) :
 {}
 
 Point::Point (double a, double b, double c) :
-    x (a), y (b), z (c)
+    x (a), y (b), z (c),
+    m_locate (ON_DOMAIN_EXTERN_OMEGA), // Par défaut le point est considéré à l'extèrieur
+    m_globalIndex (-1) // Il n'a pas encore d'indice global
 {}
 
 Point::~Point () {}

@@ -3,6 +3,7 @@
 #include "mesh.h"
 
 Mesh::Mesh () :
+    m_origin (Point ()), m_extrema (Point ()),
     m_hx (0.), m_hy (0.), m_hz (0.),
     m_Nx (1), m_Ny (1), m_Nz (1)
 {}
@@ -37,14 +38,14 @@ void Mesh::SetBounds (Point Origin, Point Extrema)
 
 void Mesh::Build ()
 {
-    if (m_Nx == 0 || m_Ny == 0 || m_Nz == 0)
+    if (m_Nx == 0 || m_Ny == 0 || m_Nz == 0) // Pas de points
     {
         std::cout << "ERROR Mesh:: triplet for {Nx, Ny, Nz} "
                   << m_Nx << " " << m_Ny << " " << m_Nz << std::endl;
         exit(0);
     }
 
-    if (m_origin == m_extrema)
+    if (m_origin == m_extrema) // /!\ domaine réduit à un point
     {
         std::cout << "ERROR Mesh:: vector bounds for "
                   << "[" << m_origin.x << ", " << m_extrema.x << "] x "
@@ -69,6 +70,7 @@ void Mesh::Build ()
 
     m_points = std::vector<Point> ();
 
+    // Définition des points (vecteurs) de R^3 dans les trois directions
     Point p_x = Point (m_hx);
     Point p_y = Point (0., m_hy);
     Point p_z = Point (0., 0., m_hz);
@@ -128,53 +130,52 @@ void Mesh::Build ()
 
 Point Mesh::operator() (int index) const
 {
-    return m_points [static_cast<unsigned int>(index)];
+    return GetPoint (index);
 }
 
 Point Mesh::operator()(int i, int j, int k) const
 {
-    return m_points [static_cast<unsigned int>(IndexPoints (i, j, k))];
+    return GetPoint (i, j, k);
 }
 
 Point Mesh::GetPoint (int index) const
 {
-    return m_points [static_cast<unsigned int>(index)];
+    return m_points [size_t (index)];
 }
 
 Point Mesh::GetPoint(int i, int j, int k) const
 {
-    return m_points [static_cast<unsigned int>(IndexPoints (i, j, k))];
+    return m_points [size_t (IndexPoints (i, j, k))];
 }
 
 Point* Mesh::GetPointPtr (int index)
 {
-    return &m_points [static_cast<unsigned int>(index)];
+    return &m_points [size_t (index)];
 }
 
 Point* Mesh::GetPointPtr (int i, int j, int k)
 {
-    return &m_points [static_cast<unsigned int>(IndexPoints (i, j, k))];
+    return &m_points [size_t (IndexPoints (i, j, k))];
 }
-
 
 Cell Mesh::GetCell (int index) const
 {
-    return m_cells [static_cast<unsigned int>(index)];
+    return m_cells [size_t (index)];
 }
 
 Cell Mesh::GetCell (int i, int j, int k) const
 {
-    return m_cells [static_cast<unsigned int>(IndexCells (i, j, k))];
+    return m_cells [size_t (IndexCells (i, j, k))];
 }
 
 Cell* Mesh::GetCellPtr (int index)
 {
-    return &m_cells [static_cast<unsigned int>(index)];
+    return &m_cells [size_t (index)];
 }
 
 Cell* Mesh::GetCellPtr (int i, int j, int k)
 {
-    return &m_cells [static_cast<unsigned int>(IndexCells (i, j, k))];
+    return &m_cells [size_t (IndexCells (i, j, k))];
 }
 
 DIM Mesh::GetDimension ()
@@ -183,19 +184,17 @@ DIM Mesh::GetDimension ()
         return DIM_3D;
     else if (m_Ny >= 2)
         return DIM_2D;
-
     return DIM_1D;
 }
 
 std::vector<Point> Mesh::GetBounds () const
 {
-    std::vector<Point> r = std::vector<Point> (2);
+    std::vector<Point> r (2);
     r [0] = m_origin;
     r [1] = m_extrema;
 
     return r;
 }
-
 
 int Mesh::Get_Nx () const
 {
@@ -254,7 +253,7 @@ void Mesh::Print () const
             for (int i = 0; i < m_Nx; ++i)
             {
                 int index = IndexPoints (i, j, k);
-                std::cout << "p_" << index << ":\t" << m_points [static_cast<unsigned int>(index)] << std::endl;
+                std::cout << "p_" << index << ":\t" << m_points [size_t (index)] << std::endl;
             }
     return;
 }
@@ -266,11 +265,7 @@ void Mesh::TagPoint (int i, int j, int k, POINT_LOCATION tag)
 
 void Mesh::TagPoint (int index, POINT_LOCATION tag)
 {
-    std::cout << m_points.size () << std::endl;
-    Point p = m_points.at (size_t (index));
-    p.SetLocate (tag);
-    m_points [size_t (index)] = p;
-
+    m_points [size_t (index)].SetLocate (tag);
     return;
 }
 
@@ -319,6 +314,7 @@ int Mesh::GetNumberOfInfosCells () const
         sum += m_cells.at (i).GetNumberOfInfos ();
     return sum;
 }
+
 int Mesh::IndexPoints (int i, int j, int k) const
 {
     int index = (k * m_Ny + j) * m_Nx + i;

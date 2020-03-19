@@ -42,6 +42,7 @@ CELL_LOCATION Cell::GetLocate () const
         bool boolean2 = (loc_p == ON_DOMAIN_INTERN_OMEGA &&
                          loc == IN_DOMAIN_EXTERN_OMEGA);
 
+        // La localisation du point i ne concorde pas avec la localisation des autres, automatiquement la cellule est à cheval sur la frontière
         if (boolean1 || boolean2)
         {
             loc = IN_MIX_DOMAIN;
@@ -74,7 +75,7 @@ int Cell::GetType () const
 
 int Cell::GetNumberOfInfos () const
 {
-    return 1 + int (m_points.size ());
+    return 1 + int (m_points.size ()); // +1 pour le label de comptage de labels
 }
 
 std::ostream& operator<< (std::ostream &out, const Cell &c)

@@ -11,6 +11,9 @@
 
 #define SPACE std::left << std::setw(12)
 
+/**
+ * @brief Rappel de l'existence de la classe Cell (le header n'est pas inclu directement car il y avait un risque d'inclusion réciproque au moment où je codais cette classe).
+ */
 class Cell;
 
 /**
@@ -25,7 +28,7 @@ typedef enum
 
 /**
  * @brief La classe Point implémente les informations nécessaires pour définir un point.
- * Cette classe met permet des points 3D via plusieurs constructeurs. L'opérateur d'égalité est aussi surchargé ainsi que l'opérateur d'affichage.
+ * Cette classe permet des points 3D via plusieurs constructeurs. L'opérateur d'égalité est aussi surchargé ainsi que l'opérateur d'affichage.
  */
 class Point
 {
@@ -35,6 +38,7 @@ public:
      * @brief Coordonnée x du point.
      */
     double x = 0.;
+
     /**
      * @brief Coordonnée z du point.
      */
@@ -70,41 +74,47 @@ public:
     ~Point ();
 
     /**
-     * @brief SetGlobalIndex
-     * @param index
+     * @brief Définition de l'indice global du point
+     * @param index un entier int
+     * @return rien
      */
     void SetGlobalIndex (int index);
 
     /**
-     * @brief GetGlobalIndex
-     * @return
+     * @brief Retourne l'indice global du point dans le maillage auquel il appartient
+     * @return index l'indice global
      */
     int GetGlobalIndex ();
+
     /**
-     * @brief SetLocate
-     * @param loc
+     * @brief Définition de la localisation du point. Voir l'énumération POINT_LOCATION
+     * @param loc tag de type POINT_LOCATION
+     * @return rien
      */
     void SetLocate (POINT_LOCATION loc);
 
     /**
-     * @brief GetLocate
-     * @return
+     * @brief Retourne le tag du point.
+     * @return tag de type POINT_LOCATION
      */
     POINT_LOCATION GetLocate () const;
 
     /**
-     * @brief ClearListNeighboors
+     * @brief Nettoie la liste des points voisins de ce point
+     * @return rien
      */
     void ClearListNeighboors ();
 
     /**
-     * @brief AddPointNeighbour
+     * @brief Ajoute de le point p à la liste de voisins de ce point
+     * @param p point de type Point
+     * @return rien
      */
     void AddPointNeighbour (Point p);
 
     /**
-     * @brief GetListNeighbours
-     * @return
+     * @brief Retourne un vecteur de points voisins de ce point
+     * @return vecteur de point
      */
     std::vector <Point> GetListNeighbours ();
 
@@ -115,37 +125,37 @@ public:
     bool operator== (const Point &p);
 
     /**
-     * @brief operator +
-     * @param a
-     * @return
+     * @brief Addtition coordonnée par coordonnée
+     * @param a un point de type Point
+     * @return Point
      */
     Point operator+ (const Point & a);
 
     /**
-     * @brief operator -
-     * @param a
-     * @return
+     * @brief Soustraction coordonnée par coordonnée
+     * @param a un point de type Point
+     * @return Point
      */
     Point operator- (const Point & a);
 
     /**
-     * @brief operator *
-     * @param v
-     * @return
+     * @brief Multiplication par un double de toutes les coordonnées
+     * @param v un double
+     * @return Point
      */
     Point operator* (double v);
 
     /**
-     * @brief operator /
-     * @param v
-     * @return
+     * @brief Division par un double de toutes les coordonnées (si différent de zéro)
+     * @param v un double
+     * @return Point
      */
     Point operator/ (double v);
 
     /**
-     * @brief operator *
-     * @param v
-     * @return
+     * @brief Multiplication par un int de toutes les coordonnées
+     * @param v un double
+     * @return Point
      */
     Point operator* (int v);
 
@@ -164,17 +174,17 @@ protected:
     std::vector <Cell *> m_cells;
 
     /**
-     * @brief m_locate
+     * @brief Tag de localisation du point
      */
     POINT_LOCATION m_locate;
 
     /**
-     * @brief m_globalIndex
+     * @brief Indice global du point dans le maillage
      */
     int m_globalIndex;
 
     /**
-    * @brief m_listNeighbours
+    * @brief Liste des points voisins
     */
     std::vector<Point> m_listNeighbours;
 };
