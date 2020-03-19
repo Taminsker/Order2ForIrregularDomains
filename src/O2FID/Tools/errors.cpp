@@ -6,8 +6,8 @@ double GetErrorL1 (Mesh * mesh,
 {
     double error_L1;
     double hx = (std::abs(mesh->Get_hx()) < 1e-8) ? 1 : mesh->Get_hx();
-    double hy = (std::abs(mesh->Get_hy()) < 1e-8) ? 1 : mesh->Get_hx();
-    double hz = (std::abs(mesh->Get_hz()) < 1e-8) ? 1 : mesh->Get_hx();
+    double hy = (std::abs(mesh->Get_hy()) < 1e-8) ? 1 : mesh->Get_hy();
+    double hz = (std::abs(mesh->Get_hz()) < 1e-8) ? 1 : mesh->Get_hz();
     Vector u_abs = (u_ana - u_num).cwiseAbs();
     error_L1 = u_abs.sum() * hx * hy * hz;
 

@@ -1,112 +1,95 @@
 #ifndef CELL_H
 #define CELL_H
 
+#include <fstream>
 #include <vector>
 
+/**
+  * @brief Énumerateur pour la localisation des cellules.
+  */
+typedef enum {
+    IN_DOMAIN_INTERN_OMEGA,
+    IN_DOMAIN_EXTERN_OMEGA,
+    IN_MIX_DOMAIN
+} CELL_LOCATION;
+
+/**
+ * @brief Rappel de l'existence de la classe Point (le header n'est pas inclu directement car il y avait un risque d'inclusion réciproque au moment où je codais cette classe).
+ */
 class Point;
 
 /**
  * @brief La classe Cell implémente les informations nécessaires pour définir une cellule.
- * Cette classe met en lien les cellules voisines, les points définissant la cellule et calcule le barycentre.
+ * Cette classe permet nottemment de lier des points au sein d'un même conteneur. Permettant en particulier d'avoir les connectivités (partielles du moins)
  */
 class Cell
 {
 public:
     /**
-     * @brief Créer une cellule vide
+     * @brief Constructeur par défaut
      */
     Cell ();
 
     /**
-     * @brief Détruit la cellule
-     */
+      * @brief Destructeur
+      */
     ~Cell ();
 
     /**
-     * @brief Configure la cellule au Nord
-     * @param cell Cell *
+     * @brief Lier un nouveau point avec cette cellule (un pointeur vers ce point est ajouter au sein de la cellule)
+     * @param p est un pointeur vers un point de type Point
+     * @return rien
      */
-    void SetCellNorth (Cell * cell);
+    void AddPoint (Point * p);
 
     /**
-     * @brief Configure la cellule au Sud
-     * @param cell Cell *
+     * @brief Désolidariser un point de cette cellule. En pratique supprime juste le pointeur vers le dit point.
+     * @param p est un pointeur vers un point de type Point
+     * @return rien
      */
-    void SetCellSouth (Cell * cell);
+    void RemovePoint (Point * p);
 
     /**
-     * @brief Configure la cellule à l'Ouest
-     * @param cell Cell *
+     * @brief Retourne le tag de localisation de la cellule en fonction du tag des points la définissant
+     * @return tag de type CELL_LOCATION
      */
-    void SetCellWest (Cell * cell);
+    CELL_LOCATION GetLocate () const;
 
     /**
-     * @brief Configure la cellule à l'Est
-     * @param cell Cell *
+     * @brief Retourne le type VTK de la cellule (voir documentation VTK_CELL_TYPE pour plus d'informations)
+     * @return Type de cellule VTK
      */
-    void SetCellEast (Cell * cell);
+    int GetType () const;
 
     /**
-     * @brief Ajout du point p à la cellule
-     * @param p Point
+     * @brief Fonction interne pour l'écriture d'un fichier VTK (permet de sommer plus rapidement le nombre de labels qui vont être écris dans le chamsp CELLS du fichier de sortie)
+     * @return Nombre de labels de sortie : nbPoints + 1 (label de comptage)
      */
-    void AddPoint (Point &p);
+    int GetNumberOfInfos () const;
 
     /**
-     * @brief Retourne la cellule située au Nord
-     * @return Cell *
+     * @brief operator << utilisation pour afficher les numéros globaux des points définissant la cellule
+     * @param out flux std::ostream
+     * @param c une cellule
+     * @return out le flux std::ostream passée en parmamètre
      */
-    Cell * GetCellNorth ();
+    friend std::ostream & operator<< (std::ostream &out, const Cell &c);
 
+protected:
     /**
-     * @brief Retourne la cellule située au Sud
-     * @return Cell *
-     */
-    Cell * GetCellSouth ();
+    * @brief Vecteur de pointeurs vers les points définissant la cellule
+    */
+    std::vector <Point *> m_points;
 
-    /**
-     * @brief Retourne la cellule située à l'Est
-     * @return Cell *
-     */
-    Cell * GetCellWest ();
-
-    /**
-     * @brief Retourne la cellule située à l'Ouest
-     * @return Cell *
-     */
-    Cell * GetCellEast ();
-
-    /**
-     * @brief Retourne le barycentre de la cellule
-     * @return
-     */
-    Point GetBarycenter ();
-
-private:
-    /**
-     * @brief Cellule au Nord
-     */
-    Cell * m_cell_n;
-
-    /**
-     * @brief Cellule au Sud
-     */
-    Cell * m_cell_s;
-
-    /**
-     * @brief Cellule à l'Ouest
-     */
-    Cell * m_cell_o;
-
-    /**
-     * @brief Cellule à l'Est.
-     */
-    Cell * m_cell_e;
-
-    /**
-     * @brief Liste des points de la cellule
-     */
-    std::vector<Point *> m_points;
 };
+
+/**
+ * @brief operator << utilisation pour afficher les numéros globaux des points définissant la cellule
+ * @param out flux std::ostream
+ * @param c une cellule
+ * @return out le flux std::ostream passée en parmamètre
+ */
+std::ostream & operator<< (std::ostream &out, const Cell &c);
+
 
 #endif // CELL_H

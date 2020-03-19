@@ -1,7 +1,7 @@
 #include "border.h"
 
 
-std::vector <int> MakeListOfIndexPoints (Mesh * mesh, double (*phi) (Point, double), double t)
+std::vector <int> MakeListOfIndexPoints (Mesh &mesh, double (*phi) (Point, double), double t)
 {
   typedef Point<double> Point;
 
@@ -59,5 +59,4 @@ std::vector <int> MakeListOfIndexPoints (Mesh * mesh, double (*phi) (Point, doub
   }
 
   return mesh->GetListOfIndexPoints ();
-
 }

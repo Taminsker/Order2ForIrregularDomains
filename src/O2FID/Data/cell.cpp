@@ -1,77 +1,92 @@
 #include "cell.h"
 #include "point.h"
 
-Cell::Cell() :
-    m_cell_n (nullptr), m_cell_s (nullptr),
-    m_cell_o (nullptr), m_cell_e (nullptr)
+Cell::Cell()
 {}
 
 Cell::~Cell ()
-{
+{}
 
-}
-
-void Cell::SetCellNorth (Cell *cell)
+void Cell::AddPoint (Point *p)
 {
-    m_cell_n = cell;
+    for (size_t i = 0; i < m_points.size (); ++i)
+        if (m_points.at (i) == p)
+            return;
+
+    m_points.push_back (p);
     return;
 }
 
-void Cell::SetCellSouth (Cell *cell)
+void Cell::RemovePoint (Point *p)
 {
-    m_cell_s = cell;
+    for (size_t i = 0; i < m_points.size (); ++i)
+        if (m_points.at (i) == p)
+            m_points.erase (m_points.begin () + long (i));
     return;
 }
 
-void Cell::SetCellWest (Cell *cell)
+CELL_LOCATION Cell::GetLocate () const
 {
-    m_cell_o = cell;
-    return;
-}
+    CELL_LOCATION loc = IN_DOMAIN_EXTERN_OMEGA;
+    if (m_points.size () >= 1)
+        loc = IN_DOMAIN_INTERN_OMEGA;
+    else
+        return loc;
 
-void Cell::SetCellEast (Cell *cell)
-{
-    m_cell_e = cell;
-    return;
-}
-
-void Cell::AddPoint(Point &p)
-{
-    m_points.push_back (&p);
-    return;
-}
-
-Cell * Cell::GetCellNorth ()
-{
-    return m_cell_n;
-}
-
-Cell * Cell::GetCellSouth ()
-{
-    return m_cell_s;
-}
-
-Cell * Cell::GetCellWest ()
-{
-    return m_cell_o;
-}
-
-Cell * Cell::GetCellEast ()
-{
-    return m_cell_e;
-}
-
-Point Cell::GetBarycenter ()
-{
-    Point p = Point ();
-    int N = int (m_points.size ());
-    for (int i = 0; i < N; ++i)
+    for (size_t i = 1; i < m_points.size (); ++i)
     {
-        auto a = m_points.at (static_cast<unsigned int> (i));
-        p.x += a->x;
-        p.y += a->y;
-        p.z += a->z;
+        POINT_LOCATION loc_p = m_points.at (i)->GetLocate ();
+
+        bool boolean1 = (loc_p == ON_DOMAIN_EXTERN_OMEGA &&
+                         loc == IN_DOMAIN_INTERN_OMEGA);
+        bool boolean2 = (loc_p == ON_DOMAIN_INTERN_OMEGA &&
+                         loc == IN_DOMAIN_EXTERN_OMEGA);
+
+        // La localisation du point i ne concorde pas avec la localisation des autres, automatiquement la cellule est à cheval sur la frontière
+        if (boolean1 || boolean2)
+        {
+            loc = IN_MIX_DOMAIN;
+            break;
+        }
+    }
+    return loc;
+}
+
+int Cell::GetType () const
+{
+    switch (m_points.size ()) {
+    default:
+    case 0:
+        return 0; // VTK_EMPTY_CELL = 0;
+    case 1:
+        return 1; // VTK_VERTEX = 1;
+    case 2:
+        return 3; // VTK_LINE = 3;
+    case 3:
+        return 5; // VTK_TRIANGLE = 5;
+    case 4:
+        return 9; // VTK_QUAD = 9;
+    case 5:
+        return 10; // VTK_TETRA = 10;
+    case 8:
+        return 12; // VTK_HEXAHEDRON = 12;
+    }
+}
+
+int Cell::GetNumberOfInfos () const
+{
+    return 1 + int (m_points.size ()); // +1 pour le label de comptage de labels
+}
+
+std::ostream& operator<< (std::ostream &out, const Cell &c)
+{
+    out << c.m_points.size () << " ";
+    for (size_t i = 0; i < c.m_points.size (); ++i)
+    {
+        out << c.m_points.at (i)->GetGlobalIndex () << " ";
     }
 
-    return p / double (N);
+    out << std::endl;
+
+    return out;
 }
