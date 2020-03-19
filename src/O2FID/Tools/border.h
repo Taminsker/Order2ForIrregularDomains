@@ -5,6 +5,10 @@
 #include "../Mesh/mesh.h"
 #include "../Data/data.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <cmath>
+
 /*!
  *  \addtogroup Outils
  *  @{
