@@ -7,7 +7,15 @@
 
 Matrix BuildMatrixLaplaceEquation (Mesh * mesh)
 {
+/*
+// Nombre de point totale
+int n = mesh->GetNumberOfTotalPoints ();
 
+// Pas selon les différentes directions spatiale en concidérant si 1D, 2D ou 3D
+double hx = (mesh->Get_hx () < 1e-8) ? 1 : mesh->Get_hx ();
+double hy = (mesh->Get_hy () < 1e-8) ? 1 : mesh->Get_hy ();
+double hz = (mesh->Get_hz () < 1e-8) ? 1 : mesh->Get_hz ();
+*/
 }
 
 
