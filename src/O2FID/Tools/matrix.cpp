@@ -13,6 +13,7 @@ Matrix BuildMatrixLaplaceEquation (Mesh * mesh)
 
 Matrix BuildMatrixHeatEquation (Mesh * mesh, double dt, double D, int TYPE)
 {
+
 //  // On récupère le nombre de points et les pas d'espace
 
 //  int Nx = mesh->Get_Nx ();

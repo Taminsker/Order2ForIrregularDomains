@@ -1,62 +1,83 @@
 #include "border.h"
 
 
-std::vector <int> MakeListOfIndexPoints (Mesh &mesh, double (*phi) (Point, double), double t)
+std::vector <int> MakeListOfIndexPoints (Mesh * mesh, Vector * phi_list, double t)
 {
-  typedef Point<double> Point;
+    double eps = 1e-10; // Seuil sous lequel on considère les valeurs nulles
 
-  double eps = 1e-10; // Seuil sous lequel on considère les valeurs nulles
+    int numberOfPointsOnGrid = mesh->GetNumberOfTotalPoints ();
 
-  double hx = mesh->Get_hx ();
-  double hy = mesh->Get_hx ();
-  double hz = mesh->Get_hz ();
+    for (int i = 0; i < numberOfPointsOnGrid; i++)
+    {
 
-  for (int i = 0; i < Nx; i++) {
-    for (int j = 0; i < Ny; j++) {
-      for (int k = 0; k < Nz; k++) {
+        Point * p_curr = mesh->GetPoint (i);
 
-        // On note P_indice le point suivant dans la direction représentée par l'indice
-        Point p = mesh (i, j, k);
-        Point p_i = mesh (i + 1, j, k); // Le point en i+1
-        Point p_j = mesh (i, j + 1, k); // Le point en j+1
-        Point p_k = mesh (i, j, k + 1); // Le point en k+1
+        double phi_curr = phi_list->coeff (i);
 
-        // On note val_indice la valeur de phi au point P_indice
-        val = phi (p, t);
-        val_i = phi (p_i, t); // La valeur en i+1
-        val_j = phi (p_j, t); // La valeur en j+1
-        val_k = phi (p_k, t); // La valeur en k+1
-
-        // Si le noeud (i,j,k) du maillage est déjà lui-même un point du bord
-        if (fabs(val) < eps)
+        if (fabs(phi_curr) < eps)
         {
-          p.SetLocate (ON_BORDER_OMEGA);
-        }
+            // On tag le point
+            p_curr->SetLocate (ON_BORDER_OMEGA);
+            continue;
+        } else
+            p_curr->SetLocate ((phi_curr < 0. ? ON_DOMAIN_INTERN_OMEGA : ON_DOMAIN_EXTERN_OMEGA));
 
-        // Si le bord coupe une arête de direction (Ox), on définit un point intermédiaire
-        else if ( (i + 1) < Nx && fabs(val_i) >= eps && (val * val_i) < 0 )
+        for (Point * p_neigh : p_curr->GetListNeighbours ())
         {
-          double di = fabs(val) / ( fabs(val) + fabs(val_i) );
-          mesh->AddPointOnBorder ( p + Point (di * hx, 0., 0.) );
-        }
+            // Le point p_neigh est un point rajouté
+            if (p_neigh->GetGlobalIndex () > mesh->GetNumberOfCartesianPoints ())
+                continue;
 
-        // Si le bord coupe une arête de direction (Oy), on définit un point intermédiaire
-        else if ( (j + 1) < Nx && fabs(val_j) >= eps && (val * val_j) < 0 )
-        {
-          double dj = fabs(val) / ( fabs(val) + fabs(val_j) );
-          mesh->AddPointOnBorder ( p + Point (0., dj * hy, 0.) );
-        }
+            double phi_neigh = phi_list->coeff (p_neigh->GetGlobalIndex ());
 
-        // Si le bord coupe une arête de direction (Oz), on définit un point intermédiaire
-        else if ( (k + 1) < Nx && fabs(val_k) >= eps && (val * val_k) < 0 )
-        {
-          double dk = fabs(val) / ( fabs(val) + fabs(val_k) );
-          mesh->AddPointOnBorder ( p + Point (0., 0., dk * hz) );
-        }
+            // ordre croissant des indices
+            if (p_neigh->GetGlobalIndex () >= p_curr->GetGlobalIndex ())
+                continue;
 
-      }
+            // p_neigh est un point de bord
+            if (fabs (phi_neigh) < eps)
+                continue;
+
+            // Même signe
+            if (phi_curr * phi_neigh > 0.)
+                continue;
+
+            double dist = fabs(phi_curr) / (fabs(phi_curr) + fabs(phi_neigh));
+
+            // Tests
+//            double dist_p = std::sqrt((*p_curr - *p_neigh)| (*p_curr - *p_neigh));
+//            bool b1 = (fabs(dist_p - mesh->Get_hx ()) > eps);
+//            bool b2 = (fabs(dist_p - mesh->Get_hx ()) > eps);
+//            bool b3 = (fabs(dist_p - mesh->Get_hx ()) > eps);
+
+            Point * p_new = new Point (*p_curr + dist * (*p_neigh - *p_curr));
+
+//            if (b1 && b2 && b3)
+//            {
+//                std::cout << "Add a point : " << std::endl;
+//                std::cout << "\t p_curr (" << p_curr->GetGlobalIndex () << ")\t" << *p_curr << " phi : " << phi_curr << std::endl;
+//                std::cout << "\t p_neigh (" << p_neigh->GetGlobalIndex () << ")\t" << *p_neigh << " phi : " << phi_neigh << std::endl;
+//                std::cout << "\t p_new (" << mesh->GetNumberOfTotalPoints () << ")\t" << *p_new << std::endl;
+//                std::cout << "\tdist(p_curr, p_neigh) = " << dist_p << std::endl;
+//            }
+
+
+            // Suppression des voisins
+            p_curr->RemoveThisNeighbourPoint (p_neigh);
+            p_neigh->RemoveThisNeighbourPoint (p_curr);
+
+            // Ajout des voisins
+            p_curr->AddPointNeighbour (p_new);
+            p_neigh->AddPointNeighbour (p_new);
+
+            // Ajout du point au maillage
+            mesh->AddPointOnBorder (p_new);
+
+            // Vertex
+            mesh->MakeACellFromListPoints ({p_new});
+        }
     }
-  }
 
-  return mesh->GetListOfIndexPoints ();
+    return mesh->GetListOfIndexPoints ();
 }
+

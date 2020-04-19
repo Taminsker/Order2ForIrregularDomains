@@ -49,7 +49,7 @@ static INTERPOLATION_NORMAL TYPE_INTERPOLATION = DEGRE_1;
  * @param listIndex un vecteur d'entiers regroupant les indices des points comme définissant la frontière de \f$\Omega\f$
  * @return le vecteur des conditions imposées
  */
-Vector ImposeNeumann (Mesh &mesh,
+Vector ImposeNeumann (Mesh* mesh,
                       Matrix * sparsematrix,
                       double (*g) (Point, double),
                       double (*phi) (Point, double),

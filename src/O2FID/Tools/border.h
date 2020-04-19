@@ -20,7 +20,9 @@
  * @param f un pointeur vers une fonction f
  * @return Vecteur les indices des points sur cette frontière
  */
-std::vector <int> MakeListOfIndexPoints (Mesh &mesh, double (*f) (Point, double), double t = 0);
+std::vector <int> MakeListOfIndexPoints (Mesh * mesh, Vector * phi_list, double t = 0);
+
+
 
 /*! @} End of Doxygen Groups*/
 
