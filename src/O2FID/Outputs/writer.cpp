@@ -56,25 +56,125 @@ void Writer::SetCurrentIteration (int i)
 
 void Writer::WriteNow ()
 {
-    std::ofstream file;
     if (m_filename == "")
         m_filename = "no_filename_selected";
 
     // Ajout du numéro d'itération en temps et de l'extension du fichier ".vtk"
-    m_filename += std::string ("_") + std::to_string (m_index) + std::string (".vtk");
-    file.open (m_filename);
+    m_filename += std::string ("_") + std::to_string (m_index);
+
+    WriteDAT ();
+    WriteVTK ();
+}
+
+void Writer::WriteDAT ()
+{
+    std::ofstream file;
+    std::string filename_copy;
+
+    std::vector<int> indexes (size_t (m_mesh->GetNumberOfTotalPoints ()));
+
+    if (m_bothDomain)
+    {
+        for (int i = 0; i < m_mesh->GetNumberOfTotalPoints (); ++i)
+            indexes.at (size_t (i)) = i;
+    }
+    else
+    {
+        indexes = m_mesh->GetListOfIndexPoints ();
+    }
+
+    int numPoints = int (indexes.size ());
+
+    // POINTS
+    filename_copy = m_filename + std::string ("_points.dat");
+    file.open (filename_copy);
+
+    if (file.is_open ())
+    {
+        file << "# X" << SPACE << "Y" << SPACE << "Z" << std::endl;
+
+        // Impression de la liste de points du maillage
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << std::endl;
+
+        file.close ();
+    }
+
+    filename_copy = m_filename + std::string ("_location.dat");
+
+    file.open (filename_copy);
+
+    if (file.is_open ())
+    {
+        // Vecteur de localisation (Domaine externe, frontière et domaine interne).
+        for (int i : indexes)
+            file << m_mesh->GetPoint (i)->GetLocate () << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de solution numérique si disponible
+    if (m_sol_num != nullptr && m_sol_num->rows () >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_sol_num.dat");
+
+        file.open (filename_copy);
+
+        for (int i : indexes)
+            file << m_sol_num->operator() (i) << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de solution analytique si disponible
+    if (m_sol_ana != nullptr && m_sol_ana->rows () >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_sol_ana.dat");
+
+        file.open (filename_copy);
+
+        for (int i : indexes)
+            file << m_sol_ana->operator() (i) << std::endl;
+
+        file.close ();
+    }
+
+
+    // Impression du vecteur d'erreurs en valeurs absolues si disponibles
+    if (m_error_abs != nullptr && m_error_abs->rows () >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_error_abs.dat");
+
+        file.open (filename_copy);
+
+        for (int i : indexes)
+            file << m_error_abs->operator() (i) << std::endl;
+
+        file.close ();
+    }
+
+    return;
+}
+
+void Writer::WriteVTK ()
+{
+    std::ofstream file;
+
+    std::string filename_copy = m_filename;
+    filename_copy += std::string (".vtk");
+    file.open (filename_copy);
 
     int numPoints = m_mesh->GetNumberOfTotalPoints ();
 
     file << "# vtk DataFile Version 2.0" << std::endl;
-    file << m_filename << ", O2FID output." << std::endl;
+    file << filename_copy << ", O2FID output." << std::endl;
     file << "ASCII" << std::endl;
     file << "DATASET UNSTRUCTURED_GRID" << std::endl;
     file << "POINTS " << numPoints << " double" << std::endl;
 
     // Impression de la liste de points du maillage
     for (int i = 0; i < numPoints; ++i)
-        file << m_mesh->GetPoint (i) << std::endl;
+        file << *m_mesh->GetPoint (i) << std::endl;
 
     file << std::endl;
 
@@ -89,14 +189,14 @@ void Writer::WriteNow ()
 
         // Impression de la liste des cellules
         for (int i = 0; i < numCells; ++i)
-            file << m_mesh->GetCell (i);
+            file << *m_mesh->GetCell (i);
         file << std::endl;
 
         file << "CELL_TYPES " << numCells << std::endl;
 
         // Impression de la liste des types de cellules (voir documentation VTK pour plus d'information)
         for (int i = 0; i < numCells; ++i)
-            file << m_mesh->GetCell (i).GetType () << std::endl;
+            file << m_mesh->GetCell (i)->GetType () << std::endl;
         file << std::endl;
     }
     else // On a précisé qu'on ne voulait que le domaine interne
@@ -110,7 +210,7 @@ void Writer::WriteNow ()
         for (int i = 0; i < numCells; ++i)
         {
             int index = indexCells.at (size_t (i));
-            numInfosCells += m_mesh->GetCell (index).GetNumberOfInfos ();
+            numInfosCells += m_mesh->GetCell (index)->GetNumberOfInfos ();
         }
 
         // Écrire les cellules taguées
@@ -118,7 +218,7 @@ void Writer::WriteNow ()
         for (int i = 0; i < numCells; ++i)
         {
             int index = indexCells.at (size_t (i));
-            file << m_mesh->GetCell (index);
+            file << *m_mesh->GetCell (index);
         }
         file << std::endl;
 
@@ -128,7 +228,7 @@ void Writer::WriteNow ()
         for (int i = 0; i < numCells; ++i)
         {
             int index = indexCells.at (size_t (i));
-            file << m_mesh->GetCell (index).GetType () << std::endl;
+            file << m_mesh->GetCell (index)->GetType () << std::endl;
         }
         file << std::endl;
     }
@@ -141,7 +241,7 @@ void Writer::WriteNow ()
     loc.setOnes ();
 
     for (int i = 0; i < numPoints; ++i)
-        loc (i) = m_mesh->GetPoint (i).GetLocate ();
+        loc (i) = m_mesh->GetPoint (i)->GetLocate ();
 
     // Impression du vecteur de localisation
     WriteInFile (file, "Location", &loc);
@@ -158,6 +258,7 @@ void Writer::WriteNow ()
     if (m_error_abs != nullptr && m_error_abs->rows () == numPoints)
         WriteInFile (file, "Error_abs", m_error_abs);
 
+    file.close ();
     return;
 }
 

@@ -114,6 +114,16 @@ protected:
      * @brief Pointeur vers un vecteur d'erreurs absolues.
      */
     Vector * m_error_abs;
+
+    /**
+     * @brief WriteVTK
+     */
+    void WriteVTK ();
+
+    /**
+     * @brief WriteDAT
+     */
+    void WriteDAT ();
 };
 
 /**
