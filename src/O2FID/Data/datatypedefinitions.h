@@ -9,7 +9,7 @@
 /**
  * @brief Abréviation du type Matrix
  */
-typedef Eigen::SparseMatrix<double> Matrix;
+typedef Eigen::SparseMatrix<double, RowMajor> Matrix;
 
 /**
  * @brief Abréviation du type Vector
