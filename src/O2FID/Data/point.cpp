@@ -1,44 +1,88 @@
 /** @file point.cpp */
 
 #include "point.h"
+#include "cell.h"
 
 Point::Point () :
     x (0.), y (0.), z (0.),
-    m_locate (ON_DOMAIN_EXTERN_OMEGA), // Par défaut le point est considéré à l'extèrieur
-    m_globalIndex (-1) // Il n'a pas encore d'indice global
+    m_cells ({}),
+    m_listNeighbours ({}),
+    m_globalIndex (-1), // Il n'a pas encore d'indice global
+    m_locate (ON_DOMAIN_EXTERN_OMEGA) // Par défaut le point est considéré à l'extèrieur
 {}
 
 Point::Point (const Point &p) :
     x (p.x), y (p.y), z (p.z),
     m_cells (p.m_cells),
-    m_locate (p.m_locate),
+    m_listNeighbours (p.m_listNeighbours),
     m_globalIndex (p.m_globalIndex),
-    m_listNeighbours (p.m_listNeighbours)
+    m_locate (p.m_locate)
 {}
 
 Point::Point (double a, double b, double c) :
     x (a), y (b), z (c),
-    m_locate (ON_DOMAIN_EXTERN_OMEGA), // Par défaut le point est considéré à l'extèrieur
-    m_globalIndex (-1) // Il n'a pas encore d'indice global
+    m_cells ({}),
+    m_listNeighbours ({}),
+    m_globalIndex (-1), // Il n'a pas encore d'indice global
+    m_locate (ON_DOMAIN_EXTERN_OMEGA) // Par défaut le point est considéré à l'extèrieur
 {}
 
-Point::~Point () {}
-
-void Point::SetGlobalIndex (int index)
+Point& Point::operator= (const Point& p)
 {
-    m_globalIndex = index;
-    return;
+    x = p.x;
+    y = p.y;
+    z = p.z;
+    m_cells  = p.m_cells;
+    m_listNeighbours  = p.m_listNeighbours;
+    m_globalIndex = p.m_globalIndex;
+    m_locate = p.m_locate;
+
+    return *this;
 }
 
-int Point::GetGlobalIndex ()
+Point& Point::operator= (std::initializer_list<double> ilist)
+{
+    auto iter = ilist.begin ();
+    x = (ilist.size () >= 1 ? *iter : 0.);
+    iter++;
+    y = (ilist.size () >= 2 ? *iter : 0.);
+    iter++;
+    z = (ilist.size () >= 3 ? *iter : 0.);
+
+    return *this;
+}
+
+Point& Point::operator= (std::initializer_list<int> ilist)
+{
+    auto iter = ilist.begin ();
+    x = double (ilist.size () >= 1 ? *iter : 0.);
+    iter++;
+    y = double (ilist.size () >= 2 ? *iter : 0.);
+    iter++;
+    z = double (ilist.size () >= 3 ? *iter : 0.);
+
+    return *this;
+}
+
+Point::~Point ()
+{}
+
+
+Point* Point::SetGlobalIndex (int index)
+{
+    m_globalIndex = index;
+    return this;
+}
+
+int Point::GetGlobalIndex () const
 {
     return m_globalIndex;
 }
 
-void Point::SetLocate (POINT_LOCATION loc)
+Point* Point::SetLocate (POINT_LOCATION loc)
 {
     m_locate = loc;
-    return;
+    return this;
 }
 
 POINT_LOCATION Point::GetLocate () const
@@ -46,59 +90,116 @@ POINT_LOCATION Point::GetLocate () const
     return m_locate;
 }
 
-void Point::AddPointNeighbour (Point p)
+void Point::AddPointNeighbour (Point* p)
 {
     m_listNeighbours.push_back (p);
     return;
 }
 
-void Point::ClearListNeighboors ()
+void Point::RemoveThisNeighbourPoint (Point* p)
+{
+    auto it = m_listNeighbours.begin ();
+
+    while (it != m_listNeighbours.end ())
+    {
+        if (p == *it)
+            it = m_listNeighbours.erase (it);
+        else
+            it++;
+    }
+
+    return;
+}
+
+void Point::ClearListNeighbours ()
 {
     m_listNeighbours.clear ();
     return;
 }
 
-std::vector <Point> Point::GetListNeighbours ()
+std::vector<Point*> Point::GetListNeighbours ()
 {
     return m_listNeighbours;
 }
 
-bool Point::operator== (const Point &p)
+void Point::SetListNeighbours (std::vector <Point *>& list)
 {
-    double eps = 1e-10;
-    if (    fabs (x - p.x) < eps &&
-            fabs (y - p.y) < eps &&
-            fabs (z - p.z) < eps)
-        return true;
-    return false;
+    for (Point * p : list)
+        if (p == nullptr)
+            return;
+
+    m_listNeighbours = list;
+
+    return;
 }
 
-Point Point::operator+ (const Point &a)
+std::pair <Point *, Point *> Point::GetNeighboursFromAxis (AXIS_LABEL tag)
 {
-    return Point (x + a.x, y + a.y, z + a.z);
+    std::pair <Point *, Point *> r;
+
+    r.first = r.second = nullptr;
+
+    double mini, maxi;
+
+    mini = maxi = (tag == AXIS_X ? x : (tag == AXIS_Y ? y : z));
+
+    for (Point * p : m_listNeighbours)
+    {
+        double v = (tag == AXIS_X ? p->x : (tag == AXIS_Y ? p->y : p->z));
+
+        if (v < mini) {mini = v; r.first = p;}
+        if (v > maxi) {maxi = v; r.second = p;}
+    }
+
+    return r;
 }
 
-Point Point::operator- (const Point &a)
+void Point::LinkToCell (Cell *c)
 {
-    return Point (x - a.x, y - a.y, z - a.z);
+    for (Cell* tc : m_cells)
+    {
+        if (tc == c)
+            return;
+    }
+
+    m_cells.push_back (c);
+
+    return;
 }
 
-Point Point::operator* (double v)
+void Point::UnlinkToCell (Cell *c)
 {
-    return Point (v * x, v * y, v * z);
+    auto it = m_cells.begin ();
+    while (it != m_cells.end ())
+    {
+        if (*it == c)
+            m_cells.erase (it);
+        else
+            it++;
+    }
+
+    return;
 }
 
-Point Point::operator/ (double v)
+std::vector <Cell*> Point::GetLinkedCell () const
 {
-    if (std::abs(v) < 1e-10)
-        return *this;
-    return Point (x / v, y / v, z / v);
+    return m_cells;
 }
 
-Point Point::operator * (int v)
+Point* Point::DetachFromAll ()
 {
-    return Point (v * x, v * y, v * z);
+    for (Cell* c : m_cells)
+        c->RemovePoint (this);
+
+    for (Point* p : m_listNeighbours)
+        p->RemoveThisNeighbourPoint (this);
+
+    m_listNeighbours.clear ();
+    m_cells.clear ();
+
+    return this;
 }
+
 std::ostream & operator<< (std::ostream &out, const Point &p)
 {
     out << SPACE << p.x << " "
@@ -106,3 +207,114 @@ std::ostream & operator<< (std::ostream &out, const Point &p)
         << SPACE << p.z << " ";
     return out;
 }
+
+double EuclidianDist (const Point& a, const Point& b)
+{
+    double x = a.x - b.x;
+    double y = a.y - b.y;
+    double z = a.z - b.z;
+
+    return std::sqrt (x * x + y * y + z * z);
+}
+
+Point operator* (double value, const Point& p)
+{
+    return {value * p.x, value * p.y, value * p.z};
+}
+
+Point operator* (const Point& p, double value)
+{
+    return value * p;
+}
+
+Point operator* (const Point& a, const Point& b)
+{
+    return {a.x * b.x, a.y * b.y, a.z * b.z};
+}
+
+Point operator+ (const Point& a, const Point& b)
+{
+    return {a.x + b.x, a.y + b.y, a.z + b.z};
+}
+
+Point operator- (const Point& a, const Point& b)
+{
+    return {a.x - b.x, a.y - b.y, a.z - b.z};
+}
+
+double operator| (const Point& a, const Point& b)
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+Point operator+ (double value, const Point& p)
+{
+    return {value + p.x, value + p.y, value + p.z};
+}
+
+Point operator+ (const Point& p, double value)
+{
+    return value + p;
+}
+
+Point operator- (double value, const Point& p)
+{
+    return {value - p.x, value - p.y, value - p.z};
+}
+
+Point operator- (const Point& p, double value)
+{
+    return (-1 * value) + p;
+}
+
+Point operator/ (double value, const Point& p)
+{
+    return {value / p.x, value / p.y, value / p.z};
+}
+
+Point operator/ (const Point& p, double value)
+{
+    return (1. / value) * p;
+}
+
+bool operator< (const Point& a, const Point& b)
+{
+    return ((a.x < b.x) && (a.y < b.y) && (a.z < b.z));
+}
+
+bool operator> (const Point& a, const Point& b)
+{
+    return ((a.x > b.x) && (a.y > b.y) && (a.z > b.z));
+}
+
+bool operator<= (const Point& a, const Point& b)
+{
+    return ((a.x <= b.x) && (a.y <= b.y) && (a.z <= b.z));
+}
+
+bool operator>= (const Point& a, const Point& b)
+{
+    return ((a.x >= b.x) && (a.y >= b.y) && (a.z >= b.z));
+}
+
+bool operator== (const Point& a, const Point& b)
+{
+    double eps = 1e-10;
+    bool bx = (abs(a.x - b.x) < eps);
+    bool by = (abs(a.y - b.y) < eps);
+    bool bz = (abs(a.z - b.z) < eps);
+
+    return (bx && by && bz);
+}
+
+bool operator!= (const Point& a, const Point& b)
+{
+    double eps = 1e-10;
+    bool bx = (abs(a.x - b.x) > eps);
+    bool by = (abs(a.y - b.y) > eps);
+    bool bz = (abs(a.z - b.z) > eps);
+
+    return (bx && by && bz);
+}
+
+

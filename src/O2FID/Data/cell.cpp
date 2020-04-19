@@ -4,25 +4,47 @@
 Cell::Cell()
 {}
 
+Cell::Cell (const Cell& c) :
+    m_points (c.m_points)
+{}
+
+Cell& Cell::operator= (std::initializer_list<Point *> ilist)
+{
+    m_points.clear ();
+    for (auto iter = ilist.begin (); iter != ilist.end (); iter++)
+        m_points.push_back (*iter);
+    return *this;
+}
+
 Cell::~Cell ()
 {}
 
-void Cell::AddPoint (Point *p)
+Cell* Cell::AddPoint (Point *p)
 {
     for (size_t i = 0; i < m_points.size (); ++i)
         if (m_points.at (i) == p)
-            return;
+            return this;
 
     m_points.push_back (p);
-    return;
+    p->LinkToCell (this);
+    return this;
 }
 
-void Cell::RemovePoint (Point *p)
+Cell* Cell::RemovePoint (Point *p)
 {
-    for (size_t i = 0; i < m_points.size (); ++i)
-        if (m_points.at (i) == p)
-            m_points.erase (m_points.begin () + long (i));
-    return;
+    auto it = m_points.begin ();
+    while (it != m_points.end ())
+    {
+        if (*it == p)
+        {
+            (*it)->UnlinkToCell (this);
+            it = m_points.erase (it);
+        }
+        else
+            it++;
+    }
+
+    return this;
 }
 
 CELL_LOCATION Cell::GetLocate () const

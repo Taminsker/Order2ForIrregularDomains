@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <vector>
 #include <initializer_list>
+#include <utility>
 
 #define SPACE std::left << std::setw(12)
 
@@ -21,10 +22,21 @@ class Cell;
  */
 typedef enum
 {
-    ON_BORDER_OMEGA,
-    ON_DOMAIN_INTERN_OMEGA,
-    ON_DOMAIN_EXTERN_OMEGA
+    ON_BORDER_OMEGA = 1,
+    ON_DOMAIN_INTERN_OMEGA = 0,
+    ON_DOMAIN_EXTERN_OMEGA = 2
 } POINT_LOCATION;
+
+/**
+ * @brief Enumérateur pour le label des axes
+ */
+typedef enum
+{
+    NO_AXIS = -1,
+    AXIS_X = 0,
+    AXIS_Y = 1,
+    AXIS_Z = 2
+} AXIS_LABEL;
 
 /**
  * @brief La classe Point implémente les informations nécessaires pour définir un point.
@@ -34,6 +46,7 @@ class Point
 {
 
 public:
+
     /**
      * @brief Coordonnée x du point.
      */
@@ -69,6 +82,26 @@ public:
     Point (double a, double b = 0., double c = 0.);
 
     /**
+     * @brief Affectation par égalité
+     * @param p Point
+     * @return
+     */
+    Point& operator= (const Point& p);
+    /**
+     * @brief Affectation par égalité
+     * @param ilist exemple : {2., 4., 5}
+     * @return Point
+     */
+    Point& operator= (std::initializer_list<double> ilist);
+
+    /**
+     * @brief Affectation par égalité
+     * @param ilist exemple : {2., 4., 5}
+     * @return Point
+     */
+    Point& operator= (std::initializer_list<int> ilist);
+
+    /**
      * @brief Destructeur
      */
     ~Point ();
@@ -76,22 +109,22 @@ public:
     /**
      * @brief Définition de l'indice global du point
      * @param index un entier int
-     * @return rien
+     * @return this Point*
      */
-    void SetGlobalIndex (int index);
+    Point* SetGlobalIndex (int index);
 
     /**
      * @brief Retourne l'indice global du point dans le maillage auquel il appartient
      * @return index l'indice global
      */
-    int GetGlobalIndex ();
+    int GetGlobalIndex () const;
 
     /**
      * @brief Définition de la localisation du point. Voir l'énumération POINT_LOCATION
      * @param loc tag de type POINT_LOCATION
      * @return rien
      */
-    void SetLocate (POINT_LOCATION loc);
+    Point* SetLocate (POINT_LOCATION loc);
 
     /**
      * @brief Retourne le tag du point.
@@ -101,82 +134,107 @@ public:
 
     /**
      * @brief Nettoie la liste des points voisins de ce point
-     * @return rien
+     * @return this Point*
      */
-    void ClearListNeighboors ();
+    void ClearListNeighbours ();
 
     /**
-     * @brief Ajoute de le point p à la liste de voisins de ce point
+     * @brief Ajoute le point p à la liste de voisins de ce point
      * @param p point de type Point
-     * @return rien
+     * @return this Point*
      */
-    void AddPointNeighbour (Point p);
+    void AddPointNeighbour (Point* p);
 
     /**
      * @brief Retourne un vecteur de points voisins de ce point
      * @return vecteur de point
      */
-    std::vector <Point> GetListNeighbours ();
+    std::vector <Point *> GetListNeighbours ();
 
     /**
-     * @brief operator == : operateur de test d'égalité sur les 3 coordonnées.
-     * @param p Point
+     * @brief Associe un vecteur de points voisins à ce point
+     * @param liste des Point*
      */
-    bool operator== (const Point &p);
+    void SetListNeighbours (std::vector <Point *>& list);
 
     /**
-     * @brief Addtition coordonnée par coordonnée
-     * @param a un point de type Point
-     * @return Point
+     * @brief Retounr
+     * @param tag
+     * @return
      */
-    Point operator+ (const Point & a);
+    std::pair <Point *, Point *> GetNeighboursFromAxis (AXIS_LABEL tag);
 
     /**
-     * @brief Soustraction coordonnée par coordonnée
-     * @param a un point de type Point
-     * @return Point
+     * @brief Enlève le point p à la liste de voisins de ce point
+     * @param p point de type Point
      */
-    Point operator- (const Point & a);
+    void RemoveThisNeighbourPoint (Point* p);
 
     /**
-     * @brief Multiplication par un double de toutes les coordonnées
-     * @param v un double
-     * @return Point
+     * @brief Relie la cellule c à ce point
+     * @param c la cellule considérée
      */
-    Point operator* (double v);
+    void LinkToCell (Cell* c);
 
     /**
-     * @brief Division par un double de toutes les coordonnées (si différent de zéro)
-     * @param v un double
-     * @return Point
+     * @brief Enlève la connection de ce point à la cellule c
+     * @param c la cellule considérée
      */
-    Point operator/ (double v);
+    void UnlinkToCell (Cell* c);
 
     /**
-     * @brief Multiplication par un int de toutes les coordonnées
-     * @param v un double
-     * @return Point
+     * @brief Retourne la liste des cellules liées à ce point
+     * @return Vecteur de Cell*
      */
-    Point operator* (int v);
+    std::vector <Cell*> GetLinkedCell () const;
 
     /**
-     * @brief operator << : utiliser pour std::cout << p << std::endl, similaire à printf ("%f, %f, %f", p.x, p.y, p.z).
-     * @param p Point
-     * @param out flux
-     * @return flux
+     * @brief DetachFromAll
+     * @return
      */
+    Point* DetachFromAll ();
+
+    // Fonction friend
     friend std::ostream & operator<< (std::ostream &out, const Point &p);
+
+    friend double EuclidianDist (const Point& a, const Point& b);
+    friend Point operator* (double value, const Point& p);
+    friend Point operator* (const Point& p, double value);
+    friend Point operator* (const Point& a, const Point& b);
+
+    friend Point operator+ (const Point& a, const Point& b);
+    friend Point operator- (const Point& a, const Point& b);
+
+    friend double operator| (const Point& a, const Point& b);
+
+    friend Point operator+ (const Point& p, double value);
+    friend Point operator+ (double value, const Point& p);
+
+    friend Point operator- (const Point& p, double value);
+    friend Point operator- (double value, const Point& p);
+
+    friend Point operator/ (const Point& p, double value);
+    friend Point operator/ (double value, const Point& p);
+
+    friend bool operator< (const Point& a, const Point& b);
+    friend bool operator> (const Point& a, const Point& b);
+
+    friend bool operator<= (const Point& a, const Point& b);
+    friend bool operator>= (const Point& a, const Point& b);
+
+    friend bool operator== (const Point& a, const Point& b);
+    friend bool operator!= (const Point& a, const Point& b);
 
 protected:
     /**
      * @brief Liste des cellules connectées en ce point
      */
-    std::vector <Cell *> m_cells;
+    std::vector<Cell *> m_cells;
 
     /**
-     * @brief Tag de localisation du point
-     */
-    POINT_LOCATION m_locate;
+    * @brief Liste des points voisins
+    */
+    std::vector<Point *> m_listNeighbours;
 
     /**
      * @brief Indice global du point dans le maillage
@@ -184,9 +242,9 @@ protected:
     int m_globalIndex;
 
     /**
-    * @brief Liste des points voisins
-    */
-    std::vector<Point> m_listNeighbours;
+     * @brief Tag de localisation du point
+     */
+    POINT_LOCATION m_locate;
 };
 
 /**
@@ -196,6 +254,158 @@ protected:
  * @param out flux
  * @return flux
  */
-std::ostream & operator<< (std::ostream &out, const Point &p);
+std::ostream& operator<< (std::ostream &out, const Point &p);
+
+/**
+ * @brief Calcul de la distance euclidienne entre deux points
+ * @param a Point
+ * @param b Point
+ * @return distance
+ */
+double EuclidianDist (const Point& a, const Point& b);
+
+/**
+ * @brief Multiplication scalaire
+ * @param value double
+ * @param p le point en question
+ * @return Point
+ */
+Point operator* (double value, const Point& p);
+
+/**
+ * @brief Multiplication scalaire
+ * @param value double
+ * @param p le point en question
+ * @return Point
+ */
+Point operator* (const Point& p, double value);
+
+/**
+ * @brief Multiplication intelligente entre deux points
+ * @param a
+ * @param p le point en question
+ * @return Point
+ */
+Point operator* (const Point& a, const Point& b);
+
+/**
+ * @brief Addition de deux points
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return Point
+ */
+Point operator+ (const Point& a, const Point& b);
+
+/**
+ * @brief Soustraction de deux points
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return Point
+ */
+Point operator- (const Point& a, const Point& b);
+
+/**
+ * @brief Produit scalaire entre deux points (vecteurs)
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return double
+ */
+double operator| (const Point& a, const Point& b);
+
+/**
+ * @brief Addition d'un point et d'un double
+ * @param p le point en question
+ * @param value la valeur à ajouter
+ * @return Point
+ */
+Point operator+ (const Point& p, double value);
+
+/**
+ * @brief Addition d'un point et d'un double
+ * @param p le point en question
+ * @param value la valeur à ajouter
+ * @return Point
+ */
+Point operator+ (double value, const Point& p);
+
+/**
+ * @brief Soustraction d'un point et d'un double
+ * @param p le point en question
+ * @param value la valeur à soustraire
+ * @return Point
+ */
+Point operator- (const Point& p, double value);
+
+/**
+ * @brief Soustraction d'un point et d'un double
+ * @param p le point en question
+ * @param value la valeur à soustraire
+ * @return Point
+ */
+Point operator- (double value, const Point& p);
+
+/**
+ * @brief Division à droite d'un point par un double
+ * @param p le point en question
+ * @param value la valeur en question
+ * @return Point
+ */
+Point operator/ (const Point& p, double value);
+
+/**
+ * @brief Division à gauche d'un point par un double
+ * @param p le point en question
+ * @param value la valeur en question
+ * @return Point
+ */
+Point operator/ (double value, const Point& p);
+
+/**
+ * @brief Operateur de comparaison <
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return booléen
+ */
+bool operator< (const Point& a, const Point& b);
+
+/**
+ * @brief Operateur de comparaison >
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return booléen
+ */
+bool operator> (const Point& a, const Point& b);
+
+/**
+ * @brief Operateur de comparaison >=
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return booléen
+ */
+bool operator<= (const Point& a, const Point& b);
+
+/**
+ * @brief Operateur de comparaison >=
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return booléen
+ */
+bool operator>= (const Point& a, const Point& b);
+
+/**
+ * @brief Operateur d'égalité entre deux points (sur les coordonnées)
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return booléen
+ */
+bool operator== (const Point& a, const Point& b);
+
+/**
+ * @brief Operateur de différence entre deux points (sur les coordonnées)
+ * @param a le premier point
+ * @param b le deuxième point
+ * @return booléen
+ */
+bool operator!= (const Point& a, const Point& b);
 
 #endif // POINT_H

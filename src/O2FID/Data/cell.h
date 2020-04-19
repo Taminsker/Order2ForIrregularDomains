@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <vector>
+#include <initializer_list>
 
 /**
   * @brief Énumerateur pour la localisation des cellules.
@@ -31,23 +32,36 @@ public:
     Cell ();
 
     /**
+     * @brief Constructeur par copie
+     * @param c la cellule à copier
+     */
+    Cell (const Cell& c);
+
+    /**
       * @brief Destructeur
       */
     ~Cell ();
 
     /**
+     * @brief Affectation par égalité
+     * @param ilist exemple : {2., 4., 5}
+     * @return Point
+     */
+    Cell& operator= (std::initializer_list<Point *> ilist);
+
+    /**
      * @brief Lier un nouveau point avec cette cellule (un pointeur vers ce point est ajouter au sein de la cellule)
      * @param p est un pointeur vers un point de type Point
-     * @return rien
+     * @return this Cell*
      */
-    void AddPoint (Point * p);
+    Cell* AddPoint (Point * p);
 
     /**
      * @brief Désolidariser un point de cette cellule. En pratique supprime juste le pointeur vers le dit point.
      * @param p est un pointeur vers un point de type Point
-     * @return rien
+     * @return this Cell*
      */
-    void RemovePoint (Point * p);
+    Cell* RemovePoint (Point * p);
 
     /**
      * @brief Retourne le tag de localisation de la cellule en fonction du tag des points la définissant
@@ -67,12 +81,7 @@ public:
      */
     int GetNumberOfInfos () const;
 
-    /**
-     * @brief operator << utilisation pour afficher les numéros globaux des points définissant la cellule
-     * @param out flux std::ostream
-     * @param c une cellule
-     * @return out le flux std::ostream passée en parmamètre
-     */
+    // Fonction friend
     friend std::ostream & operator<< (std::ostream &out, const Cell &c);
 
 protected:
