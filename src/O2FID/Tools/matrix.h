@@ -17,7 +17,7 @@
  * @param mesh un pointeur vers un objet Mesh
  * @return Matrix du problème de la chaleur
  */
-Matrix Laplacian (Mesh * mesh);
+Matrix& Laplacian (Mesh * mesh);
 
 /**
  * @brief Cette fonction actualise une ligne donnée de la matrice du Laplacien (cf. algorithme.pdf)
@@ -25,7 +25,7 @@ Matrix Laplacian (Mesh * mesh);
  * @param m l'indice de la ligne à modifier
  * @param gamma l'entier correspondant à l'axe dans la direction duquel on fait la mise à jour
  */
-void Actualise_Ligne (Matrix &A, int m, int gamma);
+void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma);
 
 /**
  * @brief Cette fonction trie la liste des voisins d'un point donné par direction : d'abord les voisins en direction x, puis y, puis z

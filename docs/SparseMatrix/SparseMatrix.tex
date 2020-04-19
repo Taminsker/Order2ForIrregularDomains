@@ -1,0 +1,377 @@
+
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[frenchb]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{float,subfig}
+
+
+\textwidth=170mm
+\textheight=240mm
+\voffset=-30mm
+\hoffset=-21mm
+
+\usepackage{graphicx}
+
+\def \bs {\backslash}
+\def \eps {\varepsilon}
+\def \un {\textbf{1}}
+\def \RR {\mathbb{R}}
+\def \EE {\mathbb{E}}
+\def \CC {\mathbb{C}}
+\def \KK {\mathbb{K}}
+\def \NN {\mathbb{N}}
+\def \PP {\mathbb{P}}
+\def \sC {\mathcal{C}}
+\def \sF {\mathcal{F}}
+\def \sM {\mathcal{M}}
+\def \sO {\mathcal{O}}
+\def \sG {\mathcal{G}}
+\def \sE {\mathcal{E}}
+\def \sB {\mathcal{B}}
+\def \sH {\mathcal{H}}
+\def \sN {\mathcal{N}}
+\def \sP {\mathcal{P}}
+\def \sU {\mathcal{U}}
+\def \sL {\mathcal{L}}
+\def \disp {\displaystyle}
+
+
+\begin{document}
+
+{\large
+\noindent {\sc M1 Modélisation 2019/2020 }
+\hfill {\sc Projet GTT} \\
+}
+\vspace{2 mm}
+
+\begin{center}
+	\Huge{\textbf{La classe SparseMatrix d'Eigen}}
+\end{center}
+
+\vspace{2 mm}
+
+\noindent
+\textbf{$\leadsto$} \textit{Ne pas hésiter à consulter la documentation d'Eigen en ligne, notamment pour fouiller dans les sections "SparseMatrix" et "Block operations"$\ldots$ On y trouve plein de fonctions et exemples utiles !}
+
+\vspace{2 mm}
+
+\section{Généralités sur les SparseMatrix}
+
+\noindent
+Leur nom est assez explicite : ce sont des \textbf{matrices creuses}, avec beaucoup de zéros. Or seuls les coefficients non nuls nous intéressent, et la classe SparseMatrix permet de les manipuler facilement : il suffit d'indiquer la position $(i,j)$ et la valeur $v_{i,j}$ de tous les coefficients d'intérêt, et \textit{Eigen} se charge de remplir correctement la matrice.
+
+\vspace{5 mm}
+
+\noindent
+La classe SparseMatrix prend 3 arguments dans son template (dans l'ordre) :
+\begin{enumerate}
+
+	\item Le type des coefficients scalaires de la matrice (int, double, complex<float>$\ldots$).
+	
+	\item L'ordre de numérotation/stockage de ses éléments. Deux manières possibles :
+	
+\vspace{1 mm}	
+	
+	\begin{itemize}
+		\item \textbf{ColMajor} (pour "column major"), ie. en parcourant par colonnes (c'est le cas par défaut). Tous les calculs sont alors plus efficaces/rapides si on effectue des opérations dessus en la parcourant par colonnes.
+	
+\vspace{1 mm}	
+	
+	\item \textbf{RowMajor} (pour "row major"), ie. en parcourant par lignes. Tous les calculs sont alors plus efficaces/rapides si on effectue des opérations dessus en la parcourant par lignes.
+	\end{itemize}
+	
+	\item Le type des indices, qui doit être signé, comme int (c'est ce type par défaut), short$\ldots$
+	
+\end{enumerate}
+
+\vspace{5 mm}
+
+\noindent
+Voici 2 exemples (où le type des indices est laissé en int par défaut, donc inutile de le préciser) :
+	
+\vspace{1 mm}	
+	
+\begin{itemize}
+
+	\item Matrice $M$ de int de taille $47 \times 21$ avec un stockage non précisé (donc ColMajor par défaut) :
+	
+\vspace{5 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ SparseMatrix<int> M (47,21);
+\end{minipage}}
+\end{center}
+	
+\vspace{5 mm}	
+
+	\item Matrice $N$ de double de taille $20 \times 97$ avec un stockage RowMajor (il faut le préciser) :
+	
+\vspace{5 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ SparseMatrix<double, RowMajor> N (20,97);
+\end{minipage}}
+\end{center}
+
+\end{itemize}
+
+\vspace{5 mm}
+
+\noindent
+Des fonctions simples permettent de connaître certaines dimensions d'une SparseMatrix $M$ donnée :
+	
+\vspace{1 mm}	
+	
+\begin{itemize}
+
+	\item \textbf{M.rows()} donne le nombre de lignes de $M$.
+		
+\vspace{1 mm}	
+	
+	\item \textbf{M.cols()} donne le nombre de colonnes de $M$.
+	
+\vspace{1 mm}
+	
+	\item \textbf{M.innerSize()} donne la "dimension intérieure" par rapport à l'ordre de stockage, ie. le nombre de lignes (resp. colonnes) pour une matrice stockée en ColMajor (resp. RowMajor). En particulier si la matrice est un vecteur, cela renverra sa taille.
+	
+\vspace{1 mm}
+	
+	\item \textbf{M.outerSize()} donne la "dimension extérieure" par rapport à l'ordre de stockage, ie. le nombre de colonnes (resp. lignes) pour une matrice stockée en ColMajor (resp. RowMajor). En particulier si la matrice est un vecteur, cela renverra 1.
+	
+\vspace{1 mm}
+	
+	\item \textbf{M.nonZeros()} donne le nombre de coefficients non nuls de $M$.
+	
+\end{itemize}
+
+\vspace{5 mm}
+
+\noindent
+\textbf{RQ :}~~ Prenons par exemple une matrice stockée en ColMajor : d'abord la $1^\text{ère}$ colonne (et on récupère tous ses éléments correspondant aux différentes lignes), puis la $2^\text{ème}$ (idem), etc. La "dimension extérieure" fait donc référence au nombre de colonnes (les gros blocs), et la "dimension intérieure" fait référence au nombre de lignes (les éléments intérieurs à chaque bloc).
+
+\vspace{5 mm}
+
+\noindent
+Enfin, on peut rapidement être amené à parcourir les éléments d'une SparseMatrix. Mais au lieu de tous les parcourir avec la fonction \textbf{coeffRef(i,j)} (ce qui serait lourd et inutile à cause du très grand nombre de zéros), on peut choisir d'itérer uniquement sur les coefficients non nuls. On fait :
+\begin{itemize}
+
+\vspace{1 mm}	
+	
+	\item Une boucle classique sur la dimension extérieure (indice $j$ pour une matrice en ColMajor),
+	
+\vspace{1 mm}	
+	
+	\item Puis on itère sur les éléments non nuls du vecteur sur la dimension intérieure (indice $i$ pour ue matrice en ColMajor) avec un "\textbf{InnerIterator}" (itérateur intérieur).
+	
+\end{itemize}
+
+\vspace{1 mm}
+
+\noindent
+Ainsi, les coefficients non nuls sont parcourus dans le même ordre que l'ordre de stockage de la SparseMatrix. Voici un exemple d'un tel parcours de la matrice sur ses éléments non nuls :
+
+\vspace{5 mm}
+
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1 |~~ SparseMatrix<double> M(rows,cols); \\
+2 |~~ for (int k$=$0; k<M.outerSize(); $++$k) \\
+3 |~~ \{ \\
+4 |~~~~~~ for (SparseMatrix<double>::InnerIterator it(M,k); it; $++$it) \\
+5 |~~~~~~ \{ \\
+6 |~~~~~~~~~~ it.value(); // valeur \\
+7 |~~~~~~~~~~ it.row(); ~~// indice de ligne \\
+8 |~~~~~~~~~~ it.col(); ~~~// indice de colonne (ici, k) \\
+9 |~~~~~~~~~~ it.index(); // indice interieur (ici, it.row()) \\
+10|~~~~~~ \} \\
+11|~~ \}
+\end{minipage}}
+\end{center}
+
+\vspace{5 mm}
+
+\section{Remplir une SparseMatrix}
+
+\noindent
+Parce que le schéma de stockage d'une SparseMatrix est très spécifique, le remplissage d'une telle matrice le sera aussi. En effet, une simple insertion d'un nouvel élément non nul a un coût en $O(N_{nz})$, où $N_{nz}$ est le nombre actuel de coefficients non nuls de la matrice. La manière la plus simple de créer une SparseMatrix tout en garantissant une bonne performance est de commencer par construire une \textbf{liste de triplets}, puis de convertir cette liste en SparseMatrix.
+
+\vspace{5 mm}
+
+\noindent
+Un \textbf{triplet} est, comme son nom l'indique, une liste $[i,j,{\rm value}]$ donnant la position et la valeur d'un coefficient non nul. La liste de triplets peut ne pas être triée au préalable, et peut contenir des doublons : dans tous les cas, le résultat sera une SparseMatrix rangée et compressée, où les doublons ont été éliminés. Ceci a un coût en $O(n)$, où $n$ est le nombre de triplets.
+
+\vspace{5 mm}
+
+\noindent
+\textbf{RQ :}~~ La matrice devra être préalablement mise à la bonne taille, que ce soit avec la fonction \textbf{SparseMatrix(rows, cols)} (qui construit une matrice vide de taille ${\rm rows} \times {\rm cols}$), ou encore avec la méthode \textbf{resize(rows, cols)} (qui met la matrice au format ${\rm rows} \times {\rm cols}$ et l'initialise avec des zéros).
+
+\vspace{5 mm}
+
+\noindent
+Ensuite, tout se passe grâce à la fonction \textbf{setFromTriplets()} :
+
+\vspace{5 mm}
+
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1 |~~ typedef Triplet<double> T; \\
+2 |~~ std::vector<T> tripletList; \\
+3 |~~ tripletList.reserve(estimation\_nombre\_triplets); \\
+4 |~~ for($\ldots$) \\
+5 |~~ \{ \\
+6 |~~~~~~ // $\ldots$ \\
+7 |~~~~~~ tripletList.push\_back(T(i,j,v\_ij)); \\
+8 |~~ \}  \\
+9 |~~ SparseMatrixType M(rows,cols); \\
+10|~~ M.setFromTriplets(tripletList.begin(), tripletList.end());
+\end{minipage}}
+\end{center}
+
+\vspace{5 mm}
+
+\section{Opérations et fonctions supportées}
+
+\noindent
+Toujours à cause de leur stockage un peu particulier, les SparseMatrix ne sont pas aussi flexibles que les DenseMatrix (\textbf{matrices pleines}). Dans les exemples suivants, on notera SM une SparseMatrix et DM une DenseMatrix, SV un SparseVector et DV un DenseVector.
+
+\vspace{5 mm}
+
+\noindent
+\textbf{$\star$ Opérations de base :}
+
+\vspace{5 mm}
+
+\noindent
+On peut prendre leurs parties réelle avec \textbf{SM.real()} et imaginaire avec \textbf{SM.imag()}, les multiplier par un scalaire $k$ avec la syntaxe \textbf{k*SM} (en particulier, prendre leur opposé avec \textbf{$-$SM}), les ajouter ou les soustraire avec \textbf{SM1+SM2} et \textbf{SM1$-$SM2}$\ldots$ Mais attention : il faut que les ordres de stockage soient compatibles ! Par exemple, pour écrire :
+
+\vspace{2 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ SM3 $=$ SM1 $+$ SM2;
+\end{minipage}}
+\end{center}
+
+\vspace{2 mm}
+
+\noindent
+il faut que SM1 et SM2 soient par exemple toutes les deux stockées en ColMajor (il n'y a en revanche aucune contrainte sur le stockage de SM3). De plus, il est possible d'effectuer des opérations binaires (somme, différence, produit coefficient par coefficient$\ldots$) entre une SparseMatrix et une DenseMatrix avec la même syntaxe que plus haut, mais pour des questions de performances, le calcul :
+
+\vspace{2 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ DM2 $=$ SM $+$ DM1;
+\end{minipage}}
+\end{center}
+
+\vspace{2 mm}
+
+\noindent
+devrait plutôt s'écrire (et idem pour la différence) en 2 temps ainsi :
+
+\vspace{2 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ DM2 $=$ DM1; \\
+2|~~ DM2 +$=$ SM;
+\end{minipage}}
+\end{center}
+
+\vspace{2 mm}
+
+\noindent
+Cette version a l'avantage d'exploiter pleinement la haute efficacité du stockage des DenseMatrix ainsi que le coût réduit de l'évaluation des SparseMatrix uniquement sur ses coefficients non nuls. Enfin, il est aussi possible de transposer et de prendre l'adjoint d'une SparseMatrix avec \textbf{SM.transpose()} et \textbf{SM.adjoint()}.
+
+\newpage
+
+\noindent
+\textbf{$\star$ Produits matriciels :}~~ 
+
+\vspace{5 mm}
+
+\noindent
+\begin{itemize}
+
+	\item \textbf{Sparse / Dense} : Quelques exemples de calculs possibles :
+
+\vspace{5 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ DV2 $=$ SM * DV1; \\
+2|~~ DM2 $=$ DM1 * SM.adjoint(); \\
+3|~~ DM2 $=$ k * SM * DM;
+\end{minipage}}
+\end{center}
+
+\vspace{5 mm}
+
+	\item \textbf{Sparse symétrique / Dense} : Peut être optimisé en précisant la symétrie avec la fonction \textbf{selfadjointView()}, ainsi que "Upper" (resp. "Lower") si toute la matrice n'est pas stockée mais seulement sa partie supérieure (resp. inférieure) :
+
+\vspace{5 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ DM2 = SM.selfadjointView<>() * DM1; \\
+2|~~ DM2 = SM.selfadjointView<Upper>() * DM1; \\
+3|~~ DM2 = SM.selfadjointView<Lower>() * DM1;
+\end{minipage}}
+\end{center}
+
+\vspace{5 mm}
+	
+	\item \textbf{Sparse / Sparse} : Il y a 2 algorithmes différents. Le premier (celui par défaut) est conservatif et préserve les zéros explicites qui peuvent apparaître ; le second ignore les zéros explicites ou les coefficients inférieurs à un seuil de référence (qu'on peut modifier) avec la fonction \textbf{prune()} :
+
+\vspace{5 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1|~~ // 1er algorithme \\
+2|~~ SM2 $=$ SM1 * SM2; \\
+3|~~ SM3 $=$ k * SM1.adjoint() * SM2; \\
+4|~~  \\
+5|~~ // 2nd algorithme \\
+6|~~ SM3 $=$ (SM1 * SM2).pruned(); // Enleve ceux $=$ 0\\
+7|~~ SM3 $=$ (SM1 * SM2).pruned(ref); // Enleve ceux < ref \\
+8|~~ SM3 $=$ (SM1 * SM2).pruned(ref, eps); // Enleve ceux < ref*eps
+\end{minipage}}
+\end{center}
+
+\vspace{5 mm}
+	
+\end{itemize}
+
+\noindent
+\textbf{$\star$ Opérations par blocs :}~~ 
+
+\vspace{5 mm}
+
+\noindent
+Pour des raisons de performances, accéder à un sous-bloc d'une SparseMatrix est assez limité : seuls des colonnes (resp. lignes) d'une matrice en ColMajor (resp. RowMajor) peuvent être atteintes facilement pour les modifier. Voici des fonctions pratiques pour faire du "slicing" (extraire les morceaux qu'on veut) ou de l'affectation par blocs, dont les noms sont assez explicites :
+
+\vspace{5 mm}	
+	
+\begin{center}
+\framebox{\begin{minipage}{120mm}
+1 |~~ SparseMatrix<double,ColMajor> SM1; \\
+2 |~~ SM1.col(j) $=$ $\ldots$; \\
+3 |~~ SM1.leftCols(ncols) $=$ $\ldots$; \\
+4 |~~ SM1.middleCols(j,ncols) $=$ $\ldots$; \\
+5 |~~ SM1.rightCols(ncols) $=$ $\ldots$; \\
+6 |~~  \\
+7 |~~ SparseMatrix<double,RowMajor> SM2; \\
+8 |~~ SM2.row(i) $=$ $\ldots$; \\
+9 |~~ SM2.topRows(nrows) $=$ $\ldots$; \\
+10|~~ SM2.middleRows(i,nrows) $=$ $\ldots$; \\
+11|~~ SM2.bottomRows(nrows) $=$ $\ldots$;
+\end{minipage}}
+\end{center}
+
+\end{document}

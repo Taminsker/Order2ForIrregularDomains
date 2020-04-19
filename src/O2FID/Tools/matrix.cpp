@@ -1,4 +1,4 @@
-#include "impose.h"
+#include "matrix.h"
 
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-Matrix Laplacian (Mesh * mesh, std::vector<int> Index)
+Matrix& Laplacian (Mesh * mesh)
 {
   // On récupère le nombre de points et les pas d'espace
 
@@ -25,9 +25,9 @@ Matrix Laplacian (Mesh * mesh, std::vector<int> Index)
 
   // On définit les coefficients pour implicite par défaut
 
-  if (hx > 1e-10) {b = - D / (hx * hx);}
-  if (hy > 1e-10) {c = - D / (hy * hy);}
-  if (hz > 1e-10) {d = - D / (hz * hz);}
+  if (hx > 1e-10) {b = 1. / (hx * hx);}
+  if (hy > 1e-10) {c = 1. / (hy * hy);}
+  if (hz > 1e-10) {d = 1. / (hz * hz);}
   a = - 2.*b - 2.*c - 2.*d;
 
   // On définit un alias pour les triplets
@@ -75,7 +75,7 @@ Matrix Laplacian (Mesh * mesh, std::vector<int> Index)
 
   // On lui ajoute sa transposée pour avoir la matrice complète
 
-  A = A.selfadjointView<Upper> ();
+  A = A.selfadjointView<Eigen::Upper> ();
 
   // On met à jour les interactions
 
@@ -92,8 +92,8 @@ Matrix Laplacian (Mesh * mesh, std::vector<int> Index)
       int l = P_l->GetGlobalIndex ();
       int r = P_r->GetGlobalIndex ();
 
-      int gamma = -1;
-      Point Diff = P_r - P_l;
+      AXIS_LABEL gamma;
+      Point Diff = *P_r - *P_l;
 
       if (Diff == Point (Diff.x, 0, 0)) // Les coordonnées x diffèrent, donc direction x
         gamma = AXIS_X;
@@ -117,22 +117,27 @@ Matrix Laplacian (Mesh * mesh, std::vector<int> Index)
 }
 
 
-void Actualise_Ligne (Matrix &A, Point* P_m, int gamma)
+void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma)
 {
   Sort_Neighbours (P_m);
+  int m = P_m->GetGlobalIndex ();
+
   std::vector<Point*> Neighbours = P_m->GetListNeighbours ();
 
-  int l = Neighbours [2 * gamma]->GetGlobalIndex (); // Voisin de "gauche" en direction gamma
-  int r = Neighbours [2 * gamma + 1]->GetGlobalIndex (); // Voisin de "droite" en direction gamma
+  Point* P_l = Neighbours [2 * gamma];
+  Point* P_r = Neighbours [2 * gamma + 1];
+
+  int l = P_l->GetGlobalIndex (); // Voisin de "gauche" en direction gamma
+  int r = P_r->GetGlobalIndex (); // Voisin de "droite" en direction gamma
 
   double dist_l = EuclidianDist (*P_m, *P_l);
   double dist_r = EuclidianDist (*P_m, *P_r);
-  double moy = (dit_l + dist_r) / 2.;
+  double moy = (dist_l + dist_r) / 2.;
 
   A.coeffRef (m,l) = 1. / (moy * dist_l);
   A.coeffRef (m,r) = 1. / (moy * dist_r);
   A.coeffRef (m,m) = 0.;
-  A.coeffRef (m,m) -= A.row (m).sum ();
+  A.coeffRef (m,m) = - A.row (m).sum ();
 }
 
 
@@ -152,7 +157,7 @@ void Sort_Neighbours (Point* P)
 
     for (Point* V : Neighbours) {
 
-      Point Diff = V - P;
+      Point Diff = *V - *P;
 
       if (Diff == Point (Diff.x, 0, 0)) { // V a même y que P, donc direction x
         NewList [i] = V;
@@ -173,7 +178,7 @@ void Sort_Neighbours (Point* P)
 
     for (Point* V : Neighbours) {
 
-      Point Diff = V - P;
+      Point Diff = *V - *P;
 
       if (Diff == Point (Diff.x, 0, 0)) { // V a même y et z que P, donc direction x
         NewList [i] = V;
@@ -192,5 +197,5 @@ void Sort_Neighbours (Point* P)
     }
   }
 
-  P->GetListNeighbours () = NewList;
+  P->SetListNeighbours (NewList);
 }

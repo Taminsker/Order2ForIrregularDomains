@@ -1,0 +1,1121 @@
+
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[frenchb]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{float,subfig}
+\usepackage[ruled,vlined,french,onelanguage]{algorithm2e}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\textwidth=170mm
+\textheight=240mm
+\voffset=-30mm
+\hoffset=-16mm
+
+\def \eps {\varepsilon}
+\def \un {\textbf{1}}
+\def \RR {\mathbb{R}}
+\def \EE {\mathbb{E}}
+\def \CC {\mathbb{C}}
+\def \KK {\mathbb{K}}
+\def \NN {\mathbb{N}}
+\def \PP {\mathbb{P}}
+\def \sC {\mathcal{C}}
+\def \sF {\mathcal{F}}
+\def \sM {\mathcal{M}}
+\def \sO {\mathcal{O}}
+\def \sG {\mathcal{G}}
+\def \sE {\mathcal{E}}
+\def \sB {\mathcal{B}}
+\def \sS {\mathcal{S}}
+\def \sD {\mathcal{D}}
+\def \sH {\mathcal{H}}
+\def \sN {\mathcal{N}}
+\def \sP {\mathcal{P}}
+\def \sU {\mathcal{U}}
+\def \sL {\mathcal{L}}
+
+\def \bs {\backslash}
+\def \disp {\displaystyle}
+
+
+
+\begin{document}
+
+{\large
+\noindent {\sc M1 Modélisation 2019/2020 }
+\hfill {\sc Projet GTT} \\
+}
+\vspace{10 mm}
+\begin{center}
+	\Large{\textbf{Modification de la matrice du problème :}} \\
+	\Large{\textbf{mise à jour des interactions entre points}}
+\end{center}
+
+\vspace{10 mm}
+
+\noindent
+Reprenons le problème mis sous forme matricielle sans préoccupation des conditions au bord :
+
+$$A \cdot U^{n+1} = \frac{1}{\Delta t} \cdot U^n + f~,$$
+
+\vspace{5 mm}
+
+\noindent
+où on a vu que la matrice $A \in \sM_N (\RR)$, avec $N := Nx \times Ny \times Nz$, sera :
+
+\vspace{5 mm}
+
+\begin{itemize}
+	\item \textbf{Pour l'équation de Poisson :}~~ $A := M_P$~, avec le problème matriciel :
+
+$$M_P \cdot U = f~~~~~~(P')$$
+
+\vspace{5 mm}
+
+	\item \textbf{Pour l'équation de la chaleur :}~~ $\disp A := \frac{1}{\Delta t} \cdot I + M_P$~, avec le problème matriciel :
+\end{itemize}
+
+$$\left( \frac{1}{\Delta t} \cdot I + M_P \right) \cdot U^{n+1} = \frac{1}{\Delta t} \cdot U^n + f~~~~~~(H')$$
+
+\vspace{5 mm}
+
+\noindent
+C'est la matrice $A$ qui nous intéresse ici. Sa construction et son remplissage sont tels que chacune de ses lignes fait référence à un point du maillage, et chaque coefficient non nul sur cette ligne traduit l'interaction du point en question avec ses \textit{voisins directs} dans le maillage.
+
+\vspace{5 mm}
+
+\noindent
+Cependant, nous étudions des domaines irréguliers à l'intérieur de ce maillage, dont la frontière est définie via la fonction de level-set. Ceci nous conduit à \textit{rajouter des points} sur des arêtes pour définir ce bord, points qui n'appartenaient pas initialement au maillage.
+
+\vspace{5 mm}
+
+\noindent
+Nous avons une fonction dans les fichiers border qui détecte le bord et créent les points supplémentaires nécessaires : il faut les rajouter au maillage. Au lieu de les insérer "à leur place" $-$ ce qui déformerait totalement la matrice initiale $-$, nous avons choisi de les ajouter "à la suite", ie. que le premier nouveau point sera le $N^{\text{ème}}$, etc.
+
+\vspace{5 mm}
+
+\noindent
+Les vecteurs qui stockent la solution numérique ou analytique auront donc la forme par blocs suivante, en supposant qu'on ait rajouté $Q$ points supplémentaires au maillage :
+
+$$U = \left( \underbrace{u_0~,~\ldots~,~u_{N-1}}_{\disp \text{points déjà existants}}~,~ \underbrace{u_N~,~\ldots~,~u_{N+Q-1}}_{\disp \text{points rajoutés}} \right)^{\disp T}$$
+
+\vspace{5 mm}
+
+\noindent
+La matrice $A$ adopte donc elle aussi une structure par blocs :
+
+$$A := \left( \begin{array}{c|c}
+A_{1,1} & A_{1,2} \\
+\hline
+A_{2,1} & A_{2,2}
+\end{array} \right) = \frac{1}{\Delta t} \cdot I_{N+Q} - D \cdot [\Delta]
+$$
+
+\vspace{5 mm}
+
+\noindent
+où $[\Delta]$ est la matrice de discrétisation du Laplacien, ce qui se lit de la façon suivante :
+
+\vspace{5 mm}
+
+\noindent
+\begin{itemize}
+	\item La matrice $A_{1,1} \in \sM_{N \times N} (\RR)$ traduit les interactions entre un point initial du maillage \textit{ET} ses voisins qui appartiennent eux aussi au maillage initial. C'est donc la matrice $M_P$ pour le problème de Poisson, et la matrice $M_H$ pour le problème de la chaleur. On notera $M_\bigstar := A_{1,1}$~.
+
+\vspace{5 mm}
+
+	\item La matrice $A_{1,2} \in \sM_{N \times Q} (\RR)$ traduit les interactions entre les points initiaux du maillage \textit{ET} les points rajoutés, ceci du point de vue des points initiaux. On peut l'initialiser à la matrice nulle : $A_{1,2} = 0$.
+
+\vspace{5 mm}
+
+	\item La matrice $A_{2,1} \in \sM_{Q \times N} (\RR)$ traduit (évidemment) elle aussi les interactions entre les points initiaux du maillage \textit{ET} les points rajoutés, mais cette fois du point de vue des points rajoutés. On peut l'initialiser à la matrice nulle : $A_{2,1} = 0$.
+
+\vspace{5 mm}
+
+	\item La matrice $A_{2,2} \in \sM_{Q \times Q} (\RR)$ sera diagonale~; elle contient les "termes centraux" du Laplacien écrit aux points rajoutés. On peut l'initialiser à la matrice $\frac{1}{\Delta t} I$ (nous verrons très rapidement pourquoi) : $A_{2,2} = \frac{1}{\Delta t} I$.
+\end{itemize}
+
+\vspace{5 mm}
+
+\noindent
+\textbf{RQ :} L'initialisation à 0 des 3 matrices hormis $A_{1,1}$ est possible car \textit{a priori} toutes les nouvelles interactions sont à \textit{construire}, contrairement à la matrice $A_{1,1}$ où les interactions sont à \textit{modifier}. On a donc à ce stade, avec $M_\bigstar = M_P$ ou $M_H$ :
+
+$$A := \left( \begin{array}{c|c}
+M_\bigstar & 0 \\
+\hline
+0 & \frac{1}{\Delta t} I
+\end{array} \right) = \frac{1}{\Delta t} \cdot I_{N+Q} - D \cdot \underbrace{ \left( \begin{array}{c|c}
+[\Delta]_\bigstar & 0 \\
+\hline
+0 & 0
+\end{array} \right) }_{\disp =: [\Delta]}
+$$
+
+\vspace{5 mm}
+
+\noindent
+où $[\Delta]_\bigstar$ et $[\Delta]$ désignent respectivement le Laplacien sur la grille initiale et sur le maillage complété de ses nouveaux points qui définissent le bord. C'est sur cette matrice $[\Delta]$ que nous allons travailler maintenant car c'est la seule qui est amenée à changer.
+
+\vspace{5 mm}
+
+\noindent
+En effet, elle tient compte d'une part du fait que des points de grille $P_i$ et $P_j$ ne sont plus voisins si un point $P_k$ s'est inséré entre eux à une distance $d \cdot h$ de $P_i$ avec $d \in~]0,1[$~ (il va falloir mettre des coefficients à 0), et d'autre part des nouvelles interactions $i \leftrightarrow k$ et $k \leftrightarrow j$ (il va falloir ajouter des coefficients non nuls) :
+
+
+$$\bullet~P_i ~~~~~~~~~~ \bullet~P_k ~~~~~~~~~~~~~~~~~~~~ \bullet~P_j$$
+
+$$~~~~d \cdot h ~~~~~~~~~~~~~ (1-d) \cdot h~~~~~~$$
+
+\vspace{5 mm}
+
+\noindent
+Mais avant de modifier la matrice $[\Delta]$, un rappel sur la discrétisation de la dérivée seconde. Étant donné un point $P_m$ quelconque, on souhaite y évaluer $u''$ en faisant intervenir les valeurs de $u$ en $P_m$ mais aussi en ses deux voisins $P_{m-1}$ (à une distance $\ell_1$) et $P_{m+1}$ (à une distance $\ell_2$ :
+
+$$\bullet~P_{m-1} ~~~~~~~~~~ \bullet~P_m ~~~~~~~~~~~~~~~~~~~~ \bullet~P_{m+1}$$
+
+$$~~~~~~\ell_1 ~~~~~~~~~~~~~~~~~~~~~~~~ \ell_2 ~~~~~~~~~~~$$
+
+\vspace{5 mm}
+
+\noindent
+Les développements de Taylor aux points $P_{m-1}$ et $P_{m+1}$ donnent :
+
+\vspace{5 mm}
+
+\noindent
+\begin{itemize}
+	\item $\disp u(P_{m-1}) = u(P_m - \ell_1) = u(P_m) - \ell_1 \cdot u'(P_m) + \frac{\ell_1^2}{2} \cdot u''(P_m) + O(\ell_1^3)$
+
+\vspace{5 mm}
+
+	\item $\disp u(P_{m+1}) = u(P_m + \ell_2) = u(P_m) + \ell_2 \cdot u'(P_m) + \frac{\ell_2^2}{2} \cdot u''(P_m) + O(\ell_2^3)$
+\end{itemize}
+
+\vspace{5 mm}
+
+\noindent
+La première ligne multipliée par $\ell_2$ devient :
+
+$$\ell_2 \cdot [u(P_{m-1}) - u(P_m)] = - \ell_1 \ell_2 \cdot u'(P_m) + \ell_2 \frac{\ell_1^2}{2} \cdot u''(P_m) + O(\ell_2 \ell_1^3)$$
+
+\vspace{5 mm}
+
+\noindent
+La deuxième ligne multipliée par $\ell_1$ devient :
+
+$$\ell_1 \cdot [u(P_{m+1}) - u(P_m)] = + \ell_1 \ell_2 \cdot u'(P_m) + \ell_1 \frac{\ell_2^2}{2} \cdot u''(P_m) + O(\ell_1 \ell_2^3)$$
+
+\vspace{5 mm}
+
+\noindent
+En ajoutant membre à membre ces deux lignes, sachant que $\ell_2 \ell_1^2 + \ell_1 \ell_2^2 = \ell_1 \ell_2 (\ell_1 + \ell_2)$, puis en divisant le tout par cette quantité, on aboutit à une discrétisation de $u''(P_m)$ :
+
+$$u''(P_m) \simeq \frac{\disp \frac{u(P_{m+1}) - u(P_m)}{\ell_2} - \frac{u(P_m) - u(P_{m-1})}{\ell_1} }{\disp \frac{\ell_1 + \ell_2}{2} }~~~~~~(\spadesuit),$$
+
+\vspace{5 mm}
+
+\noindent
+ce qu'il est possible de réécrire comme :
+
+$$u''(P_m) \simeq \frac{2}{\ell_1 + \ell_2} \left[ \left( \frac{1}{\ell_2} \right)u(P_{m+1}) + \left( \frac{1}{\ell_1} + \frac{1}{\ell_2} \right)u(P_{m}) + \left( \frac{1}{\ell_1} \right)u(P_{m-1}) \right]~~~~~~(\clubsuit).$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{RQ importante (et rassurante) :}~~ Si $\ell_1 = \ell_2 = h$ comme c'est le cas pour une grille cartésienne régulière, on retrouve bien l'expression connue de la dérivée seconde classique :
+
+$$u''(P_m) \simeq \frac{u(P_{m+1}) - 2u(P_m) + u(P_{m-1})}{h^2}$$
+
+\vspace{5 mm}
+
+\noindent
+$\hookrightarrow$~~ Mais ici, $\ell_1$ et $\ell_2$ peuvent être $h$ aussi bien que $dh$ ou $(1-d)h$, voire avec $d_1$ et $d_2$ !
+
+\vspace{5 mm}
+
+\noindent
+Voici donc la reprise des 6 étapes de l'algorithme proposé :
+
+\vspace{5 mm}
+
+\noindent
+\begin{enumerate}
+	\item \textbf{Supprimer l'interaction entre $P_i$ et $P_j$ :}~~ se produit dans $A_{1,1} = M_\bigstar$
+
+\vspace{5 mm}
+
+	\item \textbf{Créer une interaction entre $P_i$ et $P_k$ :}~~ se produit dans $A_{1,2}$ et $A_{2,1} = A_{1,2}^T$
+
+\vspace{5 mm}
+	
+	\item \textbf{Créer une interaction entre $P_k$ et $P_j$ :}~~ se produit dans $A_{1,2}$ et $A_{2,1} = A_{1,2}^T$
+
+\vspace{5 mm}
+
+	\item \textbf{Mettre à jour le coefficient diagonal pour $P_i$ :}~~ se produit dans $A_{1,1} = M_\bigstar$
+
+\vspace{5 mm}
+
+	\item \textbf{Mettre à jour le coefficient diagonal pour $P_j$ :}~~ se produit dans $A_{1,1} = M_\bigstar$
+
+\vspace{5 mm}
+
+	\item \textbf{Mettre à jour le coefficient diagonal pour $P_k$ :}~~ se produit dans $A_{2,2}$
+\end{enumerate}
+
+\vspace{10 mm}
+
+\begin{center}
+$\star \star \star$
+\end{center}
+
+\noindent
+$\hookrightarrow$~~ \textbf{Bilan à ce stade :}~~
+
+\vspace{5 mm}
+
+\noindent
+\begin{itemize}
+	\item Voilà où nous en sommes : le cadre est posé, mais il nous reste à réfléchir pour savoir comment cette nouvelle écriture de la discrétisation du Laplacien doit permettre de modifier les coefficients. En effet, l'ajout d'un nouveau point $P_m$ entre deux points de grille $P_{m-1}$ et $P_{m+1}$ a pour conséquence la plus délicate de \textit{modifier l'expression du Laplacien calculé en ces deux points}, puisque le pas considéré n'est plus $h$ (et il y a d'autre part cette histoire de moyenne des pas voisins à régler).
+	
+\vspace{5 mm}
+
+	\item Cependant, nous avons cherché à comprendre d'où venait la formule que vous nous avez donnée dans le cours (la formule générique avec les points $N,S,E,W$), notamment en la comparant à la formule $(\spadesuit)$ que nous avons trouvée et qui ne correspond pas. La différence la plus frappante étant que votre formule donnait une division finale par $h$, là où nous avons une division par la moyenne des pas voisins.
+\end{itemize}
+
+\vspace{5 mm}
+
+\noindent
+Veuillez nous excuser si tout n'est pas encore très clair sur cette fin d'explication, mais nous sommes encore sur le coup pour élucider tout ça. Par ailleurs, n'hésitez surtout pas si vous avez des suggestions et/ou corrections, nous sommes preneurs !
+
+\newpage
+
+
+\vspace{5 mm}
+
+\noindent
+\begin{center}
+\textbf{\large Étude d'un exemple 2D}
+\end{center}
+
+\vspace{5 mm}
+
+\begin{center}
+\includegraphics[scale=0.35]{Exemple2D.png}
+\end{center}
+
+\vspace{5 mm}
+
+\noindent
+On a pour ce maillage, avec les notations précédentes :
+
+$$Nx := 4~;~~~~Ny := 3~;~~~~N := Nx \times Ny = 12~;~~~~Q := 6$$
+
+\vspace{5 mm}
+
+\noindent
+Imposons des conditions aux limites périodiques sur le bord du grand domaine rectangulaire. Introduisons de nouveaux coefficients $a',b',c'$ pour ne regarder que la discrétisation spatiale~; ie. on ne va s'intéresser qu'à la matrice du Laplacien, soit $[\Delta]$. En posant :
+
+$$\textcolor{red}{b' := \frac{1}{\Delta x^2}}~;~~~~\textcolor{violet}{c' := \frac{1}{\Delta y^2}}~;~~~~\textcolor{blue}{a' := -2b'-2c'}~,$$
+
+\vspace{5 mm}
+
+\noindent
+on sait que la matrice $[\Delta]_\bigstar \in \sM_{12} (\RR)$ représentant le Laplacien sur la grille initiale est :
+
+$$[\Delta]_\bigstar = \left[ \begin{array}{cccc|cccc|cccc}
+
+\textcolor{blue}{a'} & \textcolor{red}{b'} &  & \textcolor{red}{b'} & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} &  &  &  \\
+\textcolor{red}{b'} & \textcolor{blue}{a'} & \textcolor{red}{b'} &  &  & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} &  &  \\
+ & \textcolor{red}{b'} & \textcolor{blue}{a'} & \textcolor{red}{b'} &  &  & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} &  \\
+\textcolor{red}{b'} &  & \textcolor{red}{b'} & \textcolor{blue}{a'} &  &  &  & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} \\
+ 
+\hline
+
+\textcolor{violet}{c'} &  &  &  & \textcolor{blue}{a'} & \textcolor{red}{b'} &  & \textcolor{red}{b'} & \textcolor{violet}{c'} &  &  &  \\
+ & \textcolor{violet}{c'} &  &  & \textcolor{red}{b'} & \textcolor{blue}{a'} & \textcolor{red}{b'} &  &  & \textcolor{violet}{c'} &  &  \\
+ &  & \textcolor{violet}{c'} &  &  & \textcolor{red}{b'} & \textcolor{blue}{a'} & \textcolor{red}{b'} &  &  & \textcolor{violet}{c'} &  \\
+ &  &  & \textcolor{violet}{c'} & \textcolor{red}{b'} &  & \textcolor{red}{b'} & \textcolor{blue}{a'} &  &  &  & \textcolor{violet}{c'} \\
+ 
+\hline
+
+\textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} &  &  &  & \textcolor{blue}{a'} & \textcolor{red}{b'} &  & \textcolor{red}{b'} \\
+ & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} &  &  & \textcolor{red}{b'} & \textcolor{blue}{a'} & \textcolor{red}{b'} &  \\
+ &  & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} &  &  & \textcolor{red}{b'} & \textcolor{blue}{a'} & \textcolor{red}{b'} \\
+ &  &  & \textcolor{violet}{c'} &  &  &  & \textcolor{violet}{c'} & \textcolor{red}{b'} &  & \textcolor{red}{b'} & \textcolor{blue}{a'} \\
+
+\end{array} \right]~.
+$$
+
+\vspace{5 mm}
+
+\noindent
+Cependant, nous avons expliqué qu'elle est amenée à être modifiée, tout comme les 3 autres blocs (initialisés à 0) de $[\Delta]$ (et donc de $A$) sont amenés à être complétés. Ceci provient de la modification du Laplacien en chaque point, à cause de l'ajout de points supplémentaires. En 2D, la formule $(\spadesuit)$ devient (cf. schéma ci-dessous) :
+
+\begin{align*}
+[\Delta u]_C~ &\simeq~ \frac{2}{\ell_L + \ell_R} \left[ \left( \frac{u_R - u_C}{\ell_R} \right) - \left( \frac{u_C - u_L}{\ell_L} \right) \right] \\
+& \vspace{5 mm} \\
+&+ \frac{2}{\ell_B + \ell_T} \left[ \left( \frac{u_T - u_C}{\ell_T} \right) - \left( \frac{u_C - u_B}{\ell_B} \right) \right]
+\end{align*}
+
+\vspace{5 mm}
+
+\noindent
+pour la configuration suivante (avec des distances $\ell_\boxtimes$ a priori quelconques, contrairement au schéma dessiné ici sans préoccupation d'échelle) :
+
+\vspace{5 mm}
+
+$$\bullet$$
+$$P_T$$
+
+\vspace{2 mm}
+
+$$\ell_T$$
+
+\vspace{2 mm}
+
+$$\bullet~~~~~~~~~~~~~~~~~~~~\ell_L~~~~~~~~~~~~~~~~~~~~\bullet~~~~~~~~~~~~~~~~~~~~\ell_R~~~~~~~~~~~~~~~~~~~~\bullet$$
+$$~~P_L~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~P_C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~P_R$$
+
+\vspace{2 mm}
+
+$$\ell_B$$
+
+\vspace{2 mm}
+
+$$\bullet$$
+$$P_B$$
+
+\vspace{5 mm}
+
+\noindent
+Avec l'écriture $(\clubsuit)$, on peut d'ores et déjà regrouper les termes :
+
+\begin{align*}
+[\Delta u]_C~ &\simeq~ \frac{2}{\ell_L + \ell_R} \left[ \left( \frac{1}{\ell_L} \right) u_L - \left( \frac{1}{\ell_L} + \frac{1}{\ell_R}  \right) u_C + \left( \frac{1}{\ell_R} \right) u_R  \right] \\
+& \vspace{5 mm} \\
+&~~~~+ \frac{2}{\ell_B + \ell_T} \left[ \left( \frac{1}{\ell_B} \right) u_B - \left( \frac{1}{\ell_B} + \frac{1}{\ell_T} \right) u_C + \left( \frac{1}{\ell_T} \right) u_T \right] \\
+& \vspace{5 mm} \\
+&= B \cdot u_B + L \cdot u_L + C \cdot u_C + R \cdot u_R + T \cdot u_T
+\end{align*}
+
+\vspace{5 mm}
+
+\noindent
+où, pour alléger les notations et systématiser les calculs qui se seront répétés de très nombreuses fois dans la suite, on a introduit des coefficients $B,L,C,R,T$ (Bottom, Left, Center, Right, Top) qui dépendent évidemment du point $P_{i,j}$ où le Laplacien est calculé :
+
+$$B := \frac{2}{(\ell_B + \ell_T) \ell_B} ~;~~~~ L := \frac{2}{(\ell_L + \ell_R) \ell_L} ~;~~~~ R := \frac{2}{(\ell_L + \ell_R) \ell_R} ~;~~~~ T := \frac{2}{(\ell_B + \ell_T) \ell_T}$$
+
+$$C := \frac{-2}{\ell_L + \ell_R} \left( \frac{1}{\ell_L} + \frac{1}{\ell_R} \right) + \frac{-2}{\ell_B + \ell_T} \left( \frac{1}{\ell_B} + \frac{1}{\ell_T} \right)$$
+
+\vspace{5 mm}
+
+\noindent
+Pour les points de grille, c'est un Laplacien 2D tel qu'on vient de l'écrire ; pour les points rajoutés $P_k$ en revanche, coincés sur une arête $[P_i~,P_j]$ de longueur $h$ dans une direction fixée (cf. schéma page 2), c'est un Laplacien 1D comme suit :
+
+\begin{align*}
+[\Delta u]_k &\simeq \frac{2}{dh + (1-d)h} \left[ \left( \frac{1}{dh} \right)u_i + \left( \frac{1}{dh} + \frac{1}{(1-d)h} \right)u_k + \left( \frac{1}{(1-d)h} \right)u_j \right] \\
+& \vspace{5 mm} \\
+&= L \cdot u_i + C \cdot u_k + R \cdot u_j
+\end{align*}
+
+\vspace{5 mm}
+
+\noindent
+où, pour les mêmes raisons, on a introduit des coefficients $L,C,R$ (Left, Center, Right, avec un abus de langage car $P_k$ pourrait se trouver sur un segment vertical) qui sont là encore rattachés à un nouveau point $P_k$ donné :
+
+$$L := \frac{2}{dh^2}~;~~~~ C := \frac{2}{h^2} \left(\frac{1}{1-d} + \frac{1}{d} \right)~;~~~~ R := \frac{2}{(1-d)h^2}~.$$
+
+\vspace{10 mm}
+
+\begin{center}
+$\star \star \star$
+\end{center}
+
+\vspace{5 mm}
+
+\noindent
+Étudions maintenant chacun des $12 + 6 = 18$ points du maillage, afin de voir quelles modifications sont à apporter à la matrice par blocs $[\Delta]$ (et donc $A$) définie plus haut. Pour cela, il suffit de recalculer les coefficients $B,L,C,R,T$ en chaque point et d'en déduire quelles interactions sont conservées ou non, modifiées ou non, à créer ou non :
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Points 0, 3, 8, 11 :}~~ Ils conservent tous leurs 4 voisins initiaux. Par exemple, le point 0 a pour voisin gauche 3, voisin droit 1, voisin haut 4, voisin bas 8 (conditions aux limites périodiques !).
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Les lignes 0, 3, 8, 11 de $[\Delta]$ restent identiques.
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 1 :}~~ Il a un nouveau voisin \textbf{12}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{1}~ = B \cdot u_{9} + L \cdot u_{0} + C \cdot u_{1} + R \cdot u_{2} + T \cdot u_{12}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{2}{(1+d_1) \Delta y^2}~;~~~~ L = \frac{1}{\Delta x^2}~;~~~~ R = \frac{1}{\Delta x^2} ~;~~~~ T = \frac{2}{d_1(1+d_1) \Delta y^2}$$
+
+$$C = \frac{-2}{\Delta x^2} + \frac{-2}{(1+d_1)\Delta y^2} \left( \frac{1}{d_1} + 1 \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 1 de $[\Delta]$ comme suit :
+
+$$(b,a',b,\square~|~\square,c,\square,\square~|~\square,c,\square,\square~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(L,C,R,\square~|~\square,\square,\square,\square~|~\square,B,\square,\square~||~T,\square,\square,\square,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 2 :}~~ Il a un nouveau voisin \textbf{13}, donc on réécrit le Laplacien 2D :
+
+\vspace{5 mm}
+
+$$[\Delta u]_{2}~ = B \cdot u_{10} + L \cdot u_{1} + C \cdot u_{2} + R \cdot u_{3} + T \cdot u_{13}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{2}{(1+d_2) \Delta y^2}~;~~~~ L = \frac{1}{\Delta x^2}~;~~~~ R = \frac{1}{\Delta x^2} ~;~~~~ T = \frac{2}{d_2(1+d_2) \Delta y^2}$$
+
+$$C = \frac{-2}{\Delta x^2} + \frac{-2}{(1+d_2)\Delta y^2} \left( \frac{1}{d_2} + 1 \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 2 de $[\Delta]$ comme suit :
+
+$$(\square,b',a',b'~|~\square,\square,c',\square~|~\square,\square,c',\square~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(\square,L,C,R~|~\square,\square,\square,\square~|~\square,\square,B,\square~||~\square,T,\square,\square,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 9 :}~~ Il a un nouveau voisin \textbf{15}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{9}~ = B \cdot u_{15} + L \cdot u_{8} + C \cdot u_{9} + R \cdot u_{10} + T \cdot u_{1}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{2}{(2-d_4)(1-d_4) \Delta y^2}~;~~~~ L = \frac{1}{\Delta x^2}~;~~~~ R = \frac{1}{\Delta x^2}~;~~~~ T = \frac{2}{(2-d_4) \Delta y^2}$$
+
+$$C = \frac{-2}{\Delta x^2} + \frac{-2}{(2-d_4)\Delta y^2} \left( 1 + \frac{1}{1-d_4} \right)$$
+
+\vspace{5 mm}
+
+\newpage
+
+$\hookrightarrow$~~ Il faut modifier la ligne 9 de $[\Delta]$ comme suit :
+
+$$(\square,c',\square,\square~|~\square,c',\square,\square~|~b',a',b',\square~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(\square,T,\square,\square~|~\square,\square,\square,\square~|~L,C,R,\square~||~\square,\square,\square,B,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 10 :}~~ Il a un nouveau voisin \textbf{15}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{10}~ = B \cdot u_{17} + L \cdot u_{9} + C \cdot u_{10} + R \cdot u_{11} + T \cdot u_{2}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{2}{(2-d_6)(1-d_6) \Delta y^2}~;~~~~ L = \frac{1}{\Delta x^2}~;~~~~ R = \frac{1}{\Delta x^2}~;~~~~ T = \frac{2}{(2-d_6) \Delta y^2}$$
+
+$$C = \frac{-2}{\Delta x^2} + \frac{-2}{(2-d_6)\Delta y^2} \left( 1 + \frac{1}{1-d_6} \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 10 de $[\Delta]$ comme suit :
+
+$$(\square,\square,c',\square~|~\square,\square,c',\square~|~\square,b',a',b'~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(\square,\square,T,\square~|~\square,\square,\square,\square~|~\square,L,C,R~||~\square,\square,\square,\square,\square,B)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 4 :}~~ Il a un nouveau voisin \textbf{14}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{4}~ = B \cdot u_{0} + L \cdot u_{7} + C \cdot u_{4} + R \cdot u_{14} + T \cdot u_{8}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{1}{\Delta y^2}~;~~~~ L = \frac{2}{(1+d_3) \Delta x^2}~;~~~~ R = \frac{2}{d_3 (1+d_3) \Delta x^2}~;~~~~ T = \frac{1}{\Delta y^2}$$
+
+$$C = \frac{-2}{\Delta y^2} + \frac{-2}{(1+d_3) \Delta x^2} \left( \frac{1}{d_3} + 1 \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 4 de $[\Delta]$ comme suit :
+
+$$(c',\square,\square,\square~|~a',b',\square,b'~|~c',\square,\square,\square~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(B,\square,\square,\square~|~C,\square,\square,L~|~T,\square,\square,\square~||~\square,\square,R,\square,\square,\square)$$
+
+\vspace{5 mm}
+
+\newpage
+
+\noindent
+\textbf{Point 7 :}~~ Il a un nouveau voisin \textbf{14}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{7}~ = B \cdot u_{3} + L \cdot u_{16} + C \cdot u_{7} + R \cdot u_{4} + T \cdot u_{11}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{1}{\Delta y^2}~;~~~~ L = \frac{2}{(2-d_5)(1-d_5) \Delta x^2}~;~~~~ R = \frac{2}{(2-d_5) \Delta x^2}~;~~~~ T = \frac{1}{\Delta y^2}$$
+
+$$C = \frac{-2}{\Delta y^2} + \frac{-2}{(2-d_5) \Delta x^2} \left( \frac{1}{1-d_5} + 1 \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 7 de $[\Delta]$ comme suit :
+
+$$(\square,\square,\square,c'~|~b',\square,b',a'~|~\square,\square,\square,c'~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(\square,\square,\square,B~|~R,\square,\square,C~|~\square,\square,\square,T~||~\square,\square,\square,\square,L,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 5 :}~~ Il a 3 nouveaux voisins \textbf{12}, \textbf{14}, \textbf{15}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{5} = B \cdot u_{12} + L \cdot u_{14} + C \cdot u_{5} + R \cdot u_{6} + T \cdot u_{15}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{2}{(1-d_1)(1-d_1 + d_4)\Delta y^2}~;~~~~ T = \frac{2}{d_4(1-d_1 + d_4)\Delta y^2}$$
+
+$$L = \frac{2}{(1-d_3)(2-d_3) \Delta x^2}~;~~~~ R = \frac{2}{(2-d_3) \Delta x^2}$$
+
+$$C = \frac{-2}{(2-d_3) \Delta x^2} \left( \frac{1}{1-d_3} + 1 \right) + \frac{-2}{(1-d_1 + d_4)\Delta y^2} \left( \frac{1}{1-d_1} + \frac{1}{d_4} \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 5 de $[\Delta]$ comme suit :
+
+$$(\square,c',\square,\square~|~b',a',b',\square~|~\square,c',\square,\square~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(\square,\square,\square,\square~|~\square,C,R,\square~|~\square,\square,\square,\square~||~B,\square,L,T,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 6 :}~~ Il a 3 nouveaux voisins \textbf{13}, \textbf{16}, \textbf{17}, donc on réécrit le Laplacien 2D :
+
+$$[\Delta u]_{6} = B \cdot u_{13} + L \cdot u_{5} + C \cdot u_{6} + R \cdot u_{16} + T \cdot u_{17}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$B = \frac{2}{(1-d_2)(1-d_2 + d_6)\Delta y^2}~;~~~~ T = \frac{2}{d_6(1-d_2 + d_6)\Delta y^2}$$
+
+$$L = \frac{2}{(1+d_5) \Delta x^2}~;~~~~ R = \frac{2}{d_5 (1+d_5) \Delta x^2}$$
+
+$$C = \frac{-2}{(1+d_5) \Delta x^2} \left( 1 + \frac{1}{d_5} \right) + \frac{-2}{(1-d_2 + d_6)\Delta y^2} \left( \frac{1}{1-d_2} + \frac{1}{d_6} \right)$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut modifier la ligne 6 de $[\Delta]$ comme suit :
+
+$$(\square,\square,c',\square~|~\square,b',a',b'~|~\square,\square,c',\square~||~\square,\square,\square,\square,\square,\square)$$
+
+$$(\square,\square,\square,\square~|~\square,L,C,\square~|~\square,\square,\square,\square~||~\square,B,\square,\square,R,T)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 14 :}~~ On écrit simplement son Laplacien 1D :
+
+$$[\Delta u]_{14} = L \cdot u_{4} + C \cdot u_{14} + R \cdot u_{5}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$L = \frac{2}{d_3 \Delta x^2}~;~~~~ C = \frac{-2}{\Delta x^2} \left( \frac{1}{1-d_3} + \frac{1}{d_3} \right)~;~~~~ R = \frac{2}{(1-d_3) \Delta x^2}$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut mettre à jour la ligne 14 de $[\Delta]$ comme suit :
+
+$$(\square,\square,\square,\square~|~L,R,\square,\square~|~\square,\square,\square,\square~||~\square,\square,C,\square,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 16 :}~~ On obtient la même chose que pour le point 14 en remplaçant $d_3$ par $d_5$ :
+
+$$[\Delta u]_{16} = L \cdot u_{6} + C \cdot u_{16} + R \cdot u_{7}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$L = \frac{2}{d_5 \Delta x^2}~;~~~~ C = \frac{-2}{\Delta x^2} \left( \frac{1}{1-d_5} + \frac{1}{d_5} \right)~;~~~~ R = \frac{2}{(1-d_5) \Delta x^2}$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut mettre à jour la ligne 16 de $[\Delta]$ comme suit :
+
+$$(\square,\square,\square,\square~|~\square,\square,L,R~|~\square,\square,\square,\square~||~\square,\square,\square,\square,C,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 12 :}~~ On écrit simplement son Laplacien 1D :
+
+$$[\Delta u]_{12} = L \cdot u_{1} + C \cdot u_{12} + R \cdot u_{5}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$L = \frac{2}{d_1 \Delta y^2}~;~~~~ C = \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_1} + \frac{1}{d_1} \right)~;~~~~ R = \frac{2}{(1-d_1) \Delta y^2}$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut mettre à jour la ligne 12 de $[\Delta]$ comme suit :
+
+$$(\square,L,\square,\square~|~\square,R,\square,\square~|~\square,\square,\square,\square~||~C,\square,\square,\square,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 13 :}~~ On écrit simplement son Laplacien 1D :
+
+$$[\Delta u]_{13} = L \cdot u_{2} + C \cdot u_{13} + R \cdot u_{6}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$L = \frac{2}{d_2 \Delta y^2}~;~~~~ C = \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_2} + \frac{1}{d_2} \right)~;~~~~ R = \frac{2}{(1-d_2) \Delta y^2}$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut mettre à jour la ligne 13 de $[\Delta]$ comme suit :
+
+$$(\square,\square,L,\square~|~\square,\square,R,\square~|~\square,\square,\square,\square~||~\square,C,\square,\square,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 15 :}~~ On écrit simplement son Laplacien 1D :
+
+$$[\Delta u]_{15} = L \cdot u_{5} + C \cdot u_{15} + R \cdot u_{9}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$L = \frac{2}{d_4 \Delta y^2}~;~~~~ C = \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_4} + \frac{1}{d_4} \right)~;~~~~ R = \frac{2}{(1-d_4) \Delta y^2}$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut mettre à jour la ligne 15 de $[\Delta]$ comme suit :
+
+$$(\square,\square,\square,\square~|~\square,L,\square,\square~|~\square,R,\square,\square~||~\square,\square,\square,C,\square,\square)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{Point 17 :}~~ On écrit simplement son Laplacien 1D :
+
+$$[\Delta u]_{17} = L \cdot u_{6} + C \cdot u_{17} + R \cdot u_{10}$$
+
+\vspace{5 mm}
+\noindent
+avec ici les coefficients :
+
+$$L = \frac{2}{d_6 \Delta y^2}~;~~~~ C = \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_6} + \frac{1}{d_6} \right)~;~~~~ R = \frac{2}{(1-d_6) \Delta y^2}$$
+
+\vspace{5 mm}
+
+$\hookrightarrow$~~ Il faut mettre à jour la ligne 17 de $[\Delta]$ comme suit :
+
+$$(\square,\square,\square,\square~|~\square,\square,L,\square~|~\square,\square,R,\square~||~\square,\square,\square,\square,\square,C)$$
+
+\begin{center}
+$\star \star \star$
+\end{center}
+
+\noindent
+Il est maintenant temps de rassembler ces 18 lignes dans la matrice $[\Delta]$ :
+
+$$[\Delta] = \left[ \begin{array}{c||c}
+
+\begin{array}{cccc|cccc|cccc}
+
+\textcolor{blue}{a'} & \textcolor{red}{b'} & \cdot & \textcolor{red}{b'} & \textcolor{violet}{c'} & \cdot & \cdot & \cdot & \textcolor{violet}{c'} & \cdot & \cdot & \cdot \\
+L & C & R & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot & B & \cdot & \cdot \\
+\cdot & L & C & R & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot & B & \cdot \\
+\textcolor{red}{b'} & \cdot & \textcolor{red}{b'} & \textcolor{blue}{a'} & \cdot & \cdot & \cdot & \textcolor{violet}{c'} & \cdot & \cdot & \cdot & \textcolor{violet}{c'} \\
+ 
+\hline
+
+B & \cdot & \cdot & \cdot & C & \cdot & \cdot & L & T & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot & \cdot & C & R & \cdot & \cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot & \cdot & L & C & \cdot & \cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & B & R & \cdot & \cdot & C & \cdot & \cdot & \cdot & T \\
+ 
+\hline
+
+\textcolor{violet}{c'} & \cdot & \cdot & \cdot & \textcolor{violet}{c'} & \cdot & \cdot & \cdot & \textcolor{blue}{a'} & \textcolor{red}{b'} & \cdot & \textcolor{red}{b'} \\
+\cdot & T & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot & L & C & R & \cdot \\
+\cdot & \cdot & T & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot & L & C & R \\
+\cdot & \cdot & \cdot & \textcolor{violet}{c'} & \cdot & \cdot & \cdot & \textcolor{violet}{c'} & \textcolor{red}{b'} & \cdot & \textcolor{red}{b'} & \textcolor{blue}{a'} \\
+
+\end{array} & \begin{array}{cccccc}
+
+\cdot & \cdot & \cdot & \cdot & \cdot & \cdot \\
+T & \cdot & \cdot & \cdot & \cdot & \cdot \\
+\cdot & T & \cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot & \cdot & \cdot \\
+ 
+ \hline
+ 
+\cdot & \cdot & R & \cdot & \cdot & \cdot \\
+B & \cdot & L & T & \cdot & \cdot \\
+\cdot & B & \cdot & \cdot & R & T \\
+\cdot & \cdot & \cdot & \cdot & L & \cdot \\
+ 
+ \hline
+ 
+\cdot & \cdot & \cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & B & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot & \cdot & B \\
+\cdot & \cdot & \cdot & \cdot & \cdot & \cdot \\
+
+\end{array} \\
+
+\hline
+\hline
+
+\begin{array}{cccc|cccc|cccc}
+
+\cdot~ & L & \cdot & ~\cdot~ & ~\cdot & R & \cdot & \cdot & ~\cdot & \cdot & \cdot & \cdot~ \\
+\cdot~ & \cdot & L & ~\cdot~ & ~\cdot & \cdot & R & \cdot & ~\cdot & \cdot & \cdot & \cdot~ \\
+\cdot~ & \cdot & \cdot & ~\cdot~ & ~L & R & \cdot & \cdot & ~\cdot & \cdot & \cdot & \cdot~ \\
+\cdot~ & \cdot & \cdot & ~\cdot~ & ~\cdot & L & \cdot & \cdot & ~\cdot & R & \cdot & \cdot~ \\
+\cdot~ & \cdot & \cdot & ~\cdot~ & ~\cdot & \cdot & L & R & ~\cdot & \cdot & \cdot & \cdot~ \\
+\cdot~ & \cdot & \cdot & ~\cdot~ & ~\cdot & \cdot & L & \cdot & ~\cdot & \cdot & R & \cdot~ \\
+
+\end{array} & \begin{array}{cccccc}
+
+C & \cdot & \cdot & \cdot & \cdot & \cdot \\
+\cdot & C & \cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & C & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & C & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot & C & \cdot \\
+\cdot & \cdot & \cdot & \cdot & \cdot & C \\
+
+\end{array} \\
+
+\end{array} \right]$$
+
+\vspace{5 mm}
+
+\noindent
+Écrivons séparément les différents blocs de $[\Delta]$ pour un affichage raisonnable et facile de lecture :
+
+$$[\Delta] := \left( \begin{array}{c|c}
+[\Delta]_\bigstar & H_{\text{col}} \\
+\hline
+H_{\text{row}} & H_{\text{diag}}
+\end{array} \right)$$
+
+\vspace{5 mm}
+
+\noindent
+\textbf{$\blacklozenge$}~~ Commençons par $H_{\text{diag}} \in \sM_{Q \times Q} (\RR)$ :
+
+\vspace{10 mm}
+
+$$H_{\text{diag}}(C1,C2,C3) = \left[ \begin{array}{ccc}
+
+\disp \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_1} + \frac{1}{d_1} \right) & \cdot & \cdot \\
+\cdot & \disp \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_2} + \frac{1}{d_2} \right) & \cdot  \\
+\cdot & \cdot & \disp \frac{-2}{\Delta x^2} \left( \frac{1}{1-d_3} + \frac{1}{d_3} \right) \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+$$H_{\text{diag}}(C4,C5,C6) = \left[ \begin{array}{ccc}
+
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\disp \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_4} + \frac{1}{d_4} \right) & \cdot & \cdot \\
+\cdot & \disp \frac{-2}{\Delta x^2} \left( \frac{1}{1-d_5} + \frac{1}{d_5} \right) & \cdot \\
+\cdot & \cdot & \disp \frac{-2}{\Delta y^2} \left( \frac{1}{1-d_6} + \frac{1}{d_6} \right) \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+\noindent
+\textbf{$\blacklozenge$}~~ Continuons avec $H_{\text{col}} \in \sM_{N \times Q} (\RR)$ :
+
+\vspace{10 mm}
+
+$$H_{\text{col}} (C1,C2,C3) =$$
+
+$$\left[ \begin{array}{ccc}
+
+\cdot & \cdot & \cdot \\
+\disp \frac{2}{d_1(1+d_1) \Delta y^2} & \cdot & \cdot \\
+\cdot & \disp \frac{2}{d_2(1+d_2) \Delta y^2} & \cdot \\
+\cdot & \cdot & \cdot \\
+ 
+ \hline
+ 
+\cdot & \cdot & \disp \frac{2}{d_3 (1+d_3) \Delta x^2} \\
+\disp \frac{2}{(1-d_1)(1-d_1 + d_4)\Delta y^2} & \cdot & \disp \frac{2}{(1-d_3)(2-d_3) \Delta x^2} \\
+\cdot & \disp \frac{2}{(1-d_2)(1-d_2 + d_6)\Delta y^2} & \cdot \\
+\cdot & \cdot & \cdot \\
+ 
+ \hline
+ 
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+\newpage
+
+$$H_{\text{col}} (C4,C5,C6) =$$
+
+$$\left[ \begin{array}{ccc}
+
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+ 
+ \hline
+ 
+\cdot & \cdot & \cdot \\
+\disp \frac{2}{d_4(1-d_1 + d_4)\Delta y^2} & \cdot & \cdot \\
+\cdot & \disp \frac{2}{d_5 (1+d_5) \Delta x^2} & \disp \frac{2}{d_6(1-d_2 + d_6)\Delta y^2} \\
+\cdot & \disp \frac{2}{(2-d_5)(1-d_5) \Delta x^2} & \cdot \\
+ 
+ \hline
+ 
+\cdot & \cdot & \cdot \\
+\disp \frac{2}{(2-d_4)(1-d_4) \Delta y^2} & \cdot & \cdot \\
+\cdot & \cdot & \disp \frac{2}{(2-d_6)(1-d_6) \Delta y^2} \\
+\cdot & \cdot & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+\noindent
+\textbf{$\blacklozenge$}~~ Puis avec $H_{\text{row}} \in \sM_{Q \times N} (\RR)$ :
+
+\vspace{10 mm}
+
+$$H_{\text{row}} (C1,C2,C3,C4) = \left[ \begin{array}{cccc}
+
+\cdot & \disp \frac{2}{d_1 \Delta y^2} & \cdot & \cdot \\
+\cdot & \cdot & \disp \frac{2}{d_2 \Delta y^2} & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+$$H_{\text{row}} (C5,C6,C7,C8) = \left[ \begin{array}{cccc}
+
+\cdot & \disp \frac{2}{(1-d_1) \Delta y^2} & \cdot & \cdot \\
+\cdot & \cdot & \disp \frac{2}{(1-d_2) \Delta y^2} & \cdot \\
+\disp \frac{2}{d_3 \Delta x^2} & \disp \frac{2}{(1-d_3) \Delta x^2} & \cdot & \cdot \\
+\cdot & \disp \frac{2}{d_4 \Delta y^2} & \cdot & \cdot \\
+\cdot & \cdot & \disp \frac{2}{d_5 \Delta x^2} & \disp \frac{2}{(1-d_5) \Delta x^2} \\
+\cdot & \cdot & \disp \frac{2}{d_6 \Delta y^2} & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+$$H_{\text{row}} (C9,C10,C11,C12) = \left[ \begin{array}{cccc}
+
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \disp \frac{2}{(1-d_4) \Delta y^2} & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \disp \frac{2}{(1-d_6) \Delta y^2} & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+\noindent
+\textbf{$\blacklozenge$}~~ Et enfin avec $[\Delta] \in \sM_{N \times N} (\RR)$ :
+
+\vspace{5 mm}
+
+$$[\Delta] (C1,C2,C3) =$$
+
+$$\left[ \begin{array}{ccc}
+
+\disp \textcolor{blue}{\frac{-2}{\Delta x^2} + \frac{-2}{\Delta y^2}} & \disp  \textcolor{red}{\frac{1}{\Delta x^2}} & \cdot \\
+\disp \frac{1}{\Delta x^2} & \disp \frac{-2}{\Delta x^2} + \frac{-2}{(1+d_1)\Delta y^2} \left( \frac{1}{d_1} + 1 \right) & \disp \frac{1}{\Delta x^2} \\
+\disp \cdot & \disp \frac{1}{\Delta x^2} & \disp \frac{-2}{\Delta x^2} + \frac{-2}{(1+d_2)\Delta y^2} \left( \frac{1}{d_2} + 1 \right) \\
+\disp \textcolor{red}{\frac{1}{\Delta x^2}} & \cdot & \disp \textcolor{red}{\frac{1}{\Delta x^2}} \\
+ 
+\hline
+
+\disp \frac{1}{\Delta y^2} & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+
+\hline
+
+\disp \textcolor{violet}{\frac{1}{\Delta y^2}} & \cdot & \cdot \\
+\cdot & \disp \frac{2}{(2-d_4) \Delta y^2} & \cdot \\
+\cdot & \cdot & \disp \frac{2}{(2-d_6) \Delta y^2} \\
+\cdot & \cdot & \cdot \\
+
+
+\end{array} \right]$$
+
+\vspace{5 mm}
+
+\newpage
+
+$$[\Delta] (C4|C5,C6) =$$
+
+$$\left[ \begin{array}{c|cc}
+
+\disp \textcolor{red}{\frac{1}{\Delta x^2}} & \disp \textcolor{violet}{\frac{1}{\Delta y^2}} & \cdot \\
+\cdot & \cdot & \cdot \\
+\disp \frac{1}{\Delta x^2} & \cdot & \cdot \\
+\disp \textcolor{blue}{\frac{-2}{\Delta x^2} + \frac{-2}{\Delta y^2}} & \cdot & \cdot \\
+ 
+\hline
+
+\cdot & \disp \frac{-2}{\Delta y^2} + \frac{-2}{(1+d_3) \Delta x^2} \left( \frac{1}{d_3} + 1 \right) & \cdot \\
+\cdot & \cdot & C_5 \\
+\cdot & \cdot & \disp \frac{2}{(1+d_5) \Delta x^2} \\
+\disp \frac{1}{\Delta y^2} & \disp \frac{2}{(2-d_5) \Delta x^2} & \cdot \\
+
+\hline
+
+\cdot & \disp \textcolor{violet}{\frac{1}{\Delta y^2}} & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\disp \textcolor{violet}{\frac{1}{\Delta y^2}} & \cdot & \cdot \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+\noindent
+où on rappelle ici $C_5$ et $C_6$ qui sont assez imposants :
+
+$$C_5 = \frac{-2}{(2-d_3) \Delta x^2} \left( \frac{1}{1-d_3} + 1 \right) + \frac{-2}{(1-d_1 + d_4)\Delta y^2} \left( \frac{1}{1-d_1} + \frac{1}{d_4} \right)$$
+
+$$C_6 = \frac{-2}{(1+d_5) \Delta x^2} \left( 1 + \frac{1}{d_5} \right) + \frac{-2}{(1-d_2 + d_6)\Delta y^2} \left( \frac{1}{1-d_2} + \frac{1}{d_6} \right)$$
+
+\vspace{5 mm}
+
+\newpage
+
+$$[\Delta] (C7,C8|C9) =$$
+
+$$\left[ \begin{array}{cc|c}
+
+\cdot & \cdot & \disp \textcolor{violet}{\frac{1}{\Delta y^2}} \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \disp \textcolor{violet}{\frac{1}{\Delta y^2}} & \cdot \\
+ 
+\hline
+
+\cdot & \disp \frac{2}{(1+d_3) \Delta x^2} & \disp \frac{1}{\Delta y^2} \\
+\disp \frac{2}{(2-d_3) \Delta x^2} & \cdot & \cdot \\
+C_6 & \cdot & \cdot \\
+\cdot & \disp \frac{-2}{\Delta y^2} + \frac{-2}{(2-d_5) \Delta x^2} \left( \frac{1}{1-d_5} + 1 \right) & \cdot \\
+
+\hline
+
+\cdot & \cdot & \disp \textcolor{blue}{\frac{-2}{\Delta x^2} + \frac{-2}{\Delta y^2}} \\
+\cdot & \cdot & \disp \frac{1}{\Delta x^2} \\
+\cdot & \cdot & \cdot \\
+\cdot & \disp \textcolor{violet}{\frac{1}{\Delta y^2}} & \disp \textcolor{red}{\frac{1}{\Delta x^2}} \\
+
+\end{array} \right]$$
+
+\vspace{10 mm}
+
+$$[\Delta] (C10,C11,C12) =$$
+
+$$\left[ \begin{array}{ccc}
+
+\cdot & \cdot & \cdot \\
+\disp \frac{2}{(1+d_1) \Delta y^2} & \cdot & \cdot \\
+\cdot & \disp \frac{2}{(1+d_2) \Delta y^2} & \cdot \\
+\cdot & \cdot & \disp \textcolor{violet}{\frac{1}{\Delta y^2}} \\
+ 
+\hline
+
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot \\
+\cdot & \cdot & \disp \frac{1}{\Delta y^2} \\
+
+\hline
+
+\disp \textcolor{red}{\frac{1}{\Delta x^2}} & \cdot & \disp \textcolor{red}{\frac{1}{\Delta x^2}} \\
+\disp \frac{-2}{\Delta x^2} + \frac{-2}{(2-d_4)\Delta y^2} \left( 1 + \frac{1}{1-d_4} \right) & \disp \frac{1}{\Delta x^2} & \cdot \\
+\disp \frac{1}{\Delta x^2} & \disp \frac{-2}{\Delta x^2} + \frac{-2}{(2-d_6)\Delta y^2} \left( 1 + \frac{1}{1-d_6} \right) & \disp \frac{1}{\Delta x^2} \\
+\cdot & \disp \textcolor{red}{\frac{1}{\Delta x^2}} & \disp \textcolor{blue}{\frac{-2}{\Delta x^2} + \frac{-2}{\Delta y^2}} \\
+
+\end{array} \right]$$
+
+
+
+
+
+
+
+
+
+\end{document}
