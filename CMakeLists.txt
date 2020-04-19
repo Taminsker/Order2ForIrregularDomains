@@ -6,7 +6,7 @@ include(FindPkgConfig)
 
 #set(CMAKE_CXX_FLAGS "-Wall -Wall -Wextra -ansi -O -Wwrite-strings -Wuninitialized -Wunreachable-code -Wno-missing-braces -Wno-missing-field-initializers -m64 -O3 -g -std=c++11" )
 
-set(CMAKE_CXX_FLAGS "-Wall -g -std=c++11")
+set(CMAKE_CXX_FLAGS "-Wall -g -O3 -std=c++11")
 
 set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/exec)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/exec)
