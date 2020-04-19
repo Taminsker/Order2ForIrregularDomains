@@ -1,0 +1,196 @@
+
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[frenchb]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{float,subfig}
+
+
+\textwidth=170mm
+\textheight=240mm
+\voffset=-30mm
+\hoffset=-16mm
+
+\usepackage{graphicx}
+
+\def \bs {\backslash}
+\def \eps {\varepsilon}
+\def \un {\textbf{1}}
+\def \RR {\mathbb{R}}
+\def \EE {\mathbb{E}}
+\def \CC {\mathbb{C}}
+\def \KK {\mathbb{K}}
+\def \NN {\mathbb{N}}
+\def \PP {\mathbb{P}}
+\def \sC {\mathcal{C}}
+\def \sF {\mathcal{F}}
+\def \sM {\mathcal{M}}
+\def \sO {\mathcal{O}}
+\def \sG {\mathcal{G}}
+\def \sE {\mathcal{E}}
+\def \sB {\mathcal{B}}
+\def \sS {\mathcal{S}}
+\def \sD {\mathcal{D}}
+\def \sH {\mathcal{H}}
+\def \sN {\mathcal{N}}
+\def \sP {\mathcal{P}}
+\def \sU {\mathcal{U}}
+\def \sL {\mathcal{L}}
+\def \disp {\displaystyle}
+
+
+\begin{document}
+
+{\large
+\noindent {\sc M1 Modélisation 2019/2020 }
+\hfill {\sc Projet GTT} \\
+}
+\vspace{20 mm}
+
+\begin{center}
+	\Large{\textbf{Schémas numériques d'ordre II pour la}} \\
+	\Large{\textbf{résolution d'EDP sur domaines irréguliers}}
+\end{center}
+
+\vspace{10 mm}
+
+\begin{center}
+$\star \star \star$
+\end{center}
+
+\vspace{2 mm}
+
+\noindent
+\textit{Voici un premier (bref) rapport concernant notre avancée globale dans le projet. Il contiendra :
+\begin{itemize}
+	\item la stratégie adoptée pour le résoudre~;
+	\item le découpage du code en fichiers~;
+	\item la répartition du travail entre nous trois~;
+	\item l'état actuel de notre travail~;
+	\item notre proposition pour la matrice (tenant compte des nouveaux points introduits).
+\end{itemize}
+\noindent
+N'hésitez surtout pas si vous voulez davantage de précisions.}
+
+
+\vspace{2 mm}
+
+\begin{center}
+$\star \star \star$
+\end{center}
+
+\vspace{10 mm}
+
+\section{Approche du sujet}
+
+\noindent
+Pour ce projet, il nous est demandé de mettre en oeuvre des méthodes numériques afin de résoudre les équations de Laplace, de Poisson et de la chaleur sur des domaines moins réguliers que des rectangles ou des cubes (par exemple : des ellipses, des étoiles de mer...). Ceci doit pouvoir être réalisé en 1D, 2D et 3D~; des tests nous sont proposés dans ce but, regroupés en fin d'article. Le bonus final serait de pouvoir résoudre le problème de Stefan.
+
+\vspace{5 mm}
+
+\noindent
+Nous aurions pu ne programmer que le cas 1D en premier lieu et effectuer les tests correspondants, pour ensuite généraliser le raisonnement en 2D et enfin en 3D. Nous avons préféré mettre en place une architecture de code qui permette d'emblée la génération de maillage et la résolution numérique quelle que soit la dimension. C'est un parti pris qui, de fait, repousse le moment où nous commencerons à effectuer les tests, mais dès que notre code sera fin prêt, nous pourrons tester tout ce que nous voudrons de manière rapide et efficace.
+
+\vspace{5 mm}
+
+\section{Les différents fichiers}
+
+\subsection{Dossier Outputs}
+
+\noindent
+\begin{itemize}
+	\item \textbf{Fichiers writer :}~~ On y trouve des fonctions d'écriture dans des fichiers.
+\end{itemize}
+
+\vspace{2 mm}
+
+\subsection{Dossier Mesh}
+
+\noindent
+\begin{itemize}
+	\item \textbf{Fichiers mesh :}~~ On y trouve plusieurs fonctions : certaines qui construisent un maillage à partir de caractéristiques données, d'autres qui permettent d'accéder à tel point ou cellule, d'autres encore qui donnent accès aux grandeurs du maillage (nombre de points et pas dans chaque direction). Il y a également des fonctions qui "marquent" les points se situant sur le bord du domaine irrégulier considéré, et enfin des fonctions qui manipulent les points ainsi que leurs indices dans la numérotation locale (du maillage) ou globale.
+\end{itemize}
+
+\vspace{2 mm}
+
+\subsection{Dossier Data}
+
+\noindent
+\begin{itemize}
+	\item \textbf{Fichiers cell :}~~ On y trouve des fonctions qui ajoutent ou suppriment des points dans les cellules, ainsi qu'une fonction qui donne la localisation du point dans l'espace (à l'intérieur ou à l'extérieur du domaine irrégulier choisi).
+
+\vspace{5 mm}
+
+	\item \textbf{Fichiers data :}~~ Définition des alias pour les DenseVector et SparseMatrix d'Eigen.
+	
+\vspace{5 mm}
+	
+	\item \textbf{Fichiers point :}~~ On y trouve des fonctions qui permettent d'accéder à la position ou l'indice d'un point dans la numérotation globale, des fonctions pour renseigner et retourner la liste des voisins d'un point donné, mais aussi des fonctions définissant des opérations sur les points (homothétie et translation).
+\end{itemize}
+
+\vspace{2 mm}
+
+\subsection{Dossier Tools}
+
+\noindent
+\begin{itemize}
+	\item \textbf{Fichiers border :}~~ On y trouve une fonction qui renvoie la liste des indices des points (dans la numérotation globale) définissant le bord du domaine irrégulier d'étude, via la fonction de level-set.
+
+\vspace{5 mm}
+
+	\item \textbf{Fichiers errors :}~~ On y trouve des fonctions qui renvoient les différentes erreurs qu'on peut calculer entre la solution numérique obtenue et la solution analytique exacte.
+	
+\vspace{5 mm}
+	
+	\item \textbf{Fichiers funtovec :}~~ On y trouve une fonction qui initialise un vecteur constant à une certaine valeur, mais surtout une fonction qui renvoie un vecteur dont les coordonnées sont les valeurs du terme source aux différents points du maillage.
+
+\vspace{5 mm}
+
+	\item \textbf{Fichiers impose :}~~ On y trouve deux fonctions : l'une qui impose les conditions de Dirichlet au bord du domaine irrégulier, l'autre qui y impose les conditions de Neumann. Concrètement, elles modifient la matrice de manière adéquate (changement de certains coefficients) et renseignent le second membre qui tient désormais compte de ces conditions au bord.
+
+\vspace{5 mm}
+
+	\item \textbf{Fichiers matrix :}~~ On y trouve la fonction qui construit la matrice du problème (on peut lui préciser si on résout l'équation de Poisson/Laplace, ou l'équation de la chaleur).
+	
+\vspace{5 mm}
+	
+	\item \textbf{Fichiers solver :}~~ On y trouve la fonction qui résout le problème, ie. qui construit le vecteur solution numérique. Elle effectue ou bien un simple produit matrice-vecteur dans le cas d'une résolution explicite, ou bien le gradient conjugué d'Eigen pour une discrétisation spatiale implicite. Le type de résolution peut être précisé mais il sera implicite par défaut.
+\end{itemize}
+
+\vspace{5 mm}
+
+\section{Répartition du travail}
+
+\noindent
+\begin{itemize}
+	\item\textbf{Valentin :}~~ Mise en place de l'architecture globale du code : découpage en fichiers, définition des classes (Mesh, Point...), écriture des prototypes de fonctions pour une répartition facile du travail. Remplissage des dossiers "techniques" : Outputs (écriture dans des fichiers) d'une part, Mesh et Data (création des classes et méthodes) d'autre part. La fonction qui impose les conditions de Neumann.
+
+\vspace{5 mm}
+
+	\item \textbf{Alexis :}~~ Création d'une matrice unique (Poisson/Laplace ou chaleur sont traités conjointement). Détection des points définissant le bord via la fonction de level-set, et ajout de leurs indices dans la liste dédiée. Deux fonctions d'erreurs, et la fonction qui impose les conditions de Dirichlet.
+
+\vspace{5 mm}
+
+	\item \textbf{Élodie :}~~ Fonctions Funtovec qui créent le vecteur terme source. Deux fonctions d'erreurs, et la fonction qui résoudra le problème avec la méthode adéquate (fichiers solver).
+\end{itemize}
+
+\vspace{5 mm}
+
+\section{Notre travail aujourd'hui}
+
+\noindent
+Toutes les "petites" fonctions sont faites, ainsi que les fonctions plus techniques d'écriture dans des fichiers ou de manipulation des objets appartenant aux classes introduites. La détection du bord via la fonction de level-set est également faite (modulo modifications).
+
+\vspace{5 mm}
+
+\noindent
+La création de la matrice est pratiquement achevée, elle est en attente de votre validation sur la proposition que nous allons vous faire (cf. le PDF supplémentaire) car il suffira d'apporter de légères modifications. Il en est de même pour les fonctions d'imposition des conditions au bord, qui dépend aussi de la forme de la matrice. Il faut encore écrire la fonction dans les fichiers solver (produit matrice-vecteur ou gradient conjugué).
+
+\vspace{5 mm}
+
+\noindent
+Notre proposition concerne la manière de tenir compte des points supplémentaires que nous rajoutons sur les arêtes~; plus précisément sur la manière d'organiser la matrice (par blocs) et de modifier ses coefficients pour supprimer l'interaction entre deux points qui ne sont désormais plus voisins (si un nouveau point s'est inséré entre eux sur l'arête qui les relie) et d'ajouter de nouvelles interactions entre les deux "anciens" points du maillage et ce nouveau point qui définit le bord.
+
+\end{document}

@@ -1,4 +1,4 @@
-#include "tools.h"
+#include "impose.h"
 
 Vector ImposeDirichlet (Mesh * mesh,
                         Matrix * sparsematrix,

@@ -1,0 +1,157 @@
+\documentclass[french]{article}
+\usepackage{graphicx}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+\usepackage{xcolor}
+
+\newcommand{\elodie}{\hfill{\color{red}{Élodie}}}
+\newcommand{\valentin}{\hfill{\color{blue}{Valentin}}}
+\newcommand{\alexis}{\hfill{\color{green}{Alexis}}}
+
+\begin{document}
+
+\title{Liste des fonctions à coder}
+%\author{Author's Name}
+
+\maketitle
+
+Il s'agira de commenter les actions les plus importantes effectuées dans les fonctions, utiliser les variables définies dans la classe et de vérifier la bonne exécution des fonctions.
+
+\section{Fonctions dans le dossier Tools}
+\subsection{Fichier border}
+\textbf{MakeListOfIndexPoints} :\alexis
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item et un pointeur vers une fonction f.
+\end{itemize}
+Cette fonction trouve les noeuds qui sont supposés définir la frontière $\Omega$ et elle les rajoute au maillage. Elle retourne ensuite les indices des points sur cette frontière.
+
+\subsection{Fichier errors}
+\textbf{GetErrorL1 :}\elodie
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un vecteur de la solution analytique sur le maillage,
+\item et un vecteur de la solution numérique sur le maillage.
+\end{itemize}
+Cette fonction calcule $\|u_{ana} - u_{num}\|_{l^1}$.\\
+
+\textbf{GetErrorLinf :}\elodie
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un vecteur de la solution analytique sur le maillage,
+\item et un vecteur de la solution numérique sur le maillage.
+\end{itemize}
+Cette fonction calcule $\|u_{ana} - u_{num}\|_{l^\infty}$.\\
+
+\textbf{GetErrorRela :}\alexis
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un vecteur de la solution analytique sur le maillage,
+\item et un vecteur de la solution numérique sur le maillage.
+\end{itemize}
+Cette fonction calcule $\frac{\|u_{ana} - u_{num}\|_{l^2}}{\|u_{ana}\|_{l^2}}$ (c'est un genre de pourcentage).\\
+
+\textbf{GetErrorAbs :}\alexis
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un vecteur de la solution analytique sur le maillage,
+\item et un vecteur de la solution numérique sur le maillage.
+\end{itemize}
+Cette fonction calcule $v\:=|u_{ana}-u_{num}|$ (valeur absolue).
+
+\subsection{Fichier funtovec}
+\textbf{FuntToVec :}\elodie
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un pointeur vers une fonction f dépendante des coordonnées spatiales et temporelles,
+\item et d'un t (optionnel, par défaut il vaut 0).
+\end{itemize}
+Cette fonction retourne un vecteur sur le maillage (de taille nombre de points) et l'initialise pour le temps dt en chaque points du maillage.\\
+
+\textbf{FuntToVec :}\elodie
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item et d'une valeur réelle.
+\end{itemize}
+Cette fonction retourne un vecteur sur le maillage (de taille nombre de points) et l'initialise à la valeur passée en argument.
+
+\subsection{Fichier impose}
+\textbf{ImposeDirichlet :}\alexis
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un pointeur vers une sparsematrix d'Eigen,
+\item un pointeur vers une fonction g dépendant des coordonnées spatiales et temporelle,
+\item un vecteur d'entiers regroupant les indices des points comme définissant la frontière de $\Omega$,
+\item et d'un t (optionnel, par défaut il vaut 0).
+\end{itemize}
+Cette fonction modifie la sparsematrix pour imposer la conditions de Dirichlet et elle retourne le vecteur des conditions imposées (voir calculs).\\
+
+\textbf{ImposeNeumann :}\valentin
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un pointeur vers une sparsematrix d'Eigen,
+\item un pointeur vers une fonction g dépendant des coordonnées spatiales et temporelle,
+\item un vecteur d'entiers regroupant les indices des points comme définissant la frontière de $\Omega$,
+\item et d'un t (optionnel, par défaut il vaut 0).
+\end{itemize}
+Cette fonction modifie la sparsematrix pour imposer la conditions de Neumann et elle retourne le vecteur des conditions imposées (voir calculs).
+
+\subsection{Fichier matrix}
+
+\textbf{BuildMatrixLaplaceEquation :}\elodie
+\begin{itemize}
+\item Un pointeur vers un objet Mesh.
+\end{itemize}
+Cette fonction retourne une sparsematrix du problème de Laplace sans préoccupation des conditions aux limites.
+
+\textbf{BuildMatrixHeatEquation :}\alexis
+\begin{itemize}
+\item Un pointeur vers un objet Mesh,
+\item un réel dt,
+\item et un réel qui est le coefficient de l'équation.
+\end{itemize}
+Cette fonction retourne une sparsematrix du problème de la chaleur sans préoccupation des conditions aux limites.
+
+\subsection{Fichier solver}
+
+\textbf{Solve :}\elodie
+\begin{itemize}
+\item Une sparsematrix,
+\item un vecteur symbolisant à la fois le second membre dans le cas implicite et la valeur au temps précédent dans le cas explicite,
+\item et un entier (valant EXPLICIT ou IMPLICIT) pour préciser le type de résolution.
+\end{itemize}
+Cette fonction résout au choix le problème implicite avec le gradient conjugué d'Eigen ou le simple produit matrice-vecteur dans le cas explicite et elle retourne le vecteur résultant.
+
+
+\section{Classe Cell dans Data }
+\begin{itemize}
+\item Constructeur : regarder quelles variables doivent être impérativement initialisées pour éviter les erreurs de l'utilisateur.
+\item Destructeur : supprimer les pointeurs qui sont déclarés uniquement au sein de la classe
+\item les multiples pointeurs vers les cellules environnantes \valentin
+\item calcul du barycentre \valentin
+\item list des points définissant la celulle \valentin
+\end{itemize}
+
+
+\section{Classe Mesh dans le dossier Mesh }
+\begin{itemize}
+\item Je m'en occupe
+\end{itemize}
+
+\section{Classe Point dans le dossier Data }
+\begin{itemize}
+\item Déjà fait
+\end{itemize}
+
+
+\section{Classe Writer dans le dossier Writer}
+\begin{itemize}
+\item Constructeur : regarder quelles variables doivent être impérativement initialisées pour éviter les erreurs de l'utilisateur.
+\item Destructeur : supprimer les pointeurs qui sont déclarés uniquement au sein de la classe
+\item SetVector[Numerical, Analytical, ErrorAbs] : affecte en interne
+\item WriteBothDomains[On, Off] : affecte en interne
+\item WriteNow : écrit un fichier ".vtk" et des fichiers ".dat" \valentin
+\end{itemize}
+\end{document}

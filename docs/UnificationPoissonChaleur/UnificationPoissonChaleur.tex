@@ -1,0 +1,318 @@
+
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[frenchb]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{float,subfig}
+
+
+\textwidth=170mm
+\textheight=240mm
+\voffset=-30mm
+\hoffset=-16mm
+
+\usepackage{graphicx}
+
+\def \bs {\backslash}
+\def \eps {\varepsilon}
+\def \un {\textbf{1}}
+\def \RR {\mathbb{R}}
+\def \EE {\mathbb{E}}
+\def \CC {\mathbb{C}}
+\def \KK {\mathbb{K}}
+\def \NN {\mathbb{N}}
+\def \PP {\mathbb{P}}
+\def \sC {\mathcal{C}}
+\def \sF {\mathcal{F}}
+\def \sM {\mathcal{M}}
+\def \sO {\mathcal{O}}
+\def \sG {\mathcal{G}}
+\def \sE {\mathcal{E}}
+\def \sB {\mathcal{B}}
+\def \sS {\mathcal{S}}
+\def \sD {\mathcal{D}}
+\def \sH {\mathcal{H}}
+\def \sN {\mathcal{N}}
+\def \sP {\mathcal{P}}
+\def \sU {\mathcal{U}}
+\def \sL {\mathcal{L}}
+\def \disp {\displaystyle}
+
+
+\begin{document}
+
+{\large
+\noindent {\sc M1 Modélisation 2019/2020 }
+\hfill {\sc Projet GTT} \\
+}
+\vspace{10 mm}
+\begin{center}
+	\Large{\textbf{Unification des schémas numériques DF}} \\
+	\Large{\textbf{pour les équations de Poisson et de la chaleur}}
+\end{center}
+
+\vspace{10 mm}
+
+\section{Position du problème}
+
+\noindent
+On est amené à étudier deux équations : l'équation de Poisson (ou équation de Laplace si le terme source est nul), et l'équation de la chaleur. Sans préoccupation des conditions au bord, en voici les discrétisations en DF, écrites en dimension 3 ici (il suffit d'enlever des termes et de réduire la taille de la matrice pour retrouver les dimensions 1 et 2). On posera :
+
+\vspace{5 mm}
+
+$$b := \frac{-D}{\Delta x^2}~,~~~~ c := \frac{-D}{\Delta y^2}~,~~~~ d := \frac{-D}{\Delta z^2}~~~~\text{pour les deux équations}$$
+
+$$a := \frac{1}{\Delta t} - 2b - 2c - 2d~~~~\text{pour l'équation de la chaleur \textit{a priori}}$$
+
+\vspace{10 mm}
+
+\noindent
+\textbf{$\star$ Équation de Poisson :}~~~~ $- D \Delta u = f$
+
+\vspace{5 mm}
+
+\noindent
+Elle est discrétisée en DF ainsi :
+
+\begin{align*}
+& -D \left( \frac{u_{i+1,j,k} -2u_{i,j,k} + u_{i-1,j,k}}{\Delta x^2} \right) \\
+& -D \left( \frac{u_{i,j+1,k} -2u_{i,j,k} + u_{i,j-1,k}}{\Delta y^2} \right) \\
+& -D \left( \frac{u_{i,j,k+1} -2u_{i,j,k} + u_{i,j,k-1}}{\Delta z^2} \right) = f_{i,j,k}~~~~~~(P)
+\end{align*}
+
+\vspace{5 mm}
+
+\noindent
+encore équivalent à :
+
+\begin{align*}
+\underbrace{(-2b-2c-2d)}_{\disp =: k} \cdot u_{i,j,k} & + b \cdot (u_{i+1,j,k} + u_{i-1,j,k}) \\
+& + c \cdot (u_{i,j+1,k} + u_{i,j-1,k}) \\
+& + d \cdot (u_{i,j,k+1} + u_{i,j,k-1}) = f_{i,j,k}
+\end{align*}
+
+\newpage
+
+\noindent
+Si on définit les matrices suivantes de $\sM_{Nx} (\RR)$ :
+
+$$T := \begin{pmatrix}
+		k & b & ~ & ~ \\
+		b & k & \ddots & ~  \\
+		~ & \ddots & \ddots & b \\
+		~ & ~ & b & k
+	\end{pmatrix}~~~~\text{et}~~~~ C := \begin{pmatrix}
+		c & ~ & ~ & ~ \\
+		~ & c & ~ & ~ \\
+		~ & ~ & \ddots & ~ \\
+		~ & ~ & ~ & c
+	\end{pmatrix}~~~~\text{et}~~~~ D := \begin{pmatrix}
+		d & ~ & ~ & ~ \\
+		~ & d & ~ & ~ \\
+		~ & ~ & \ddots & ~ \\
+		~ & ~ & ~ & d
+	\end{pmatrix}~,$$
+
+\vspace{5 mm}
+
+\noindent
+alors on peut mettre le schéma numérique précédent sous forme matricielle :
+
+$$M_P \cdot U = f~~~~(P'),$$
+
+\vspace{5 mm}
+
+\noindent
+avec ici $M_P \in \sM_{NxNyNz} (\RR)$ la matrice du problème $(P)$ dont chaque ligne (ou chaque colonne) est constituée de $Nz$ blocs de taille $Nx \times Ny$ :
+
+$$M_P = \left (
+   \begin{array}{c|c|c|c}
+   
+      \begin{array}{llll}
+		T & C & ~ & ~ \\
+		C & T & \ddots & ~  \\
+		~ & \ddots & \ddots & C \\
+		~ & ~ & C & T
+	\end{array} & \begin{array}{llll}
+		D & ~ & ~ & ~ \\
+		~ & D & ~ & ~ \\
+		~ & ~ & \ddots & ~ \\
+		~ & ~ & ~ & D
+	\end{array} & ~ & ~ \\
+       
+      \hline
+      
+      \begin{array}{llll}
+		D & ~ & ~ & ~ \\
+		~ & D & ~ & ~ \\
+		~ & ~ & \ddots & ~ \\
+		~ & ~ & ~ & D
+	\end{array} & \begin{array}{llll}
+		T & C & ~ & ~ \\
+		C & T & \ddots & ~  \\
+		~ & \ddots & \ddots & C \\
+		~ & ~ & C & T
+	\end{array} & \begin{array}{lll}
+	~ & ~ & ~ \\
+	~ & \ddots & ~ \\
+	~ & ~ & ~ \end{array} & ~ \\
+      
+      \hline
+      
+      ~ & \begin{array}{lll}
+	~ & ~ & ~ \\
+	~ & \ddots & ~ \\
+	~ & ~ & ~ \end{array} & \begin{array}{lll}
+	~ & ~ & ~ \\
+	~ & \ddots & ~ \\
+	~ & ~ & ~ \end{array} & \begin{array}{llll}
+		D & ~ & ~ & ~ \\
+		~ & D & ~ & ~ \\
+		~ & ~ & \ddots & ~ \\
+		~ & ~ & ~ & D
+	\end{array} \\
+      
+      \hline
+      
+      ~ & ~ & \begin{array}{llll}
+		D & ~ & ~ & ~ \\
+		~ & D & ~ & ~ \\
+		~ & ~ & \ddots & ~ \\
+		~ & ~ & ~ & D
+	\end{array} & \begin{array}{llll}
+		T & C & ~ & ~ \\
+		C & T & \ddots & ~  \\
+		~ & \ddots & \ddots & C \\
+		~ & ~ & C & T
+	\end{array} \\
+      
+   \end{array}
+\right)$$
+
+\vspace{5 mm}
+
+\noindent
+On rappelle qu'on a posé ici :
+
+$$k := -2b - 2c - 2d.$$
+
+\vspace{10 mm}
+
+\noindent
+\textbf{$\star$ Équation de la chaleur :}~~~~ $\partial_t u - D \Delta u = f$
+
+\vspace{5 mm}
+
+\noindent
+Elle est discrétisée en DF ainsi (pour une résolution implicite) :
+
+\begin{align*}
+\frac{u_{i,j,k}^{n+1} - u_{i,j,k}^n}{\Delta t} & -D \left( \frac{u_{i+1,j,k}^{n+1} -2u_{i,j,k}^{n+1} + u_{i-1,j,k}^{n+1}}{\Delta x^2} \right) \\
+& -D \left( \frac{u_{i,j+1,k}^{n+1} -2u_{i,j,k}^{n+1} + u_{i,j-1,k}^{n+1}}{\Delta y^2} \right) \\
+& -D \left( \frac{u_{i,j,k+1}^{n+1} -2u_{i,j,k}^{n+1} + u_{i,j,k-1}^{n+1}}{\Delta z^2} \right) = f_{i,j,k}~~~~~~(H)
+\end{align*}
+
+\vspace{5 mm}
+
+\noindent
+encore équivalent à :
+
+\begin{align*}
+a \cdot u_{i,j,k}^{n+1}~ & + b \cdot (u_{i+1,j,k}^{n+1} + u_{i-1,j,k}^{n+1}) \\
+& + c \cdot (u_{i,j+1,k}^{n+1} + u_{i,j-1,k}^{n+1}) \\
+& + d \cdot (u_{i,j,k+1}^{n+1} + u_{i,j,k-1}^{n+1}) = \frac{1}{\Delta t} u_{i,j,k}^n + f_{i,j,k}
+\end{align*}
+
+\vspace{5 mm}
+
+\noindent
+En gardant les matrices $C$ et $D$ de taille $Nx$ définies plus haut, et en modifiant à peine la matrice $T \in \sM_{Nx} (\RR)$ en remplaçant $k := -2b-2c-2d$ par $\disp a := \frac{1}{\Delta t}-2b-2c-2d$~~$(\star)$, on peut de nouveau mettre le schéma numérique précédent sous forme matricielle :
+
+$$M_H \cdot U^{n+1} = \frac{1}{\Delta t} \cdot U^n + f~~~~(H'),$$
+
+\vspace{5 mm}
+
+\noindent
+où la matrice $M_H \in \sM_{NxNyNz} (\RR)$ du problème $(H)$ est définie de la même manière que $M_P$~, modulo la modification opérée par $(\star)$.
+
+\vspace{10 mm}
+
+\section{Notre constat}
+
+\noindent
+En général, pour l'équation de la chaleur, le schéma numérique $(H)$ est plutôt multiplié de part et d'autre par la quantité $\Delta t$, et on aboutit à la forme matricielle :
+
+$$M_H' \cdot U^{n+1} = U^n + \Delta t \cdot f~,$$
+
+\vspace{5 mm}
+
+\noindent
+où la matrice $M_H' \in \sM_{NxNyNz} (\RR)$ est exactement la matrice $M_H$ multipliée par $\Delta t$, soit : $M_H' = \Delta t \cdot M_H$~, ce qui revient à changer les coefficients $a, b, c, d$ définis en première page en :
+
+$$b := \frac{-D\Delta t}{\Delta x^2}~,~~~~ c := \frac{-D\Delta t}{\Delta y^2}~,~~~~ d := \frac{-D\Delta t}{\Delta z^2}~,~~~~ a := 1 - 2b - 2c - 2d~,$$
+
+\vspace{5 mm}
+
+\noindent
+ie. les "anciens" coefficients, tous multipliés par $\Delta t$.
+
+\vspace{5 mm}
+
+\noindent
+Cependant, nous avons trouvé dommage :
+
+\vspace{5 mm}
+
+\noindent
+\begin{itemize}
+	\item \textbf{Aspect algorithmique :}~~ D'une part, de construire numériquement les deux matrices $M_P$ et $M_H'$ séparément alors qu'elles ont des structures et un remplissage très proches : ce serait faire deux fois le même travail~;
+
+\vspace{5 mm}
+
+	\item \textbf{Aspect physique :}~~ D'autre part, de ne pas tenir compte du fait qu'en réalité, l'équation de Poisson n'est autre que l'équation de la chaleur écrite en régime stationnaire, ie. en supprimant la dépendance en temps (dérivée temporelle $\partial_t$ nulle).
+\end{itemize}
+
+\vspace{10 mm}
+
+\section{Notre solution}
+
+\noindent
+Voyons de plus près la modification $(\star)$. Comme $\disp a = \frac{1}{\Delta t} + k$, on peut remarquer que :
+
+$$M_H = \frac{1}{\Delta t} \cdot I_{NxNyNz} + M_P~,$$
+
+\vspace{5 mm}
+
+\noindent
+en ayant conservé les coefficients $a, b, c, d$ définis en première page. Ceci est licite car on ne modifie que la diagonale principale. On peut donc écrire les deux problèmes matriciels de Poisson et de la chaleur (respectivement) ainsi :
+
+$$M_P \cdot U = f~~~~~~(P')$$
+
+$$\left( \frac{1}{\Delta t} \cdot I + M_P \right) \cdot U^{n+1} = \frac{1}{\Delta t} \cdot U^n + f~~~~~~(H')$$
+
+\vspace{5 mm}
+
+\noindent
+De cette façon, on règle les deux "difficultés" soulevées plus haut :
+
+\vspace{5 mm}
+
+\noindent
+\begin{itemize}
+	\item \textbf{Aspect algorithmique :}~~ On construit une et une seule fois la matrice $M_P$ du problème de Laplace (inutile de faire deux fonctions, cf. rapport). Pour le problème de la chaleur, on ne fait qu'ajouter $\disp \frac{1}{\Delta t} \cdot I$~, ce qui se fait très facilement numériquement.
+
+\vspace{5 mm}
+
+	\item \textbf{Aspect physique :}~~ On peut adapter la discrétisation du Laplacien facilement comme vu en cours et sur le rapport d'hier, où on cherche à modifier l'interaction entre voisins (à cause de l'ajout de points). La dérivée temporelle n'influe pas dessus.
+\end{itemize}
+
+\vspace{5 mm}
+
+\noindent
+$\hookrightarrow$ \textbf{Et en pratique ?}~~ Numériquement, on peut ne coder que la résolution de $(H)$ (pour une bonne partie, des adaptations sont bien sûr à faire). Mais il est très facile de définir par exemple $\Delta t \simeq 10^{26} \gg 1$, de sorte qu'avec une erreur minime on puisse résoudre également $(P)$ car alors :
+
+$$\left( \frac{1}{\Delta t} \cdot I + M_P \right) = M_P~,~~~~ U^{n+1} = U~,~~~~ \frac{1}{\Delta t} \cdot U^n = 0~~~~\Rightarrow ~~~~M_P \cdot U = f$$
+
+\end{document}
