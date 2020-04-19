@@ -42,55 +42,35 @@ public:
     /**
      * @brief Configurer le nombre de points dans la direction x.
      * @param Nx int
+     * @return this Mesh*
      */
-    void Set_Nx (int Nx);
+    Mesh* Set_Nx (int Nx);
 
     /**
      * @brief Configurer le nombre de points dans la direction y.
      * @param Ny int
+     * @return this Mesh*
      */
-    void Set_Ny (int Ny);
+    Mesh* Set_Ny (int Ny);
 
     /**
      * @brief Configurer le nombre de points dans la direction z.
      * @param Nz int
+     * @return this Mesh*
      */
-    void Set_Nz (int Nz);
+    Mesh* Set_Nz (int Nz);
 
     /**
      * @brief Configurer les points définissant le domaine [a, b] x [c, d] x [e, f].
      * @param Origin Point (a, c, e)
      * @param Extrema Point (b, d, f)
      */
-    void SetBounds (Point Origin, Point Extrema);
+    Mesh* SetBounds (Point* Origin, Point* Extrema);
 
     /**
      * @brief Construit le maillage à partir des données rentrées : Origin, Extrema, Nx, Ny et Nz.
      */
-    void Build ();
-
-    /**
-     * @brief Retourne le i-ème point du maillage.
-     * @param i int numéro du point
-     * @return Point
-     */
-    Point operator() (int i) const;
-
-    /**
-     * @brief Retourne le point (i, j, k) ie le point situé sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
-     * @param i indice de la ligne
-     * @param j indice de la colonne
-     * @param k indice de la hauteur
-     * @return Point
-     */
-    Point GetPoint (int i, int j, int k) const;
-
-    /**
-     * @brief Retourne le i-ème point du maillage.
-     * @param i int numéro du point
-     * @return Point
-     */
-    Point GetPoint (int i) const;
+    Mesh* Build ();
 
     /**
      * @brief Retourne un pointeur vers le point (i, j, k) ie le point situé sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
@@ -99,39 +79,14 @@ public:
      * @param k indice de la hauteur
      * @return Point*
      */
-    Point * GetPointPtr (int i, int j, int k);
+    Point* GetPoint (int i, int j, int k) const;
 
     /**
      * @brief Retourne un pointeur vers le i-ème point du maillage.
      * @param i int numéro du point
      * @return Point*
      */
-    Point * GetPointPtr (int i);
-
-    /**
-     * @brief Retourne le point (i, j, k) ie le point situé sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
-     * @param i indice de la ligne
-     * @param j indice de la colonne
-     * @param k indice de la hauteur
-     * @return Point
-     */
-    Point operator() (int i, int j, int k) const;
-
-    /**
-     * @brief Retourne la cellule (i, j, k) ie la cellule située sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
-     * @param i indice de la ligne
-     * @param j indice de la colonne
-     * @param k indice de la hauteur
-     * @return Cell
-     */
-    Cell GetCell (int i, int j, int k) const;
-
-    /**
-     * @brief Retourne la i-ème cellule du maillage.
-     * @param i int numéro de la cellule
-     * @return Cell
-     */
-    Cell GetCell (int i) const;
+    Point* GetPoint (int i) const;
 
     /**
      * @brief Retourne un pointeur vers la cellule (i, j, k) ie la cellule située sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
@@ -140,26 +95,26 @@ public:
      * @param k indice de la hauteur
      * @return Cell*
      */
-    Cell * GetCellPtr (int i, int j, int k);
+    Cell* GetCell (int i, int j, int k) const;
 
     /**
      * @brief Retourne un pointeur vers la i-ème cellule du maillage.
      * @param i int numéro de la cellule
      * @return Cell*
      */
-    Cell * GetCellPtr (int i);
+    Cell* GetCell (int i) const;
 
     /**
      * @brief Retourne la dimension du maillage (voir l'énumération DIM)
      * @return tag de l'énumération DIM
      */
-    DIM GetDimension ();
+    DIM GetDimension () const;
 
     /**
-     * @brief Retourne un vecteur contenant Origin et Extrema.
-     * @return std::vector<Point> = {Origin, Extrema}
+     * @brief Retourne un vecteur contenant des pointeurs Origin et Extrema.
+     * @return std::vector<Point*> = {Origin, Extrema}
      */
-    std::vector<Point> GetBounds () const;
+    std::vector<Point *> GetBounds () const;
 
     /**
      * @brief Retourne le Nx enregistré.
@@ -204,6 +159,12 @@ public:
     int GetNumberOfTotalPoints () const;
 
     /**
+     * @brief Retourne le nombre de points sur la grille cartésienne.
+     * @return N int
+     */
+    int GetNumberOfCartesianPoints () const;
+
+    /**
      * @brief Retourne le nombre total de cellules du maillage.
      * @return N int
      */
@@ -211,8 +172,9 @@ public:
 
     /**
      * @brief Affiche à l'écran les infos et la liste de points.
+     * @return this Mesh *
      */
-    void Print () const;
+    void Print ();
 
     /**
      * @brief Tague le point (i, j, k)
@@ -220,29 +182,54 @@ public:
      * @param j indice de la colonne
      * @param k indice de la hauteur
      * @param tag un tag de POINT_LOCATION
+     * @return this Mesh *
      */
-    void TagPoint (int i, int j, int k, POINT_LOCATION tag);
+    Mesh* TagPoint (int i, int j, int k, POINT_LOCATION tag);
 
     /**
      * @brief Tague le index-ieme point
      * @param index indice global du point
      * @param tag un tag de POINT_LOCATION
+     * @return this Mesh *
      */
-    void TagPoint (int index, POINT_LOCATION tag);
+    Mesh* TagPoint (int index, POINT_LOCATION tag);
 
     /**
      * @brief Ajoute le point au maillage et le tag comme un point de bord (voir POINT_LOCATION)
      * @param a le point considéré
+     * @return this Mesh *
      */
-    void AddPointOnBorder (Point a);
+    Mesh* AddPointOnBorder (Point a);
+
+    /**
+     * @brief Ajoute le ptr point au maillage et le tag comme un point de bord (voir POINT_LOCATION)
+     * @param a le point considéré
+     * @return this Mesh *
+     */
+    Mesh* AddPointOnBorder (Point* a);
 
     /**
      * @brief Ajoute le point au maillage et le tag comme un point de du maillage (voir POINT_LOCATION)
      * @param a le point considéré
      * @param tag voir POINT_LOCATION
+     * @return this Mesh *
      */
-    void AddPointOnDomain (Point a, POINT_LOCATION tag = ON_DOMAIN_EXTERN_OMEGA);
+    Mesh* AddPointOnDomain (Point a, POINT_LOCATION tag = ON_DOMAIN_EXTERN_OMEGA);
 
+    /**
+     * @brief Ajoute le ptr point au maillage et le tag comme un point de du maillage (voir POINT_LOCATION)
+     * @param a le point considéré
+     * @param tag voir POINT_LOCATION
+     * @return this Mesh *
+     */
+    Mesh* AddPointOnDomain (Point* a, POINT_LOCATION tag = ON_DOMAIN_EXTERN_OMEGA);
+
+    /**
+     * @brief MakeACellFromListPoints
+     * @param list
+     * @return
+     */
+    Mesh* MakeACellFromListPoints (std::vector<Point *> list);
     /**
      * @brief Retourne un vecteur d'indices globaux de points avec le tag 'tag'
      * @param tag voir POINT_LOCATION
@@ -263,27 +250,57 @@ public:
      */
     int GetNumberOfInfosCells () const;
 
+    /**
+     * @brief Élimine du maillage le point index
+     * @param index indice global du point
+     * @return this Mesh*
+     */
+    Mesh* RemoveThisPoint (int index);
+
+    /**
+     * @brief Élimine du maillage le point (i, j, k)
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return this Mesh*
+     */
+    Mesh* RemoveThisPoint (int i, int j, int k);
+
+    /**
+     * @brief Élimine du maillage la liste de points donné par indices
+     * @param listindex list de indices
+     * @return this Mesh*
+     */
+    Mesh* RemoveThesePoints (std::vector <int> listindex);
+
+    /**
+     * @brief Élimine tous les points hors grille cartesienne
+     * @return this Mesh*
+     */
+    Mesh* RemoveAllNotCartesianPoints ();
+
+
 protected:
 
     /**
      * @brief Vecteur de Point.
      */
-    std::vector<Point> m_points;
+    std::vector<Point*> m_points;
 
     /**
      * @brief Vecteur de Cell.
      */
-    std::vector<Cell> m_cells;
+    std::vector<Cell*> m_cells;
 
     /**
      * @brief Point d'origine du maillage.
      */
-    Point m_origin;
+    Point* m_origin;
 
     /**
      * @brief Point d'extrema du maillage.
      */
-    Point m_extrema;
+    Point* m_extrema;
 
     /**
      * @brief Pas d'espace dans la direction x.
