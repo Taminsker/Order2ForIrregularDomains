@@ -1,13 +1,30 @@
 #include "impose.h"
 
 Vector ImposeDirichlet (Mesh * mesh,
-                        Matrix * sparsematrix,
+                        Matrix * A,
                         double (*g) (Point, double),
                         std::vector <int> listIndex,
-                        double t)
+                        double t,
+                        std::vector <double> secondMember)
 {
+  for (int i : listIndex) {A.row (i) *= 0.;} // On met la i-ème ligne à 0
 
+  A = A.transpose (); // Pour pouvoir manipuler les colonnes de A
+
+  for (int i : listIndex) {
+    // On déplace au 2nd membre les apparitions de P_i avec valeur imposée g(P_i)
+    secondMember -= g(*(mesh->GetPoint (i)), t) * A.row (i).transpose ();
+
+    A.row (i) *= 0.;
+    A.coeffRef (i,i) = 1.;
+
+    secondMember [i] = g(*(mesh->GetPoint (i)), t);
+  }
+
+  A = A.transpose ();
+  A.pruned ();
 }
+
 
 Vector ImposeNeumann (Mesh *mesh,
                       Matrix * sparsematrix,

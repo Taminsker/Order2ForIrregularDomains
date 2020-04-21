@@ -23,10 +23,11 @@
  * @return le vecteur des conditions imposées
  */
 Vector ImposeDirichlet (Mesh &mesh,
-                        Matrix * sparsematrix,
+                        Matrix * A,
                         double (*g) (Point, double),
                         std::vector <int> listIndex,
-                        double t = 0.);
+                        double t = 0.,
+                        std::vector <double> secondMember);
 
 
 /**
