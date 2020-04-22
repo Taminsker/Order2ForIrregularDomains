@@ -12,16 +12,36 @@
 #include <Eigen/Sparse>
 
 #include "../Data/data.h"
+#include "../Toolbox/toolbox.h"
+
+/*!
+ *  \addtogroup Outils
+ *  @{
+ */
 
 /**
  * @brief Énumérateur des différentes dimensions possibles
  */
 typedef enum {
-    DIM_1D,
-    DIM_2D,
-    DIM_3D
+    /** dimension 1 */
+    DIM_1D = 1,
+    /** dimension 2 */
+    DIM_2D = 2,
+    /** dimension 3 */
+    DIM_3D = 3
 } DIM;
 
+/**
+ * @brief Structure embarquée regroupant les indices i, j, k
+ */
+typedef struct
+{
+    int i;
+    int j;
+    int k;
+} LocalIndexes;
+
+/** @}*/
 /**
  * @brief La classe Mesh : stock un maillage, liste des points et des cellules.
  */
@@ -89,6 +109,38 @@ public:
     Point* GetPoint (int i) const;
 
     /**
+     * @brief Retourne un pointeur vers le point (i, j, k) ordonné sous forme de parcours en snake
+     * @param i indice de la ligne
+     * @param j indice de la colonne
+     * @param k indice de la hauteur
+     * @return Point*
+     */
+    Point* GetSnakePoint (int i, int j, int k) const;
+
+    /**
+     * @brief Retourne un pointeur vers le i-ième point ordonné sous forme de parcours en snake
+     * @return Point*
+     */
+    Point* GetSnakePoint (int idx) const;
+
+    /**
+     * @brief GetLocalIndexesOfPoint
+     * @param idx
+     * @return
+     */
+    LocalIndexes GetLocalIndexesOfPoint (int idx) const;
+
+    /**
+     * @brief GetGlobalIndexOfPoint
+     * @param i
+     * @param j
+     * @param k
+     * @return
+     */
+    int GetGlobalIndexOfPoint (int i, int j = 0, int k = 0) const;
+
+
+    /**
      * @brief Retourne un pointeur vers la cellule (i, j, k) ie la cellule située sur la i-eme ligne, la j-ieme colonne et la k-ieme hauteur
      * @param i indice de la ligne
      * @param j indice de la colonne
@@ -103,6 +155,23 @@ public:
      * @return Cell*
      */
     Cell* GetCell (int i) const;
+
+    /**
+     * @brief GetLocalIndexesOfCell
+     * @param idx
+     * @return
+     */
+    LocalIndexes GetLocalIndexesOfCell (int idx) const;
+
+    /**
+     * @brief GetGlobalIndexOfCell
+     * @param i
+     * @param j
+     * @param k
+     * @return
+     */
+    int GetGlobalIndexOfCell (int i, int j = 0, int k = 0) const;
+
 
     /**
      * @brief Retourne la dimension du maillage (voir l'énumération DIM)
@@ -169,12 +238,6 @@ public:
      * @return N int
      */
     int GetNumberOfTotalCells () const;
-
-    /**
-     * @brief Affiche à l'écran les infos et la liste de points.
-     * @return this Mesh *
-     */
-    void Print ();
 
     /**
      * @brief Tague le point (i, j, k)
@@ -279,6 +342,11 @@ public:
      */
     Mesh* RemoveAllNotCartesianPoints ();
 
+    /**
+     * @brief Affiche à l'écran les infos et la liste de points.
+     * @return this
+     */
+    Mesh* Print ();
 
 protected:
 
@@ -350,5 +418,7 @@ protected:
      */
     int IndexCells (int i, int j, int k) const;
 };
+
+
 
 #endif // MESH_H

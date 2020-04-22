@@ -17,12 +17,12 @@
  * @param mesh un pointeur vers un objet Mesh
  * @return Matrix du problème de la chaleur
  */
-Matrix& Laplacian (Mesh * mesh);
+Matrix Laplacian (Mesh * mesh);
 
 /**
  * @brief Cette fonction actualise une ligne donnée de la matrice du Laplacien (cf. algorithme.pdf)
  * @param A la matrice du Laplacien
- * @param m l'indice de la ligne à modifier
+ * @param P_m Point* à actualiser
  * @param gamma l'entier correspondant à l'axe dans la direction duquel on fait la mise à jour
  */
 void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma);

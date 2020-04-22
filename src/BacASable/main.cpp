@@ -17,39 +17,22 @@ int main(int argc, char* argv[])
     (void)argv;
 
     Mesh * mesh = new Mesh ();
-    mesh->Set_Nx (100);
-    mesh->Set_Ny (100);
+    mesh->Set_Nx (101);
+    mesh->Set_Ny (101);
     mesh->Set_Nz (1);
     mesh->SetBounds (new Point (-1, 0), new Point (1, 3, 0));
     mesh->Build ();
     mesh->Print ();
 
-    //    for (int i = 0; i < mesh->GetNumberOfTotalPoints (); ++i)
-    //    {
-    //        auto p = mesh->GetPoint (i);
-    //        auto voisins = p->GetListNeighbours ();
-
-    //        std::cout << "voisins de " << p->GetGlobalIndex () << " : " << std::flush;
-
-
-    //        for (int j = 0; j < voisins.size (); ++j)
-    //        {
-    //            std::cout << voisins.at (j)->GetGlobalIndex ()<< " " << std::flush;
-    //        }
-    //        std::cout << std::endl;
-    //    }
-
-
-
 
     Vector phi_value = FunToVec (mesh, phi, phi_prim);
-    auto list = MakeListOfIndexPoints (mesh, &phi_value);
+    auto list = MakeBorderPoints (mesh, &phi_value);
 
     mesh->Print ();
-    //    for (int i : list)
-    //    {
-    //        //        std::cout << "nvx point : " << *mesh->GetPoint (i) << " (grid : " << (mesh->GetPoint (i)->GetGlobalIndex () < mesh->GetNumberOfCartesianPoints ())<< ")" << std::endl;
-    //    }
+    //        //    for (int i : list)
+    //        //    {
+    //        //        //        std::cout << "nvx point : " << *mesh->GetPoint (i) << " (grid : " << (mesh->GetPoint (i)->GetGlobalIndex () < mesh->GetNumberOfCartesianPoints ())<< ")" << std::endl;
+    //        //    }
 
     Vector value (mesh->GetNumberOfTotalPoints ());
     value.setZero ();
@@ -58,6 +41,7 @@ int main(int argc, char* argv[])
     {
         value.coeffRef (i) = phi_value.coeffRef (i);
     }
+
     //    for (int k = 0; k < mesh->Get_Nz (); ++k)
     //        for (int j = 0; j < mesh->Get_Ny (); ++j)
     //            for (int i = 0; i < mesh->Get_Nx (); ++i)
@@ -67,12 +51,12 @@ int main(int argc, char* argv[])
     //            }
 
 
-//    value = FunToVec (mesh, phi, phi_prim);
+    //    value = FunToVec (mesh, phi, phi_prim);
     Writer * writer = new Writer (mesh);
 
     writer->SetFilename ("test");
     writer->SetVectorNumerical (&value);
-    writer->SetWriteBothDomainsOn ();
+    writer->SetWriteBothDomainsOff ();
     writer->WriteNow ();
 
     delete mesh;

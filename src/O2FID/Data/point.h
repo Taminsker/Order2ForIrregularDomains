@@ -17,13 +17,20 @@
  */
 class Cell;
 
+/*!
+ *  \addtogroup Outils
+ *  @{
+ */
 /**
  * @brief Enumerateur pour la localisation des points.
  */
 typedef enum
 {
+    /** Dans le domaine interne phi négative */
     ON_BORDER_OMEGA = 1,
+    /** Sur le bord du domaine, phi égale à zéro */
     ON_DOMAIN_INTERN_OMEGA = 0,
+    /** Dans le domaine externe phi positive */
     ON_DOMAIN_EXTERN_OMEGA = 2
 } POINT_LOCATION;
 
@@ -32,11 +39,33 @@ typedef enum
  */
 typedef enum
 {
+    /** Pas d'axe */
     NO_AXIS = -1,
+    /** Axe des x */
     AXIS_X = 0,
+    /** Axe des y */
     AXIS_Y = 1,
+    /** Axe des z */
     AXIS_Z = 2
 } AXIS_LABEL;
+
+typedef enum
+{
+    /** Tag à gauche */
+    LEFT = 0,
+    /** Tag à droite */
+    RIGHT = 1,
+    /** Tag au dessus */
+    UP = 2,
+    /** Tag au dessous */
+    DOWN = 3,
+    /** Tag de devant */
+    FRONT = 4,
+    /** Tag tag de derrière */
+    BACK = 5
+} POSITION;
+
+/** @}*/
 
 /**
  * @brief La classe Point implémente les informations nécessaires pour définir un point.
@@ -153,16 +182,9 @@ public:
 
     /**
      * @brief Associe un vecteur de points voisins à ce point
-     * @param liste des Point*
+     * @param list des Point*
      */
     void SetListNeighbours (std::vector <Point *>& list);
-
-    /**
-     * @brief Retounr
-     * @param tag
-     * @return
-     */
-    std::pair <Point *, Point *> GetNeighboursFromAxis (AXIS_LABEL tag);
 
     /**
      * @brief Enlève le point p à la liste de voisins de ce point
@@ -282,8 +304,8 @@ Point operator* (const Point& p, double value);
 
 /**
  * @brief Multiplication intelligente entre deux points
- * @param a
- * @param p le point en question
+ * @param a le premier point
+ * @param b le deuxième point
  * @return Point
  */
 Point operator* (const Point& a, const Point& b);

@@ -11,7 +11,9 @@
  */
 
 typedef enum {
+    /** Solveur explicite */
     EXPLICIT,
+    /** Solveur implicite */
     IMPLICIT
 } TYPE;
 

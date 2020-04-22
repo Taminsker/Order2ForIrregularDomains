@@ -3,7 +3,8 @@
 #define TOOLS_H
 
 /**
- * \defgroup Outils
+ * \defgroup Outils O2FID
+ * @{
  * @brief Ce module regroupe toutes les fonctions utiles pour le projet.
  *  * \code
  * #include "../O2FID/O2FID.h"
@@ -105,6 +106,7 @@
  *  return 0. * (a.x + a.y + a.z);
  * }
  * \endcode
+ * @}
  */
 #include "border.h"
 #include "errors.h"

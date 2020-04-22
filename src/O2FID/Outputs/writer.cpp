@@ -56,8 +56,13 @@ void Writer::SetCurrentIteration (int i)
 
 void Writer::WriteNow ()
 {
+    std::cout << "# The writer is launched." << std::endl;
+
     if (m_filename == "")
         m_filename = "no_filename_selected";
+
+    std::cout << INDENT << "Base filename is " << m_filename << std::endl;
+    std::cout << INDENT << "Option : bothDomain is " << (m_bothDomain ? "on": "off") << std::endl;
 
     // Ajout du numéro d'itération en temps et de l'extension du fichier ".vtk"
     m_filename += std::string ("_") + std::to_string (m_index);
@@ -67,7 +72,7 @@ void Writer::WriteNow ()
 }
 
 void Writer::WriteDAT ()
-{
+{    
     std::ofstream file;
     std::string filename_copy;
 
@@ -87,11 +92,14 @@ void Writer::WriteDAT ()
 
     // POINTS
     filename_copy = m_filename + std::string ("_points.dat");
+
+    std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
     file.open (filename_copy);
 
     if (file.is_open ())
     {
-        file << "# X" << SPACE << "Y" << SPACE << "Z" << std::endl;
+        file << "# X " << SPACE << " Y " << SPACE << " Z " << std::endl;
 
         // Impression de la liste de points du maillage
         for (int i : indexes)
@@ -101,6 +109,8 @@ void Writer::WriteDAT ()
     }
 
     filename_copy = m_filename + std::string ("_location.dat");
+
+    std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
 
     file.open (filename_copy);
 
@@ -118,6 +128,8 @@ void Writer::WriteDAT ()
     {
         filename_copy = m_filename + std::string ("_sol_num.dat");
 
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
         file.open (filename_copy);
 
         for (int i : indexes)
@@ -130,6 +142,8 @@ void Writer::WriteDAT ()
     if (m_sol_ana != nullptr && m_sol_ana->rows () >= numPoints)
     {
         filename_copy = m_filename + std::string ("_sol_ana.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
 
         file.open (filename_copy);
 
@@ -145,6 +159,8 @@ void Writer::WriteDAT ()
     {
         filename_copy = m_filename + std::string ("_error_abs.dat");
 
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
         file.open (filename_copy);
 
         for (int i : indexes)
@@ -152,6 +168,8 @@ void Writer::WriteDAT ()
 
         file.close ();
     }
+
+    std::cout << std::endl;
 
     return;
 }
@@ -162,6 +180,9 @@ void Writer::WriteVTK ()
 
     std::string filename_copy = m_filename;
     filename_copy += std::string (".vtk");
+
+    std::cout << INDENT << "(VTK) Write : " << filename_copy << std::endl;
+
     file.open (filename_copy);
 
     int numPoints = m_mesh->GetNumberOfTotalPoints ();
@@ -178,6 +199,8 @@ void Writer::WriteVTK ()
 
     file << std::endl;
 
+    std::cout << INDENT << "(VTK) Points have been written." << std::endl;
+
     // Partie concernant l'impression des cellules
 
     int numCells = m_mesh->GetNumberOfTotalCells ();
@@ -192,12 +215,17 @@ void Writer::WriteVTK ()
             file << *m_mesh->GetCell (i);
         file << std::endl;
 
+        std::cout << INDENT << "(VTK) Cells have been written." << std::endl;
+
         file << "CELL_TYPES " << numCells << std::endl;
 
         // Impression de la liste des types de cellules (voir documentation VTK pour plus d'information)
         for (int i = 0; i < numCells; ++i)
             file << m_mesh->GetCell (i)->GetType () << std::endl;
         file << std::endl;
+
+        std::cout << INDENT << "(VTK) Cell type was written," << std::endl;
+
     }
     else // On a précisé qu'on ne voulait que le domaine interne
     {
@@ -222,6 +250,8 @@ void Writer::WriteVTK ()
         }
         file << std::endl;
 
+        std::cout << INDENT << "(VTK) Cells have been written." << std::endl;
+
         // Écrire le type des cellules taguées
         file << "CELL_TYPES " << numCells << std::endl;
 
@@ -231,6 +261,8 @@ void Writer::WriteVTK ()
             file << m_mesh->GetCell (index)->GetType () << std::endl;
         }
         file << std::endl;
+
+        std::cout << INDENT << "(VTK) Cell type was written." << std::endl;
     }
 
     // Impression des vecteurs de données sur les points du maillage dans des vecteurs scalaires.
@@ -259,6 +291,9 @@ void Writer::WriteVTK ()
         WriteInFile (file, "Error_abs", m_error_abs);
 
     file.close ();
+
+    std::cout << std::endl;
+
     return;
 }
 
@@ -272,5 +307,8 @@ void WriteInFile (std::ofstream &file, std::string name, Vector * vec)
         file << vec->operator() (i) << std::endl;
 
     file << std::endl;
+
+    std::cout << INDENT << "(VTK) POINT_DATA " << name << " was written." << std::endl;
+
     return;
 }
