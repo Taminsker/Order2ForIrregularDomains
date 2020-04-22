@@ -1,19 +1,30 @@
 #include "impose.h"
 
-Vector ImposeDirichlet (Mesh * mesh,
-                        Matrix * sparsematrix,
-                        double (*g) (Point, double),
-                        std::vector <int> listIndex,
-                        double t)
+void ImposeDirichlet (Mesh * mesh,
+                      Matrix * A,
+                      Vector* secondMember,
+                      double (*g) (Point, double),
+                      std::vector <int> listIndex,
+                      double t)
 {
+    for (int i : listIndex) {A->row (i) *= 0.;} // On met la i-ème ligne à 0
 
-    // Récupère le nombre points sur le bord
-    size_t NBorder = listIndex.size ();
+    *A = A->transpose (); // Pour pouvoir manipuler les colonnes de A
 
-    // Créer le vecteur de conditions aux bords
-    Vector cond_border (mesh->GetNumberOfTotalPoints ());
+    for (int i : listIndex) {
+        // On déplace au 2nd membre les apparitions de P_i avec valeur imposée g(P_i)
+        *secondMember -= g(*(mesh->GetPoint (i)), t) * A->row (i).transpose ();
 
-    return cond_border;
+        A->row (i) *= 0.;
+        A->coeffRef (i,i) = 1.;
+
+        secondMember->coeffRef (i) = g(*(mesh->GetPoint (i)), t);
+    }
+
+    *A = A->transpose ();
+    A->pruned ();
+
+    return;
 }
 
 void ImposeNeumann (  Mesh *mesh,
