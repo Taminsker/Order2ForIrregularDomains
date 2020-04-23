@@ -312,9 +312,9 @@ int Mesh::GetGlobalIndexOfCell (int i, int j, int k) const
 
 DIM Mesh::GetDimension () const
 {
-    if (m_Nz >= 1)
+    if (m_Nz > 1)
         return DIM_3D;
-    else if (m_Ny >= 2)
+    else if (m_Ny > 2)
         return DIM_2D;
     return DIM_1D;
 }
@@ -382,11 +382,10 @@ Mesh* Mesh::Print ()
     std::cout << INDENT << "{h_x, hy, hz}         = {" << m_hx << ", " << m_hy << ", " << m_hz << "}" << std::endl;
     std::cout << INDENT << "Grid Points           = " << G << std::endl;
     std::cout << INDENT << "Border Points         = " << B << std::endl;
-    std::cout << INDENT << "Grid Points on Border = " << G-T+B << std::endl << std::endl;
+    std::cout << INDENT << "Grid points on Border = " << G-T+B << std::endl << std::endl;
 
     std::cout << INDENT << "TOTAL Points      = " << m_points.size () << std::endl;
-    std::cout << INDENT << "TOTAL Cells       = " << m_cells.size () << "\n" << std::endl;
-
+    std::cout << INDENT << "TOTAL Cells       = " << m_cells.size () << std::endl;
 
     //    std::cout << "List Points : " << std::endl;
 
@@ -551,6 +550,18 @@ int Mesh::IndexCells (int i, int j, int k) const
     return 0;
 }
 
+void Mesh::MakeZeroOnExternOmegaInVector (Vector * vec)
+{
+    int N = std::min(int(vec->size ()), GetNumberOfTotalPoints ());
+
+    for (int i = 0; i < N; ++i)
+    {
+        if (GetPoint (i)->GetLocate () == ON_DOMAIN_EXTERN_OMEGA)
+        {
+            vec->coeffRef (i) = 0.;
+        }
+    }
+}
 
 
 

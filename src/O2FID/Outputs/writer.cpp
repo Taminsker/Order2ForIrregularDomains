@@ -114,14 +114,14 @@ void Writer::WriteDAT ()
 
     file.open (filename_copy);
 
-    if (file.is_open ())
-    {
-        // Vecteur de localisation (Domaine externe, frontière et domaine interne).
-        for (int i : indexes)
-            file << m_mesh->GetPoint (i)->GetLocate () << std::endl;
 
-        file.close ();
-    }
+    // Vecteur de localisation (Domaine externe, frontière et domaine interne).
+    file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "LOC" << std::endl;
+    for (int i : indexes)
+        file << *m_mesh->GetPoint (i) << SPACE << m_mesh->GetPoint (i)->GetLocate () << std::endl;
+
+    file.close ();
+
 
     // Impression du vecteur de solution numérique si disponible
     if (m_sol_num != nullptr && m_sol_num->rows () >= numPoints)
@@ -132,8 +132,9 @@ void Writer::WriteDAT ()
 
         file.open (filename_copy);
 
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "SOL_NUM" << std::endl;
         for (int i : indexes)
-            file << m_sol_num->operator() (i) << std::endl;
+            file << *m_mesh->GetPoint (i) << SPACE << m_sol_num->operator() (i) << std::endl;
 
         file.close ();
     }
@@ -147,8 +148,9 @@ void Writer::WriteDAT ()
 
         file.open (filename_copy);
 
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "SOL_ANA" << std::endl;
         for (int i : indexes)
-            file << m_sol_ana->operator() (i) << std::endl;
+            file << *m_mesh->GetPoint (i) << SPACE << m_sol_ana->operator() (i) << std::endl;
 
         file.close ();
     }
@@ -163,8 +165,9 @@ void Writer::WriteDAT ()
 
         file.open (filename_copy);
 
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "ERR_ABS" << std::endl;
         for (int i : indexes)
-            file << m_error_abs->operator() (i) << std::endl;
+            file << *m_mesh->GetPoint (i) << SPACE << m_error_abs->operator() (i) << std::endl;
 
         file.close ();
     }

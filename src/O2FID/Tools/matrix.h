@@ -4,6 +4,7 @@
 
 #include "../Mesh/mesh.h"
 #include "../Data/data.h"
+#include "../Data/datatypedefinitions.h"
 
 #include <cmath>
 

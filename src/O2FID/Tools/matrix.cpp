@@ -14,14 +14,14 @@ Matrix Laplacian (Mesh * mesh)
     // On récupère le nombre de points et les pas d'espace
 
     int Nx = mesh->Get_Nx ();
-    int Ny = mesh->Get_Nx ();
-//    int Nz = mesh->Get_Nz ();
+    int Ny = mesh->Get_Ny ();
+    int Nz = mesh->Get_Nz ();
 
     int Ngrid = mesh->GetNumberOfCartesianPoints (); // Nombre de points de grille uniquement
     int N = mesh->GetNumberOfTotalPoints (); // Points de grille + points rajoutés
 
     double hx = mesh->Get_hx ();
-    double hy = mesh->Get_hx ();
+    double hy = mesh->Get_hy ();
     double hz = mesh->Get_hz ();
 
     double a = 0., b = 0., c = 0., d = 0.;
@@ -44,34 +44,72 @@ Matrix Laplacian (Mesh * mesh)
 
     // On remplit la liste de triplets
 
-    for (int i = 0; i < Ngrid; ++i) {
+    //    for (int i = 0; i < Ngrid; ++i) {
 
-        int surDiag1 = i + 1;
-        int surDiag2 = i + Nx;
-        int surDiag3 = i + (Nx * Ny);
+    //        int surDiag1 = i + 1;
+    //        int surDiag2 = i + Nx;
+    //        int surDiag3 = i + (Nx * Ny);
 
-        // La diagonale principale des a
+    //        // La diagonale principale des a
 
-        ListOfTriplets.push_back(Triplet(i,i,a));
+    //        ListOfTriplets.push_back(Triplet(i,i,a));
 
-        // La sur-diagonale des b, décalée de 1 (si possible)
+    //        // La sur-diagonale des b, décalée de 1 (si possible)
 
-        if (surDiag1 < Ngrid)
-            ListOfTriplets.push_back(Triplet(i,surDiag1,b));
+    //        if (surDiag1 < Ngrid)
+    //            ListOfTriplets.push_back(Triplet(i,surDiag1,b));
 
-        // La sur-diagonale des c, décalée de Nx (si possible)
+    //        // La sur-diagonale des c, décalée de Nx (si possible)
 
-        if (surDiag2 < Ngrid)
-            ListOfTriplets.push_back(Triplet(i,surDiag2,c));
+    //        if (surDiag2 < Ngrid)
+    //            ListOfTriplets.push_back(Triplet(i,surDiag2,c));
 
-        // La sur-diagonale des d, décalée de Nx * Ny (si possible)
+    //        // La sur-diagonale des d, décalée de Nx * Ny (si possible)
 
-        if (surDiag3 < Ngrid)
-            ListOfTriplets.push_back(Triplet(i,surDiag3,d));
+    //        if (surDiag3 < Ngrid)
+    //            ListOfTriplets.push_back(Triplet(i,surDiag3,d));
 
-    }
+    //    }
+
+    DIM dim = mesh->GetDimension ();
+
+    for (int k = 0; k < Nz; ++k)
+        for (int j = 0; j < Ny; ++j)
+            for (int i = 0; i < Nx; ++i)
+            {
+
+                int idx = mesh->GetGlobalIndexOfPoint (i, j, k);
+
+                ListOfTriplets.push_back (Triplet (idx, idx, a));
+
+                int idx_a = mesh->GetGlobalIndexOfPoint (i+1, j, k);
+                int idx_b = mesh->GetGlobalIndexOfPoint (i-1, j, k);
+
+                ListOfTriplets.push_back (Triplet (idx,idx_a, b));
+                ListOfTriplets.push_back (Triplet (idx,idx_b, b));
+
+                if (dim == DIM_2D || dim == DIM_3D)
+                {
+                    idx_a = mesh->GetGlobalIndexOfPoint (i, j+1, k);
+                    idx_b = mesh->GetGlobalIndexOfPoint (i, j-1, k);
+
+                    ListOfTriplets.push_back (Triplet (idx,idx_a, c));
+                    ListOfTriplets.push_back (Triplet (idx,idx_b, c));
+
+                    if (dim == DIM_3D)
+                    {
+                        idx_a = mesh->GetGlobalIndexOfPoint (i, j, k+1);
+                        idx_b = mesh->GetGlobalIndexOfPoint (i, j, k-1);
+
+                        ListOfTriplets.push_back (Triplet (idx,idx_a, d));
+                        ListOfTriplets.push_back (Triplet (idx,idx_b, d));
+                    }
+                }
+            }
+
 
     std::cout << INDENT << "The matrix on the cartesian grid has been constructed." << std::endl;
+
 
     // On construit la partie supérieure de la matrice à partir de la liste de triplets
 
@@ -80,7 +118,10 @@ Matrix Laplacian (Mesh * mesh)
 
     // On lui ajoute sa transposée pour avoir la matrice complète
 
-    A = A.selfadjointView<Eigen::Upper> ();
+    //    A = A.selfadjointView<Eigen::Upper> ();
+    //    A += A.transpose ();
+
+//    std::cout << A << std::endl;
 
     // On met à jour les interactions
 
@@ -115,11 +156,14 @@ Matrix Laplacian (Mesh * mesh)
             Actualise_Ligne (A, P_r, gamma);
         }
 
-        std::cout << INDENT << "Insertion of border point " << k+1 << "/" << N << "." << std::endl;
+        std::cout << "\r" << INDENT << "Insertion of border point " << k+1 << "/" << N << "." << std::flush;
     }
 
+    std::cout << "\r" << INDENT << "All border point are in the matrix now." << std::endl;
     A.pruned ();
     std::cout << INDENT << "Numeric zeros have been deleted." << std::endl;
+
+    std::cout << std::endl;
 
     return A;
 }
@@ -141,6 +185,11 @@ void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma)
     double dist_l = EuclidianDist (*P_m, *P_l);
     double dist_r = EuclidianDist (*P_m, *P_r);
     double moy = (dist_l + dist_r) / 2.;
+
+//    std::cout << "\tm : " << m << std::endl;
+//    std::cout << "\t\tL : " << l << "dist :" << dist_l << std::endl;
+//    std::cout << "\t\tR : " << r << "dist :" << dist_r<< std::endl;
+
 
     A.coeffRef (m,l) = 1. / (moy * dist_l);
     A.coeffRef (m,r) = 1. / (moy * dist_r);

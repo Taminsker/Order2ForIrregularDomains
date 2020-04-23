@@ -13,6 +13,7 @@ void ImposeDirichlet (Mesh * mesh,
 
     for (int i : listIndex) {
         // On déplace au 2nd membre les apparitions de P_i avec valeur imposée g(P_i)
+
         *secondMember -= g(*(mesh->GetPoint (i)), t) * A->row (i).transpose ();
 
         A->row (i) *= 0.;
@@ -21,8 +22,7 @@ void ImposeDirichlet (Mesh * mesh,
         secondMember->coeffRef (i) = g(*(mesh->GetPoint (i)), t);
     }
 
-    *A = A->transpose ();
-    A->pruned ();
+    *A = A->transpose ().pruned ();
 
     return;
 }

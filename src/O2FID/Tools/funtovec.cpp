@@ -1,7 +1,5 @@
 #include "funtovec.h"
 
-int NumberOfCall = 0;
-
 Vector FunToVec (Mesh * mesh, double (*f) (Point, double), double t)
 {
     /* Nombre de point total dans le mesh à calculer. */
@@ -15,7 +13,7 @@ Vector FunToVec (Mesh * mesh, double (*f) (Point, double), double t)
         Point p_i = *mesh->GetPoint (i);
 
         /* On affecte la valeur de f à ce point. */
-        Fvec (i) = f(p_i, t);
+        Fvec.coeffRef (i) = f(p_i, t);
     }
 
     return Fvec;

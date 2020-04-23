@@ -348,6 +348,13 @@ public:
      */
     Mesh* Print ();
 
+    /**
+     * @brief Met le vecteur à zéro sur les indices de points à l'extèrieur du domaine
+     * @param vec pointeur vers un Vector
+     */
+    void MakeZeroOnExternOmegaInVector (Vector * vec);
+
+
 protected:
 
     /**
@@ -418,7 +425,5 @@ protected:
      */
     int IndexCells (int i, int j, int k) const;
 };
-
-
 
 #endif // MESH_H

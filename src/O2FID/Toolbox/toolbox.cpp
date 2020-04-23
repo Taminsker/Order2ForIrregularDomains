@@ -20,3 +20,15 @@ int Quotient (int dividend, int divisor)
 
     return quotient;
 }
+
+std::vector<double> Order (std::vector<double> err, std::vector<double> h)
+{
+    size_t N = std::min (err.size (), h.size ());
+
+    std::vector<double> order (N, 0.);
+
+    for (size_t i = 1; i < N; ++i)
+        order.at (i) = std::log (err.at (i-1) - err.at (i)) / std::log (h.at (i-1) - h.at (i));
+
+    return order;
+}

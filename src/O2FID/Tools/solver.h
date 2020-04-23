@@ -24,7 +24,7 @@ typedef enum {
  * @param type un entier (valant EXPLICIT ou IMPLICIT) pour préciser le type de résolution
  * @return le vecteur résultant
  */
-Vector Solve (const Matrix &A, const Vector &b, int type = EXPLICIT);
+Vector Solve (const Matrix &A, const Vector &b, TYPE type = EXPLICIT);
 
 /*! @} End of Doxygen Groups*/
 

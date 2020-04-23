@@ -5,7 +5,7 @@ std::vector <int> MakeBorderPoints (Mesh * mesh, Vector * phi_list)
 {
     std::cout << "# MakeBorderPoints" << std::endl;
 
-    double eps = 1e-10; // Seuil sous lequel on considère les valeurs nulles
+    double eps = 1e-15; // Seuil sous lequel on considère les valeurs nulles
 
     int numberOfPointsOnGrid = mesh->GetNumberOfTotalPoints ();
 
@@ -59,6 +59,10 @@ std::vector <int> MakeBorderPoints (Mesh * mesh, Vector * phi_list)
             // Ajout des voisins
             p_curr->AddPointNeighbour (p_new);
             p_neigh->AddPointNeighbour (p_new);
+
+            // Ajout des voisins
+            p_new->AddPointNeighbour (p_curr);
+            p_new->AddPointNeighbour (p_neigh);
 
             // Ajout du point au maillage
             mesh->AddPointOnBorder (p_new);
