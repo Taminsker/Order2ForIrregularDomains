@@ -11,14 +11,14 @@ Matrix& Laplacian (Mesh * mesh)
   // On récupère le nombre de points et les pas d'espace
 
   int Nx = mesh->Get_Nx ();
-  int Ny = mesh->Get_Nx ();
+  int Ny = mesh->Get_Ny ();
   int Nz = mesh->Get_Nz ();
 
   int Ngrid = mesh->GetNumberOfCartesianPoints (); // Nombre de points de grille uniquement
   int N = mesh->GetNumberOfTotalPoints (); // Points de grille + points rajoutés
 
   double hx = mesh->Get_hx ();
-  double hy = mesh->Get_hx ();
+  double hy = mesh->Get_hy ();
   double hz = mesh->Get_hz ();
 
   double a = 0., b = 0., c = 0., d = 0.;
