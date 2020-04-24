@@ -7,8 +7,8 @@
 #define SPACER std::left << std::setw(20)
 
 
-double phi (double theta, double t = 0); // fonction levelset
-double phigrad (double theta, double t=0);
+Point phi (double theta, double t = 0); // fonction levelset
+Point phigrad (double theta, double t=0);
 double f (Point a, double t = 0.); // fonction de second membre
 double u (Point a, double t = 0.);
 
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
         // Écriture dans des fichiers
         Writer writer (mesh);
         writer.SetFilename (std::string ("example_8_") + std::to_string (Nx));
-        writer.SetCurrentIteration (0.1); // Itérations lorsqu'il y a du temps
+        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
         writer.SetVectorNumerical (&u_num);
         writer.SetVectorAnalytical (&u_ana);
         writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
