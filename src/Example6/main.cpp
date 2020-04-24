@@ -8,6 +8,7 @@
 
 
 double phi (Point p, double t = 0); // fonction levelset
+double beta (Point a, double t = 0);
 double f (Point a, double t = 0.); // fonction de second membre
 double u (Point a, double t = 0.);
 
@@ -17,10 +18,10 @@ int main(int argc, char* argv[])
     (void)argv;
 
     std::cout << "-----------------------------------------" << std::endl;
-    std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
+    std::cout << "            EXAMPLE 6 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
+    std::vector<int> listNx = {21, 41, 81}; // liste des Nx
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
     std::vector<double> err_rela = {}; // erreur relative
@@ -29,14 +30,17 @@ int main(int argc, char* argv[])
     for (size_t idx = 0; idx < listNx.size (); ++idx)
     {
         int Nx = listNx.at (idx);
+        int Ny = Nx;
+        int Nz = Nx;
 
         // Construction du MESH
         Mesh* mesh = new Mesh ();
 
-        mesh->SetBounds (new Point(-0.5, 0, 0), new Point(0.5, 0, 0));
+        mesh->SetBounds (new Point(0, 0, 0), new Point(1, 1, 1));
         mesh->Set_Nx(Nx);
-//        mesh->Set_Ny(Ny);
-//        mesh->Set_Nz(Nz);
+        mesh->Set_Ny(Ny);
+        mesh->Set_Nz(Nz);
+
         mesh->Build ();
 
         // Construction de vecteur phi fonction de levelset
@@ -49,6 +53,10 @@ int main(int argc, char* argv[])
 
         // Construction de la matrice du Laplacien
         Matrix A = Laplacian (mesh);
+
+        // BETA
+        Vector beta_vec = FunToVec (mesh, beta);
+        InsertBeta (mesh, &A, &beta_vec);
 
         // Construction du vecteur de second membre
         Vector b = FunToVec (mesh, f);
@@ -89,7 +97,7 @@ int main(int argc, char* argv[])
 
         // Écriture dans des fichiers
         Writer writer (mesh);
-        writer.SetFilename (std::string ("example_1_") + std::to_string (Nx));
+        writer.SetFilename (std::string ("example_6_") + std::to_string (Nx));
 //        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
         writer.SetVectorNumerical (&u_num);
         writer.SetVectorAnalytical (&u_ana);
@@ -106,6 +114,8 @@ int main(int argc, char* argv[])
     std::cout << "#Summary " << std::endl;
 
     std::cout << "Nx            : " << listNx << std::endl;
+    std::cout << "Ny            : " << listNx << std::endl;
+    std::cout << "Nz            : " << listNx << std::endl;
     std::cout << "l1-error      : " << err_l1 << std::endl;
     std::cout << "Order         : " << Order(err_l1, h) << std::endl;
     std::cout << "linf-error    : " << err_linf << std::endl;
@@ -120,21 +130,44 @@ double phi (Point p, double t)
 {
     (void)t;
 
-    return fabs(p.x) - 0.313;
+    return EuclidianDist (p, Point(0.5, 0.5, 0.5)) - 0.3;
 }
 
 double f (Point a, double t)
 {
     (void)t;
 
-    double c = std::cos(2. * M_PI * a.x);
-    double s = std::sin(2. * M_PI * a.x);
+    double x = a.x;
+    double y = a.y;
+    double z = a.z;
 
-    return 8. * (1. - 2. * M_PI * M_PI * a.x * a.x) * s + 32. * M_PI * a. x * c;
+    double sx = std::sin(4. * M_PI * x);
+    double sy = std::sin(4. * M_PI * y);
+    double sz = std::sin(4. * M_PI * z);
+
+    double cx = std::cos(4. * M_PI * x);
+    double cy = std::cos(4. * M_PI * y);
+    double cz = std::cos(4. * M_PI * z);
+
+    double value = 0.;
+
+    value += 4. * x * y * M_PI * cz * sx * sy;
+    value += 4. * x * z * M_PI * cy * sx * sz;
+    value += 4. * y * z * M_PI * cx * sy * sz;
+    value += -48. * x * y * z * M_PI * M_PI * sx * sy * sz;
+
+    return value;
+}
+
+double beta (Point a, double t)
+{
+    (void)t;
+
+    return a.x * a.y * a.z;
 }
 
 double u (Point a, double t)
 {
     (void)t;
-    return 4. * a.x * a.x * std::sin(2. * M_PI * a.x);
+    return std::sin(4. * M_PI * a.x) * std::sin(4. * M_PI * a.y) * std::sin(4. * M_PI * a.z);
 }
