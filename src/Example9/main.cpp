@@ -29,6 +29,8 @@ int main(int argc, char* argv[])
     for (size_t idx = 0; idx < listNx.size (); ++idx)
     {
         int Nx = listNx.at (idx);
+        int Ny = Nx;
+        int Nz = Nx;
 
         // Construction du MESH
         Mesh* mesh = new Mesh ();
