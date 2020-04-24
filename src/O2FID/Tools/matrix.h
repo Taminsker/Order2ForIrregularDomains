@@ -34,6 +34,16 @@ void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma);
  */
 void Sort_Neighbours (Point* P);
 
+
+/**
+ * @brief InsertBeta
+ * @param mesh
+ * @param A
+ * @param beta
+ */
+void InsertBeta (Mesh* mesh, Matrix* A, Vector* beta);
+
+
 /*! @} End of Doxygen Groups*/
 
 #endif // MATRIX_H
