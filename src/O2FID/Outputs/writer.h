@@ -66,6 +66,17 @@ public:
     void SetWriteBothDomainsOff ();
 
     /**
+     * @brief Les fichiers ".dat" seront écrit
+     */
+    void SetWriterDatFileOn();
+
+    /**
+     * @brief Les fichiers ".dat" ne seront pas écrit
+     */
+    void SetWriterDatFileOff();
+
+
+    /**
      * @brief Définition du numéro de l'itération courante (apparaitra dans le nom de fichier en sortie).
      * @param i un entier int
      * @return rien
@@ -99,6 +110,11 @@ protected:
      * @brief Booléen qui dit si ou non on a choisi d'écrire le domaine en entier ou pas.
      */
     bool m_bothDomain;
+
+    /**
+     * @brief Booléen qui dit si ou non on a choisi d'écrire les fichiers ".dat" ou pas
+     */
+    bool m_writeDat;
 
     /**
      * @brief Pointeur vers un vecteur de solution numérique.

@@ -17,10 +17,10 @@ int main(int argc, char* argv[])
     (void)argv;
 
     std::cout << "-----------------------------------------" << std::endl;
-    std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
+    std::cout << "            EXAMPLE 5 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
+    std::vector<int> listNx = {26, 51, 101}; // liste des Nx
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
     std::vector<double> err_rela = {}; // erreur relative
@@ -29,14 +29,16 @@ int main(int argc, char* argv[])
     for (size_t idx = 0; idx < listNx.size (); ++idx)
     {
         int Nx = listNx.at (idx);
+        int Ny = Nx;
+        int Nz = Nx;
 
         // Construction du MESH
         Mesh* mesh = new Mesh ();
 
-        mesh->SetBounds (new Point(-0.5, 0, 0), new Point(0.5, 0, 0));
+        mesh->SetBounds (new Point(0, 0, 0), new Point(1, 1, 1));
         mesh->Set_Nx(Nx);
-//        mesh->Set_Ny(Ny);
-//        mesh->Set_Nz(Nz);
+        mesh->Set_Ny(Ny);
+        mesh->Set_Nz(Nz);
         mesh->Build ();
 
         // Construction de vecteur phi fonction de levelset
@@ -89,7 +91,7 @@ int main(int argc, char* argv[])
 
         // Écriture dans des fichiers
         Writer writer (mesh);
-        writer.SetFilename (std::string ("example_1_") + std::to_string (Nx));
+        writer.SetFilename (std::string ("example_5_") + std::to_string (Nx));
 //        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
         writer.SetVectorNumerical (&u_num);
         writer.SetVectorAnalytical (&u_ana);
@@ -106,6 +108,8 @@ int main(int argc, char* argv[])
     std::cout << "#Summary " << std::endl;
 
     std::cout << "Nx            : " << listNx << std::endl;
+    std::cout << "Ny            : " << listNx << std::endl;
+    std::cout << "Nz            : " << listNx << std::endl;
     std::cout << "l1-error      : " << err_l1 << std::endl;
     std::cout << "Order         : " << Order(err_l1, h) << std::endl;
     std::cout << "linf-error    : " << err_linf << std::endl;
@@ -120,21 +124,27 @@ double phi (Point p, double t)
 {
     (void)t;
 
-    return fabs(p.x) - 0.313;
+    return EuclidianDist (p, Point(0.5, 0.5, 0.5)) - 0.3;
 }
 
 double f (Point a, double t)
 {
     (void)t;
 
-    double c = std::cos(2. * M_PI * a.x);
-    double s = std::sin(2. * M_PI * a.x);
+    double x2 = a.x * a.x;
+    double y2 = a.y * a.y;
+    double z2 = a.z * a.z;
 
-    return 8. * (1. - 2. * M_PI * M_PI * a.x * a.x) * s + 32. * M_PI * a. x * c;
+    return 2. * std::exp(-x2 - y2 - z2)*(2. * x2 + 2. * y2 + 2. * z2 - 3.);
 }
 
 double u (Point a, double t)
 {
     (void)t;
-    return 4. * a.x * a.x * std::sin(2. * M_PI * a.x);
+
+    double x2 = a.x * a.x;
+    double y2 = a.y * a.y;
+    double z2 = a.z * a.z;
+
+    return std::exp(-x2 - y2 - z2);
 }

@@ -17,10 +17,10 @@ int main(int argc, char* argv[])
     (void)argv;
 
     std::cout << "-----------------------------------------" << std::endl;
-    std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
+    std::cout << "            EXAMPLE 9 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
+    std::vector<int> listNx = {26, 51, 101}; // liste des Nx
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
     std::vector<double> err_rela = {}; // erreur relative
@@ -29,14 +29,16 @@ int main(int argc, char* argv[])
     for (size_t idx = 0; idx < listNx.size (); ++idx)
     {
         int Nx = listNx.at (idx);
+        int Ny = Nx;
+        int Nz = Nx;
 
         // Construction du MESH
         Mesh* mesh = new Mesh ();
 
-        mesh->SetBounds (new Point(-0.5, 0, 0), new Point(0.5, 0, 0));
+        mesh->SetBounds (new Point(0.0, 0.0, 0.0), new Point(0.5, 0.5, 0.5));
         mesh->Set_Nx(Nx);
-//        mesh->Set_Ny(Ny);
-//        mesh->Set_Nz(Nz);
+        mesh->Set_Ny(Ny);
+        mesh->Set_Nz(Nz);
         mesh->Build ();
 
         // Construction de vecteur phi fonction de levelset
@@ -48,7 +50,11 @@ int main(int argc, char* argv[])
         mesh->Print ();
 
         // Construction de la matrice du Laplacien
-        Matrix A = Laplacian (mesh);
+        int N = mesh->GetNumberOfTotalPoints();
+        Matrix Id (N, N); // création de la matrice identité de taille N x N
+        Id.setIdentity();
+        double dt = mesh->Get_hx(); // Crank-Nicolson dt ~ dx = dy
+        Matrix A = (1/dt) * Id + (1/2) * Laplacian (mesh); // Crank-Nicolson
 
         // Construction du vecteur de second membre
         Vector b = FunToVec (mesh, f);
@@ -89,8 +95,8 @@ int main(int argc, char* argv[])
 
         // Écriture dans des fichiers
         Writer writer (mesh);
-        writer.SetFilename (std::string ("example_1_") + std::to_string (Nx));
-//        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
+        writer.SetFilename (std::string ("example_9_") + std::to_string (Nx));
+        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
         writer.SetVectorNumerical (&u_num);
         writer.SetVectorAnalytical (&u_ana);
         writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
@@ -120,21 +126,16 @@ double phi (Point p, double t)
 {
     (void)t;
 
-    return fabs(p.x) - 0.313;
+    return sqrt( p.x * p.x + p.y * p.y + p.z * p.z ) - 0.15;
 }
 
 double f (Point a, double t)
 {
-    (void)t;
-
-    double c = std::cos(2. * M_PI * a.x);
-    double s = std::sin(2. * M_PI * a.x);
-
-    return 8. * (1. - 2. * M_PI * M_PI * a.x * a.x) * s + 32. * M_PI * a. x * c;
+    return 0;
 }
 
 double u (Point a, double t)
 {
     (void)t;
-    return 4. * a.x * a.x * std::sin(2. * M_PI * a.x);
+    return std::exp(-3 * t) * std::sin(a.x) * std::sin(a.y) * std::sin(a.z);
 }

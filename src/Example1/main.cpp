@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
+    std::vector<int> listNx = {41, 81, 161}; // liste des Nx
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
     std::vector<double> err_rela = {}; // erreur relative

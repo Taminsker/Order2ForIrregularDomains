@@ -9,6 +9,7 @@
 
 double phi (Point p, double t = 0); // fonction levelset
 double f (Point a, double t = 0.); // fonction de second membre
+double beta (Point a, double t = 0.); // fonction de second membre
 double u (Point a, double t = 0.);
 
 int main(int argc, char* argv[])
@@ -17,10 +18,10 @@ int main(int argc, char* argv[])
     (void)argv;
 
     std::cout << "-----------------------------------------" << std::endl;
-    std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
+    std::cout << "            EXAMPLE 2 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
+    std::vector<int> listNx = {41, 81, 161}; // liste des Nx
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
     std::vector<double> err_rela = {}; // erreur relative
@@ -49,6 +50,10 @@ int main(int argc, char* argv[])
 
         // Construction de la matrice du Laplacien
         Matrix A = Laplacian (mesh);
+
+        // BETA
+        Vector beta_vec = FunToVec (mesh, beta);
+        InsertBeta (mesh, &A, &beta_vec);
 
         // Construction du vecteur de second membre
         Vector b = FunToVec (mesh, f);
@@ -89,7 +94,7 @@ int main(int argc, char* argv[])
 
         // Écriture dans des fichiers
         Writer writer (mesh);
-        writer.SetFilename (std::string ("example_1_") + std::to_string (Nx));
+        writer.SetFilename (std::string ("example_2_") + std::to_string (Nx));
 //        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
         writer.SetVectorNumerical (&u_num);
         writer.SetVectorAnalytical (&u_ana);
@@ -127,14 +132,24 @@ double f (Point a, double t)
 {
     (void)t;
 
-    double c = std::cos(2. * M_PI * a.x);
-    double s = std::sin(2. * M_PI * a.x);
+    double c2 = std::cos(2. * M_PI * a.x);
+    double s2 = std::sin(2. * M_PI * a.x);
 
-    return 8. * (1. - 2. * M_PI * M_PI * a.x * a.x) * s + 32. * M_PI * a. x * c;
+    double c = std::cos(a.x);
+    double s = std::sin(a.x);
+
+    return 2. * std::exp (4. * a.x) * (s2 * (2. * (4. - M_PI * M_PI) * c - 2. * s) + M_PI * c2 * (8. * c - s));
+}
+
+double beta (Point a, double t)
+{
+    (void)t;
+
+    return std::cos(a.x);
 }
 
 double u (Point a, double t)
 {
     (void)t;
-    return 4. * a.x * a.x * std::sin(2. * M_PI * a.x);
+    return std::exp (4. * a.x ) * std::sin(2. * M_PI * a.x);
 }

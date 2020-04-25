@@ -5,6 +5,7 @@ Writer::Writer (Mesh * mesh) :
     m_filename ("no_filename_selected.vtk"),
     m_index (0),
     m_bothDomain (true),
+    m_writeDat (false),
     m_sol_num (nullptr),
     m_sol_ana (nullptr),
     m_error_abs (nullptr)
@@ -67,7 +68,8 @@ void Writer::WriteNow ()
     // Ajout du numéro d'itération en temps et de l'extension du fichier ".vtk"
     m_filename += std::string ("_") + std::to_string (m_index);
 
-    WriteDAT ();
+    if (m_writeDat)
+        WriteDAT ();
     WriteVTK ();
 }
 
