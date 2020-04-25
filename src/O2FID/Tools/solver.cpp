@@ -4,14 +4,23 @@
 
 Vector Solve (const Matrix &A, const Vector &b, TYPE type)
 {
-    // Verification des tailles de A et b
-    if (b.size() != A.cols())
+    if (type == IMPLICIT)
     {
-        std::cerr << "Les matries A et b ne sont pas de la même taille !" << std::endl;
+        std::cout << "# Solver implicit" << std::endl;
+    } else
+    {
+        std::cout << "# Solver explicit" << std::endl;
+    }
+
+    // Verification des tailles de A et b
+    if (b.size() != A.cols() && b.transpose ().size() != A.cols())
+    {
+        std::cerr << INDENT << "ERROR::Solver matrix and vector are not the same size." << std::endl;
+        exit(0);
     }
 
     // Déclaration du vecteur solution.
-    int size = b.size();
+    int size = int (b.size());
     Vector sol(size);
 
 
@@ -24,30 +33,33 @@ Vector Solve (const Matrix &A, const Vector &b, TYPE type)
     {
         if (A.isApprox(A.adjoint())) // Si matrice hermitienne on utilise le gradient conjugé
         {
+            std::cout << INDENT << "Symmetric matrix detected." <<  std::endl;
+
             Eigen::ConjugateGradient<Matrix, Eigen::Lower|Eigen::Upper> cg; // déclare la fonction gradient conjugé
-            cg.setMaxIterations(int(log(A.size()))); // De base à N.
-            cg.setTolerance(1e-8); // De base à la precision de la machine.
+//            cg.setMaxIterations(int(log(A.size()))); // De base à N.
+            cg.setTolerance(1e-18); // De base à la precision de la machine.
             cg.compute(A); // Calcule la matrice A
             sol = cg.solve(b); // Solution du problème
-            std::cout << "#iterations:" << cg.iterations() << std::endl;
-            std::cout << "erreur estimée:" << cg.error() << std::endl;
-            sol = cg.solve(b); // met à jour la solution finale
+            std::cout << INDENT << "Iterations        :" << cg.iterations() << std::endl;
+            std::cout << INDENT << "Estimated error   :" << cg.error() << std::endl;
+//            sol = cg.solve(b); // met à jour la solution finale
         }
-
-        if (!A.isApprox(A.adjoint())) // Si non matrice hermitienne on utilise le bi-gradient conjugé
+        else // Si non matrice hermitienne on utilise le bi-gradient conjugé
         {
+            std::cout << INDENT << "Asymmetric matrix detected." <<  std::endl;
+
             Eigen::BiCGSTAB<Matrix> solver;
             solver.compute(A);
-            solver.setMaxIterations(int(log(A.size()))); // De base à N.
-            solver.setTolerance(1e-8); // De base à la precision de la machine.
+//            solver.setMaxIterations(int(log(A.size()))); // De base à N.
+            solver.setTolerance(1e-18); // De base à la precision de la machine.
             sol = solver.solve(b);
-            std::cout << "#iterations:     " << solver.iterations() << std::endl;
-            std::cout << "estimated error: " << solver.error()      << std::endl;
+            std::cout << INDENT << "Iterations :        " << solver.iterations() << std::endl;
+            std::cout << INDENT << "Estimated error :   " << solver.error()      << std::endl;
             /* ... update b ... */
-            sol = solver.solve(b); // solve again
+//            sol = solver.solve(b); // solve again
         }
-
     }
 
+    std::cout << std::endl;
     return sol;
 }

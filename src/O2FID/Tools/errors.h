@@ -13,24 +13,24 @@
  */
 
 /**
- * @brief Calcul de l'erreur entre la solution numérique et la solution analytique en norme \f$L^2\f$
+ * @brief Calcul de l'erreur entre la solution numérique et la solution analytique en norme \f$l^1\f$
  * @param mesh un pointeur vers un objet Mesh
  * @param u_ana un vecteur de la solution analytique sur le maillage
  * @param u_num un vecteur de la solution numérique sur le maillage
- * @return \f$\|u_{ana} - u_{num}\|_{L^2}\f$
+ * @return \f$\|u_{ana} - u_{num}\|_{l^1}\f$
  */
-double GetErrorL1 (Mesh * mesh,
+double GetErrorl1 (Mesh * mesh,
                    const Vector &u_ana,
                    const Vector &u_num);
 
 /**
- * @brief Calcul de l'erreur entre la solution numérique et la solution analytique en norme \f$L^\infty\f$
+ * @brief Calcul de l'erreur entre la solution numérique et la solution analytique en norme \f$l^\infty\f$
  * @param mesh un pointeur vers un objet Mesh
  * @param u_ana un vecteur de la solution analytique sur le maillage
  * @param u_num un vecteur de la solution numérique sur le maillage
- * @return \f$\|u_{ana} - u_{num}\|_{L^\infty}\f$
+ * @return \f$\|u_{ana} - u_{num}\|_{l^\infty}\f$
  */
-double GetErrorLinf (Mesh * mesh,
+double GetErrorlinf (Mesh * mesh,
                      const Vector &u_ana,
                      const Vector &u_num);
 

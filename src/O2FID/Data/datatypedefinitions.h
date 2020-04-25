@@ -1,4 +1,4 @@
-/** \file typedefinitions.h **/
+/** \file datatypedefinitions.h **/
 
 #ifndef TYPEDEFINITIONS_H
 #define TYPEDEFINITIONS_H

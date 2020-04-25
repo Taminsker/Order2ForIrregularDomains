@@ -133,27 +133,6 @@ void Point::SetListNeighbours (std::vector <Point *>& list)
     return;
 }
 
-std::pair <Point *, Point *> Point::GetNeighboursFromAxis (AXIS_LABEL tag)
-{
-    std::pair <Point *, Point *> r;
-
-    r.first = r.second = nullptr;
-
-    double mini, maxi;
-
-    mini = maxi = (tag == AXIS_X ? x : (tag == AXIS_Y ? y : z));
-
-    for (Point * p : m_listNeighbours)
-    {
-        double v = (tag == AXIS_X ? p->x : (tag == AXIS_Y ? p->y : p->z));
-
-        if (v < mini) {mini = v; r.first = p;}
-        if (v > maxi) {maxi = v; r.second = p;}
-    }
-
-    return r;
-}
-
 void Point::LinkToCell (Cell *c)
 {
     for (Cell* tc : m_cells)

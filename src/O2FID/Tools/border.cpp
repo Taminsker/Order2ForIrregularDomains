@@ -1,11 +1,16 @@
 #include "border.h"
 
 
-std::vector <int> MakeListOfIndexPoints (Mesh * mesh, Vector * phi_list, double t)
+std::vector <int> MakeBorderPoints (Mesh * mesh, Vector * phi_list)
 {
-    double eps = 1e-10; // Seuil sous lequel on considère les valeurs nulles
+    std::cout << "# MakeBorderPoints" << std::endl;
+
+    double eps = 1e-15; // Seuil sous lequel on considère les valeurs nulles
 
     int numberOfPointsOnGrid = mesh->GetNumberOfTotalPoints ();
+
+    int GridPoints = 0;
+    int NewPoint = 0;
 
     for (int i = 0; i < numberOfPointsOnGrid; i++)
     {
@@ -18,6 +23,7 @@ std::vector <int> MakeListOfIndexPoints (Mesh * mesh, Vector * phi_list, double 
         {
             // On tag le point
             p_curr->SetLocate (ON_BORDER_OMEGA);
+            GridPoints++;
             continue;
         } else
             p_curr->SetLocate ((phi_curr < 0. ? ON_DOMAIN_INTERN_OMEGA : ON_DOMAIN_EXTERN_OMEGA));
@@ -44,23 +50,7 @@ std::vector <int> MakeListOfIndexPoints (Mesh * mesh, Vector * phi_list, double 
 
             double dist = fabs(phi_curr) / (fabs(phi_curr) + fabs(phi_neigh));
 
-            // Tests
-//            double dist_p = std::sqrt((*p_curr - *p_neigh)| (*p_curr - *p_neigh));
-//            bool b1 = (fabs(dist_p - mesh->Get_hx ()) > eps);
-//            bool b2 = (fabs(dist_p - mesh->Get_hx ()) > eps);
-//            bool b3 = (fabs(dist_p - mesh->Get_hx ()) > eps);
-
             Point * p_new = new Point (*p_curr + dist * (*p_neigh - *p_curr));
-
-//            if (b1 && b2 && b3)
-//            {
-//                std::cout << "Add a point : " << std::endl;
-//                std::cout << "\t p_curr (" << p_curr->GetGlobalIndex () << ")\t" << *p_curr << " phi : " << phi_curr << std::endl;
-//                std::cout << "\t p_neigh (" << p_neigh->GetGlobalIndex () << ")\t" << *p_neigh << " phi : " << phi_neigh << std::endl;
-//                std::cout << "\t p_new (" << mesh->GetNumberOfTotalPoints () << ")\t" << *p_new << std::endl;
-//                std::cout << "\tdist(p_curr, p_neigh) = " << dist_p << std::endl;
-//            }
-
 
             // Suppression des voisins
             p_curr->RemoveThisNeighbourPoint (p_neigh);
@@ -70,13 +60,24 @@ std::vector <int> MakeListOfIndexPoints (Mesh * mesh, Vector * phi_list, double 
             p_curr->AddPointNeighbour (p_new);
             p_neigh->AddPointNeighbour (p_new);
 
+            // Ajout des voisins
+            p_new->AddPointNeighbour (p_curr);
+            p_new->AddPointNeighbour (p_neigh);
+
             // Ajout du point au maillage
             mesh->AddPointOnBorder (p_new);
 
             // Vertex
             mesh->MakeACellFromListPoints ({p_new});
+
+            NewPoint++;
         }
     }
+
+    std::cout << INDENT << GridPoints << " points of the cartesian grid are considered on the edge of the domain." << std::endl;
+    std::cout << INDENT << NewPoint << " points have been added on edges." << std::endl;
+
+    std::cout << std::endl;
 
     return mesh->GetListOfIndexPoints ();
 }

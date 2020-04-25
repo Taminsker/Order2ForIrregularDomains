@@ -5,14 +5,23 @@
 #include <vector>
 #include <initializer_list>
 
+/*!
+ *  \addtogroup Outils
+ *  @{
+ */
 /**
   * @brief Énumerateur pour la localisation des cellules.
   */
 typedef enum {
+    /** Dans le domaine interne, phi négative */
     IN_DOMAIN_INTERN_OMEGA,
+    /** Sur le bord, phi égale à 0 */
     IN_DOMAIN_EXTERN_OMEGA,
+    /** Dans le domaine externe, phi positive */
     IN_MIX_DOMAIN
 } CELL_LOCATION;
+
+/** @}*/
 
 /**
  * @brief Rappel de l'existence de la classe Point (le header n'est pas inclu directement car il y avait un risque d'inclusion réciproque au moment où je codais cette classe).

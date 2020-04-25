@@ -11,23 +11,29 @@ add_library(
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Build documentation" OFF)
 
-#if(BUILD_DOC)
-#    find_package(Doxygen)
-#    if (DOXYGEN_FOUND)
-#        set(DOXYGEN_IN ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in)
-#        set(DOXYGEN_OUT ${CMAKE_BINARY_DIR}/Doxyfile)
+if(BUILD_DOC)
+    message("-- Build documentation ON")
+else(BUILD_DOC)
+    message("-- Build documentation OFF")
+endif(BUILD_DOC)
 
-#        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-#        message("Doxygen build started")
+if(BUILD_DOC)
+    find_package(Doxygen)
+    if (DOXYGEN_FOUND)
+        set(DOXYGEN_IN ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in)
+        set(DOXYGEN_OUT ${CMAKE_BINARY_DIR}/Doxyfile)
 
-#        add_custom_target(DocDoxygen ALL
-#            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-#            COMMENT "Generating API documentation with Doxygen"
-#            VERBATIM )
-#    else (DOXYGEN_FOUND)
-#        message("Doxygen need to be installed to generate the doxygen documentation")
-#    endif (DOXYGEN_FOUND)
-#endif(BUILD_DOC)
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+        message("Doxygen build started")
+
+        add_custom_target(DocDoxygen ALL
+            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen"
+            VERBATIM )
+    else (DOXYGEN_FOUND)
+        message("Doxygen need to be installed to generate the doxygen documentation")
+    endif (DOXYGEN_FOUND)
+endif(BUILD_DOC)
