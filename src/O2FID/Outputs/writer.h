@@ -53,6 +53,13 @@ public:
      */
     void SetFilename (std::string filename);
 
+    void SetVectorPhi (Vector* vector);
+
+    void SetVectorNormals(std::vector<Point*>* vector);
+
+    void SetVectorW_new(std::vector<Point*>* vector);
+
+    void SetVectorW_old(std::vector<Point*>* vector);
     /**
      * @brief On dit que le fichier écrit en sortie comportera le domaine entier sur lequel on travaille
      * @return rien
@@ -102,6 +109,11 @@ protected:
     std::string m_filename;
 
     /**
+     * @brief Nom du fichier de sortie VTK (sans le ".vtk").
+     */
+    std::string m_base_filename;
+
+    /**
      * @brief L'indice de l'tération de temps courante
      */
     int m_index;
@@ -130,6 +142,27 @@ protected:
      * @brief Pointeur vers un vecteur d'erreurs absolues.
      */
     Vector * m_error_abs;
+
+    /**
+     * @brief Pointeur vers un vecteur de valeurs de phi
+     */
+    Vector* m_phi_value;
+
+    /**
+     * @brief Pointeur vers un vecteur de normals
+     */
+    std::vector<Point*>* m_normals;
+
+    /**
+     * @brief Pointeur vers un vecteur de champs W au temps courant
+     */
+    std::vector<Point*>* m_Wnew;
+
+    /**
+     * @brief Pointeur vers un vecteur de champs W au temps precédent;
+     */
+    std::vector<Point*>* m_Wold;
+
 
     /**
      * @brief WriteVTK

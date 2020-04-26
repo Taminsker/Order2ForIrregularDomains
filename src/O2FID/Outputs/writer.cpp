@@ -8,7 +8,11 @@ Writer::Writer (Mesh * mesh) :
     m_writeDat (false),
     m_sol_num (nullptr),
     m_sol_ana (nullptr),
-    m_error_abs (nullptr)
+    m_error_abs (nullptr),
+    m_phi_value (nullptr),
+    m_normals (nullptr),
+    m_Wnew (nullptr),
+    m_Wold (nullptr)
 {}
 
 Writer::~Writer ()
@@ -33,7 +37,32 @@ void Writer::SetVectorErrorAbs (Vector *vector)
 
 void Writer::SetFilename (std::string filename)
 {
-    m_filename = filename;
+    m_base_filename = filename;
+    return;
+}
+
+void Writer::SetVectorPhi (Vector *vector)
+{
+    m_phi_value = vector;
+    return;
+}
+void Writer::SetVectorNormals (std::vector<Point *> *vector)
+{
+    m_normals = vector;
+    return;
+}
+
+void Writer::SetVectorW_new (std::vector<Point *>* vector)
+{
+    delete m_Wnew;
+    m_Wnew = new std::vector<Point *>(*vector);
+    return;
+}
+
+void Writer::SetVectorW_old (std::vector<Point *>* vector)
+{
+    delete m_Wold;
+    m_Wold = new std::vector<Point *>(*vector);
     return;
 }
 
@@ -62,15 +91,17 @@ void Writer::WriteNow ()
     if (m_filename == "")
         m_filename = "no_filename_selected";
 
-    std::cout << INDENT << "Base filename is " << m_filename << std::endl;
+    std::cout << INDENT << "Base filename is " << m_base_filename << std::endl;
     std::cout << INDENT << "Option : bothDomain is " << (m_bothDomain ? "on": "off") << std::endl;
 
     // Ajout du numéro d'itération en temps et de l'extension du fichier ".vtk"
-    m_filename += std::string ("_") + std::to_string (m_index);
+    m_filename = m_base_filename + std::string ("_") + std::to_string (m_index);
 
     if (m_writeDat)
         WriteDAT ();
     WriteVTK ();
+
+    return;
 }
 
 void Writer::WriteDAT ()
@@ -294,6 +325,43 @@ void Writer::WriteVTK ()
     // Impression du vecteur d'erreurs en valeurs absolues si disponibles
     if (m_error_abs != nullptr && m_error_abs->rows () == numPoints)
         WriteInFile (file, "Error_abs", m_error_abs);
+
+    if (m_phi_value != nullptr && m_phi_value->rows () == numPoints)
+        WriteInFile (file, "Phi_Value", m_phi_value);
+
+    if (m_normals != nullptr && int(m_normals->size ()) == numPoints)
+    {
+        file << "NORMALS Normal double" << std::endl;
+        for (size_t i = 0; i < m_normals->size (); ++i)
+            file << *m_normals->at (i) << std::endl;
+
+        file << std::endl;
+
+        std::cout << INDENT << "(VTK) POINT_DATA Normal was written." << std::endl;
+
+    }
+
+    if (m_Wnew != nullptr && int(m_Wnew->size ()) == numPoints)
+    {
+        file << "VECTORS W_Current double" << std::endl;
+        for (size_t i = 0; i < m_Wnew->size (); ++i)
+            file << *m_Wnew->at (i) << std::endl;
+
+        file << std::endl;
+
+        std::cout << INDENT << "(VTK) POINT_DATA W_Current was written." << std::endl;
+    }
+
+    if (m_Wold != nullptr && int(m_Wold->size ()) == numPoints)
+    {
+        file << "VECTORS W_Old double" << std::endl;
+        for (size_t i = 0; i < m_Wold->size (); ++i)
+            file << *m_Wold->at (i) << std::endl;
+
+        file << std::endl;
+
+        std::cout << INDENT << "(VTK) POINT_DATA W_Old was written." << std::endl;
+    }
 
     file.close ();
 
