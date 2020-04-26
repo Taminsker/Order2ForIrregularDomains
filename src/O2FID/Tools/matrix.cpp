@@ -93,32 +93,32 @@ Matrix Laplacian (Mesh * mesh)
 
     for (int k = 0; k < N-Ngrid; k++)
     {
-            Point* P_k = mesh->GetPoint (k + Ngrid);
-            std::vector <Point*> Neighbours = P_k->GetListNeighbours ();
+        Point* P_k = mesh->GetPoint (k + Ngrid);
+        std::vector <Point*> Neighbours = P_k->GetListNeighbours ();
 
-            Point* P_l = Neighbours [0]; // Un voisin en direction gamma
-            Point* P_r = Neighbours [1]; // L'autre voisin en direction gamma
+        Point* P_l = Neighbours [0]; // Un voisin en direction gamma
+        Point* P_r = Neighbours [1]; // L'autre voisin en direction gamma
 
-            int l = P_l->GetGlobalIndex ();
-            int r = P_r->GetGlobalIndex ();
+        int l = P_l->GetGlobalIndex ();
+        int r = P_r->GetGlobalIndex ();
 
-            AXIS_LABEL gamma;
-            Point Diff = *P_r - *P_l;
+        AXIS_LABEL gamma;
+        Point Diff = *P_r - *P_l;
 
-            if (Diff == Point (Diff.x, 0, 0)) // Les coordonnées x diffèrent, donc direction x
-                gamma = AXIS_X;
-            else if (Diff == Point (0, Diff.y, 0)) // Les coordonnées y diffèrent, donc direction y
-                gamma = AXIS_Y;
-            else // Les coordonnées z diffèrent, donc direction z
-                gamma = AXIS_Z;
+        if (Diff == Point (Diff.x, 0, 0)) // Les coordonnées x diffèrent, donc direction x
+            gamma = AXIS_X;
+        else if (Diff == Point (0, Diff.y, 0)) // Les coordonnées y diffèrent, donc direction y
+            gamma = AXIS_Y;
+        else // Les coordonnées z diffèrent, donc direction z
+            gamma = AXIS_Z;
 
 
-            A.coeffRef (l,r) = 0.;
-            A.coeffRef (r,l) = 0.;
+        A.coeffRef (l,r) = 0.;
+        A.coeffRef (r,l) = 0.;
 
-            Actualise_Ligne (A, P_k, gamma);
-            Actualise_Ligne (A, P_l, gamma);
-            Actualise_Ligne (A, P_r, gamma);
+        Actualise_Ligne (A, P_k, gamma);
+        Actualise_Ligne (A, P_l, gamma);
+        Actualise_Ligne (A, P_r, gamma);
 
 
         std::cout << "\r" << INDENT << "Insertion of border point " << k+1 << "/" << N-Ngrid << "." << std::flush;
@@ -141,7 +141,7 @@ void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma)
 
     std::vector<Point*> Neighbours = P_m->GetListNeighbours ();
 
-//    std::cout << "Point : " << m << ", neigh : " << Neighbours.size () << " AXE : " << gamma << std::endl;
+    //    std::cout << "Point : " << m << ", neigh : " << Neighbours.size () << " AXE : " << gamma << std::endl;
     int beg = Remainder (int (2 * size_t(gamma)), int (Neighbours.size ()));
     int end = Remainder (int (2 * size_t(gamma) + 1), int (Neighbours.size ()));
 
@@ -155,6 +155,7 @@ void Actualise_Ligne (Matrix &A, Point* P_m, AXIS_LABEL gamma)
     double dist_r = EuclidianDist (*P_m, *P_r);
     double moy = (dist_l + dist_r) / 2.;
 
+    moy = std::max (dist_l, dist_r);
     //    std::cout << "\tm : " << m << std::endl;
     //    std::cout << "\t\tL : " << l << "dist :" << dist_l << std::endl;
     //    std::cout << "\t\tR : " << r << "dist :" << dist_r<< std::endl;
@@ -197,6 +198,12 @@ void Sort_Neighbours (Point* P)
             else
             {
                 std::cout << INDENT << "ERROR::Sort_Neighbours it seems that the points are not aligned (point : " << P->GetGlobalIndex () << ")." << std::endl;
+
+                std::cout << INDENT << "diff = " << Diff << std::endl;
+                std::cout << INDENT << "p = " << *P << std::endl;
+                std::cout << INDENT << "p_n = " << *V << std::endl;
+
+                exit(0);
             }
         }
     }
@@ -267,6 +274,123 @@ void InsertBeta (Mesh* mesh, Matrix* A, Vector* beta_vec)
             *diag -= *coeff;
         }
     }
+
+    return;
+}
+
+void RemovePeriodicity (Mesh* mesh, Matrix* A)
+{
+
+    std::cout << "# Remove Periodicity..." << std::endl;
+
+    int Nx = mesh->Get_Nx ();
+    int Ny = mesh->Get_Ny ();
+    int Nz = mesh->Get_Nz ();
+
+    int N = mesh->GetNumberOfCartesianPoints ();
+    DIM dim = mesh->GetDimension ();
+
+
+    if (dim == DIM_1D)
+    {
+        A->coeffRef (0, Nx-1) = 0.;
+        A->coeffRef (Nx-1, 0) = 0.;
+
+    } else if (dim == DIM_2D)
+    {
+        for (int i = 0; i < Nx; ++i)
+        {
+            // Interaction haut bas
+            int idx1 = mesh->GetGlobalIndexOfPoint (i, 0);
+            int idx2 = mesh->GetGlobalIndexOfPoint (i, Ny-1);
+
+            A->coeffRef (idx1, idx2) = 0.;
+            A->coeffRef (idx2, idx1) = 0.;
+        }
+
+        for (int j = 0; j < Ny; ++j)
+        {
+            // Interaction gauche droite
+
+            int idx1 = mesh->GetGlobalIndexOfPoint (0, j);
+            int idx2 = mesh->GetGlobalIndexOfPoint (Nx-1, j);
+
+            A->coeffRef (idx1, idx2) = 0.;
+            A->coeffRef (idx2, idx1) = 0.;
+        }
+    } else
+    {
+        int idx1;
+        int idx2;
+
+        for (int k = 0; k < Nz; ++k)
+        {
+            for (int i = 0; i < Nx; ++i)
+            {
+                idx1 = mesh->GetGlobalIndexOfPoint (i, 0, k);
+                idx2 = mesh->GetGlobalIndexOfPoint (i, Ny-1, k);
+
+                A->coeffRef (idx1, idx2) = 0.;
+                A->coeffRef (idx2, idx1) = 0.;
+            }
+
+            for (int j = 0; j < Ny; ++j)
+            {
+
+                idx1 = mesh->GetGlobalIndexOfPoint (0, j, k);
+                idx2 = mesh->GetGlobalIndexOfPoint (Nx-1, j, k);
+
+                A->coeffRef (idx1, idx2) = 0.;
+                A->coeffRef (idx2, idx1) = 0.;
+            }
+        }
+
+        for (int i = 0; i < Nx; ++i)
+        {
+            for (int j = 0; j < Ny; ++j)
+            {
+                idx1 = mesh->GetGlobalIndexOfPoint (i, j, 0);
+                idx2 = mesh->GetGlobalIndexOfPoint (i, j, Nz-1);
+
+                A->coeffRef (idx1, idx2) = 0.;
+                A->coeffRef (idx2, idx1) = 0.;
+            }
+
+            for (int k = 0; k < Nz; ++k)
+            {
+                idx1 = mesh->GetGlobalIndexOfPoint (i, 0, k);
+                idx2 = mesh->GetGlobalIndexOfPoint (i, Ny-1, k);
+
+                A->coeffRef (idx1, idx2) = 0.;
+                A->coeffRef (idx2, idx1) = 0.;
+            }
+        }
+
+        for (int j = 0; j < Ny; ++j)
+        {
+            for (int i = 0; i < Nx; ++i)
+            {
+                idx1 = mesh->GetGlobalIndexOfPoint (i, j, 0);
+                idx2 = mesh->GetGlobalIndexOfPoint (i, j, Nz-1);
+
+                A->coeffRef (idx1, idx2) = 0.;
+                A->coeffRef (idx2, idx1) = 0.;
+            }
+
+            for (int k = 0; k < Nz; ++k)
+            {
+                idx1 = mesh->GetGlobalIndexOfPoint (0, j, k);
+                idx2 = mesh->GetGlobalIndexOfPoint (Nx-1, j, k);
+
+                A->coeffRef (idx1, idx2) = 0.;
+                A->coeffRef (idx2, idx1) = 0.;
+            }
+        }
+    }
+
+    *A = A->pruned ();
+
+    std::cout << std::endl;
 
     return;
 }

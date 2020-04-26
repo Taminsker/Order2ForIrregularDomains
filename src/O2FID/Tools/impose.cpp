@@ -7,7 +7,10 @@ void ImposeDirichlet (Mesh * mesh,
                       std::vector <int> listIndex,
                       double t)
 {
-    for (int i : listIndex) {A->row (i) *= 0.;} // On met la i-ème ligne à 0
+    for (int i : listIndex)
+    {
+        A->row (i) *= 0.;
+    } // On met la i-ème ligne à 0
 
     *A = A->transpose (); // Pour pouvoir manipuler les colonnes de A
 

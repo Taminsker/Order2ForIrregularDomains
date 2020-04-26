@@ -52,5 +52,6 @@ double GetErrorRela (Mesh * mesh,
     double error_rela = ((u_ana - u_num).squaredNorm ()) / u_ana.squaredNorm ();
     std::cout << "# Error rela has been calculated : " << error_rela << std::endl;
     std::cout << std::endl;
+
     return error_rela;
 }

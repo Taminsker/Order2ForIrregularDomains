@@ -44,6 +44,8 @@ void Sort_Neighbours (Point* P);
 void InsertBeta (Mesh* mesh, Matrix* A, Vector* beta);
 
 
+void RemovePeriodicity (Mesh* mesh, Matrix* A);
+
 /*! @} End of Doxygen Groups*/
 
 #endif // MATRIX_H

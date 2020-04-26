@@ -5,7 +5,8 @@ Vector FunToVec (Mesh * mesh, double (*f) (Point, double), double t)
     /* Nombre de point total dans le mesh à calculer. */
     int n = mesh->GetNumberOfTotalPoints ();
     /* Création d'un vecteur de n points. */
-    Vector Fvec (n);
+    Vector Fvec(n);
+    Fvec.setZero ();
 
     for (int i = 0; i < n; i++)
     {

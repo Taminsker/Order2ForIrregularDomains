@@ -6,5 +6,6 @@
 #include "Mesh/mesh.h"
 #include "Outputs/writer.h"
 #include "Tools/tools.h"
+#include "Stefan/stefan.h"
 
 #endif // O2FID_H
