@@ -49,24 +49,24 @@ Matrix Laplacian (Mesh * mesh)
 
                 // Si le point est sur le bord de gauche : Laplacien décentré aval
                 if (i == 0) {
-                  A.coeffRef (idx, idx + 1, -5. / (hx * hx));
-                  A.coeffRef (idx, idx + 2, 4. / (hx * hx));
-                  A.coeffRef (idx, idx + 3, -1. / (hx * hx));
+                  A.coeffRef (idx, idx + 1) = -5. / (hx * hx);
+                  A.coeffRef (idx, idx + 2) = 4. / (hx * hx);
+                  A.coeffRef (idx, idx + 3) = -1. / (hx * hx);
                   double aprim = 2. / (hx * hx);
                 }
 
                 // Si le point est sur le bord de droite : Laplacien décentré amont
                 else if (i == Nx-1) {
-                  A.coeffRef (idx, idx - 1, -5. / (hx * hx));
-                  A.coeffRef (idx, idx - 2, 4. / (hx * hx));
-                  A.coeffRef (idx, idx - 3, -1. / (hx * hx));
+                  A.coeffRef (idx, idx - 1) = -5. / (hx * hx);
+                  A.coeffRef (idx, idx - 2) = 4. / (hx * hx);
+                  A.coeffRef (idx, idx - 3) = -1. / (hx * hx);
                   double aprim = 2. / (hx * hx);
                 }
 
                 // Si le point n'est pas sur un bord en direction x : Laplacien classique
                 else {
-                  A.coeffRef (idx,idx_L, b);
-                  A.coeffRef (idx,idx_R, b);
+                  A.coeffRef (idx,idx_L) = b;
+                  A.coeffRef (idx,idx_R) = b;
                   double aprim = -2. / (hx * hx);
                 }
 
@@ -77,24 +77,24 @@ Matrix Laplacian (Mesh * mesh)
 
                     // Si le point est sur le bord de devant : Laplacien décentré aval
                     if (j == 0) {
-                      A.coeffRef (idx, idx + 1 * Nx, -5. / (hy * hy));
-                      A.coeffRef (idx, idx + 2 * Nx, 4. / (hy * hy));
-                      A.coeffRef (idx, idx + 3 * Nx, -1. / (hy * hy));
+                      A.coeffRef (idx, idx + 1 * Nx) = -5. / (hy * hy);
+                      A.coeffRef (idx, idx + 2 * Nx) = 4. / (hy * hy);
+                      A.coeffRef (idx, idx + 3 * Nx) = -1. / (hy * hy);
                       aprim += 2. / (hy * hy);
                     }
 
                     // Si le point est sur le bord de derrière : Laplacien décentré amont
                     else if (j == Ny-1) {
-                      A.coeffRef (idx, idx - 1 * Nx, -5. / (hy * hy));
-                      A.coeffRef (idx, idx - 2 * Nx, 4. / (hy * hy));
-                      A.coeffRef (idx, idx - 3 * Nx, -1. / (hy * hy));
+                      A.coeffRef (idx, idx - 1 * Nx) = -5. / (hy * hy);
+                      A.coeffRef (idx, idx - 2 * Nx) = 4. / (hy * hy);
+                      A.coeffRef (idx, idx - 3 * Nx) = -1. / (hy * hy);
                       aprim += 2. / (hy * hy);
                     }
 
                     // Si le point n'est pas sur un bord en direction y : Laplacien classique
                     else {
-                      A.coeffRef (idx,idx_F, c);
-                      A.coeffRef (idx,idx_B, c);
+                      A.coeffRef (idx,idx_F) = c;
+                      A.coeffRef (idx,idx_B) = c;
                       aprim += -2. / (hy * hy);
                     }
 
@@ -105,30 +105,30 @@ Matrix Laplacian (Mesh * mesh)
 
                         // Si le point est sur le bord du bas : Laplacien décentré aval
                         if (k == 0) {
-                          A.coeffRef (idx, idx + 1 * Nx * Ny, -5. / (hy * hy));
-                          A.coeffRef (idx, idx + 2 * Nx * Ny, 4. / (hy * hy));
-                          A.coeffRef (idx, idx + 3 * Nx * Ny, -1. / (hy * hy));
+                          A.coeffRef (idx, idx + 1 * Nx * Ny) = -5. / (hz * hz);
+                          A.coeffRef (idx, idx + 2 * Nx * Ny) = 4. / (hz * hz);
+                          A.coeffRef (idx, idx + 3 * Nx * Ny) = -1. / (hz * hz);
                           aprim += 2. / (hz * hz);
                         }
 
                         // Si le point est sur le bord du haut : Laplacien décentré amont
                         else if (k == Nz-1) {
-                          A.coeffRef (idx, idx - 1 * Nx * Ny, -5. / (hy * hy));
-                          A.coeffRef (idx, idx - 2 * Nx * Ny, 4. / (hy * hy));
-                          A.coeffRef (idx, idx - 3 * Nx * Ny, -1. / (hy * hy));
+                          A.coeffRef (idx, idx - 1 * Nx * Ny) = -5. / (hz * hz);
+                          A.coeffRef (idx, idx - 2 * Nx * Ny) = 4. / (hz * hz);
+                          A.coeffRef (idx, idx - 3 * Nx * Ny) = -1. / (hz * hz);
                           aprim += 2. / (hz * hz);
                         }
 
                         // Si le point n'est pas sur un bord en direction z : Laplacien classique
                         else {
-                          A.coeffRef (idx,idx_D, d);
-                          A.coeffRef (idx,idx_U, d);
+                          A.coeffRef (idx,idx_D) = d;
+                          A.coeffRef (idx,idx_U) = d;
                           aprim += -2. / (hz * hz);
                         }
                     } // fin if dim 3
                 } // fin if dim 2 ou 3
 
-                A.coeffRef (idx,idx, aprim));
+                A.coeffRef (idx,idx) = aprim);
             } // fin for i,j,k
 
 

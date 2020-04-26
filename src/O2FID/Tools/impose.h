@@ -19,7 +19,7 @@
  * @param mesh un pointeur vers un objet Mesh
  * @param A un pointeur vers une sparsematrix d'Eigen
  * @param secondMember vecteur de second membre
- * @param g un pointeur vers une fonction g dépendant des coordonnées spatiales et temporelle
+ * @param g un pointeur vers une fonction g dépendant des coordonnées spatiales et temporelle, ou bien g_list le vecteur de g sur le maillage
  * @param t un réel (optionnel, par défaut il vaut 0)
  * @param listIndex un vecteur d'entiers regroupant les indices des points comme définissant la frontière de \f$\Omega\f$
  */
@@ -27,6 +27,15 @@ void ImposeDirichlet (Mesh* mesh,
                       Matrix* A,
                       Vector* secondMember,
                       double (*g) (Point, double),
+                      std::vector <int> listIndex,
+                      double t = 0.);
+
+
+
+void ImposeDirichlet (Mesh* mesh,
+                      Matrix* A,
+                      Vector* secondMember,
+                      std::vector<double> g_list,
                       std::vector <int> listIndex,
                       double t = 0.);
 
