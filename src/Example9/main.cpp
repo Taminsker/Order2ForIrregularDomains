@@ -31,9 +31,15 @@ int main(int argc, char* argv[])
         int Nx = listNx.at (idx);
         int Ny = Nx;
         int Nz = Nx;
+        int Nt = 20;
 
         // Construction du MESH
         Mesh* mesh = new Mesh ();
+
+        //pas de temps
+        double dt = mesh->Get_hx();
+        double dt_BE2 = mesh->Get_hx() * mesh->Get_hx();
+        int N = mesh->GetNumberOfTotalPoints();
 
         mesh->SetBounds (new Point(0.0, 0.0, 0.0), new Point(0.5, 0.5, 0.5));
         mesh->Set_Nx(Nx);
@@ -49,67 +55,185 @@ int main(int argc, char* argv[])
 
         mesh->Print ();
 
-        // Construction de la matrice du Laplacien
-        int N = mesh->GetNumberOfTotalPoints();
+        // Construction de la matrice du Laplacien (Crank-Nicolson)
         Matrix Id (N, N); // création de la matrice identité de taille N x N
         Id.setIdentity();
-        double dt = mesh->Get_hx(); // Crank-Nicolson dt ~ dx = dy
-        Matrix A = (1/dt) * Id + (1/2) * Laplacian (mesh); // Crank-Nicolson
+        Matrix A_CK = (1/dt) * Id + (1/2) * Laplacian (mesh);
+
+        // Construction de la matrice du Laplacien (Backward-Euler)
+        Matrix A_BE = Laplacian (mesh);
 
         // Construction du vecteur de second membre
         Vector b = FunToVec (mesh, f);
 
         // Imposition de Dirichlet sur les points situés sur le bord du domaine Omega
-        ImposeDirichlet (mesh, &A, &b, u, listPoint);
+        ImposeDirichlet (mesh, &A_CK, &b, u, listPoint);
+        ImposeDirichlet (mesh, &A_BE, &b, u, listPoint);
 
         // Imposition de Dirichlet sur les points situés sur le bord du grand domaine
         //
         //  ImposeDirichlet (mesh, &A, &b, u, {0, mesh->GetNumberOfCartesianPoints ()-1});
         //
 
-        // Vecteur de solution numérique
-        Vector u_num = Solve (A, b, IMPLICIT);
+        // CRANK-NICOLSON
+        for (int idt = 0; idt < Nt; idt++) // boucle sur les points temporelles
+        {
+            // Vecteur de solution numérique
+            Vector u_num_CK = Solve (A_CK, b, IMPLICIT);
+            // U_num deviens b pour le temps suivant
+            Vector b = u_num_CK;
 
-        // Vecteur de solution analytique
-        Vector u_ana = FunToVec (mesh, u);
+            // Vecteur de solution analytique à t'instant t = i*dt
+            Vector u_ana_CK = FunToVec (mesh, u, idt*dt);
 
-        // Transforme les deux vecteurs en 0 sur EXTERNOMEGA pour calculer des erreurs
-        mesh->MakeZeroOnExternOmegaInVector (&u_ana);
-        mesh->MakeZeroOnExternOmegaInVector (&u_num);
+            // Transforme les deux vecteurs en 0 sur EXTERNOMEGA pour calculer des erreurs
+            mesh->MakeZeroOnExternOmegaInVector (&u_ana_CK);
+            mesh->MakeZeroOnExternOmegaInVector (&u_num_CK);
 
-        // Erreur en valeur absolue
-        Vector err_abs = GetErrorAbs (mesh, u_ana, u_num);
+            // Erreur en valeur absolue
+            Vector err_abs_CK = GetErrorAbs (mesh, u_ana_CK, u_num_CK);
 
-        // Erreur l1
-        err_l1.push_back (GetErrorl1 (mesh, u_ana, u_num));
+            // Erreur l1
+            err_l1.push_back (GetErrorl1 (mesh, u_ana_CK, u_num_CK));
 
-        // Erreur linf
-        err_linf.push_back (GetErrorlinf (mesh, u_ana, u_num));
+            // Erreur linf
+            err_linf.push_back (GetErrorlinf (mesh, u_ana_CK, u_num_CK));
 
-        // Erreur relative
-        err_rela.push_back (GetErrorRela (mesh, u_ana, u_num));
+            // Erreur relative
+            err_rela.push_back (GetErrorRela (mesh, u_ana_CK, u_num_CK));
 
-        // Pas h du maillage (rayon de la boule ?)
-        Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
-        h.push_back (std::sqrt(p|p));
+            // Pas h du maillage (rayon de la boule ?)
+            Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
+            h.push_back (std::sqrt(p|p));
 
-        // Écriture dans des fichiers
-        Writer writer (mesh);
-        writer.SetFilename (std::string ("example_9_") + std::to_string (Nx));
-        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
-        writer.SetVectorNumerical (&u_num);
-        writer.SetVectorAnalytical (&u_ana);
-        writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
-        writer.SetVectorErrorAbs (&err_abs);
+            // Écriture dans des fichiers
+            Writer writer (mesh);
+            writer.SetFilename (std::string ("example_9_Crank_Nicolson_Nx_") + std::to_string (Nx) + std::string ("_dt_") + std::to_string (idt*dt));
+            writer.SetCurrentIteration (idt); // Itérations lorsqu'il y a du temps
+            writer.SetVectorNumerical (&u_num_CK);
+            writer.SetVectorAnalytical (&u_ana_CK);
+            writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
+            writer.SetVectorErrorAbs (&err_abs_CK);
 
-        writer.WriteNow ();
+            writer.WriteNow ();
+        }
+
+        std::cout << std::endl;
+
+        std::cout << "#Summary Crank-Nicolson " << std::endl;
+
+        std::cout << "Nx            : " << listNx << std::endl;
+        std::cout << "l1-error      : " << err_l1 << std::endl;
+        std::cout << "Order         : " << Order(err_l1, h) << std::endl;
+        std::cout << "linf-error    : " << err_linf << std::endl;
+        std::cout << "Order         : " << Order(err_linf, h) << std::endl;
+        std::cout << "rela-error    : " << err_rela << std::endl;
+        std::cout << "Order         : " << Order(err_rela, h) << std::endl;
+
+        // BACKWARD-EULER 1 dt ~ dx
+        for (int idt = 0; idt < Nt; idt++) // boucle sur les points temporelles
+        {
+            // Vecteur de solution numérique
+            Vector u_num_BE1 = Solve (A_BE, b, IMPLICIT);
+            // U_num deviens b pour le temps suivant
+            Vector b = u_num_BE1;
+
+            // Vecteur de solution analytique à t'instant t = i*dt
+            Vector u_ana_BE1 = FunToVec (mesh, u, idt*dt);
+
+            // Transforme les deux vecteurs en 0 sur EXTERNOMEGA pour calculer des erreurs
+            mesh->MakeZeroOnExternOmegaInVector (&u_ana_BE1);
+            mesh->MakeZeroOnExternOmegaInVector (&u_num_BE1);
+
+            // Erreur en valeur absolue
+            Vector err_abs_BE1 = GetErrorAbs (mesh, u_ana_BE1, u_num_BE1);
+
+            // Erreur l1
+            err_l1.push_back (GetErrorl1 (mesh, u_ana_BE1, u_num_BE1));
+
+            // Erreur linf
+            err_linf.push_back (GetErrorlinf (mesh, u_ana_BE1, u_num_BE1));
+
+            // Erreur relative
+            err_rela.push_back (GetErrorRela (mesh, u_ana_BE1, u_num_BE1));
+
+            // Pas h du maillage (rayon de la boule ?)
+            Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
+            h.push_back (std::sqrt(p|p));
+
+            // Écriture dans des fichiers
+            Writer writer (mesh);
+            writer.SetFilename (std::string ("example_9_Backward_Euler1_Nx_") + std::to_string (Nx) + std::string ("_dt_") + std::to_string (idt*dt));
+            writer.SetCurrentIteration (idt); // Itérations lorsqu'il y a du temps
+            writer.SetVectorNumerical (&u_num_BE1);
+            writer.SetVectorAnalytical (&u_ana_BE1);
+            writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
+            writer.SetVectorErrorAbs (&err_abs_BE1);
+
+            writer.WriteNow ();
+        }
+
+        std::cout << std::endl;
+
+        std::cout << "#Summary Backward-Euler dt ~ dx " << std::endl;
+
+        std::cout << "Nx            : " << listNx << std::endl;
+        std::cout << "l1-error      : " << err_l1 << std::endl;
+        std::cout << "Order         : " << Order(err_l1, h) << std::endl;
+        std::cout << "linf-error    : " << err_linf << std::endl;
+        std::cout << "Order         : " << Order(err_linf, h) << std::endl;
+        std::cout << "rela-error    : " << err_rela << std::endl;
+        std::cout << "Order         : " << Order(err_rela, h) << std::endl;
+
+        // BACKWARD-EULER 2 dt ~ dx*dx
+        for (int idt = 0; idt < Nt; idt++) // boucle sur les points temporelles
+        {
+            // Vecteur de solution numérique
+            Vector u_num_BE2 = Solve (A_BE, b, IMPLICIT);
+            // U_num deviens b pour le temps suivant
+            Vector b = u_num_BE2;
+
+            // Vecteur de solution analytique à t'instant t = i*dt
+            Vector u_ana_BE2 = FunToVec (mesh, u, idt*dt_BE2);
+
+            // Transforme les deux vecteurs en 0 sur EXTERNOMEGA pour calculer des erreurs
+            mesh->MakeZeroOnExternOmegaInVector (&u_ana_BE2);
+            mesh->MakeZeroOnExternOmegaInVector (&u_num_BE2);
+
+            // Erreur en valeur absolue
+            Vector err_abs_BE2 = GetErrorAbs (mesh, u_ana_BE2, u_num_BE2);
+
+            // Erreur l1
+            err_l1.push_back (GetErrorl1 (mesh, u_ana_BE2, u_num_BE2));
+
+            // Erreur linf
+            err_linf.push_back (GetErrorlinf (mesh, u_ana_BE2, u_num_BE2));
+
+            // Erreur relative
+            err_rela.push_back (GetErrorRela (mesh, u_ana_BE2, u_num_BE2));
+
+            // Pas h du maillage (rayon de la boule ?)
+            Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
+            h.push_back (std::sqrt(p|p));
+
+            // Écriture dans des fichiers
+            Writer writer (mesh);
+            writer.SetFilename (std::string ("example_9_Backward_Euler2_Nx_") + std::to_string (Nx) + std::string ("_dt_") + std::to_string (idt*dt_BE2));
+            writer.SetCurrentIteration (idt); // Itérations lorsqu'il y a du temps
+            writer.SetVectorNumerical (&u_num_BE2);
+            writer.SetVectorAnalytical (&u_ana_BE2);
+            writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
+            writer.SetVectorErrorAbs (&err_abs_BE2);
+
+            writer.WriteNow ();
+        }
 
         delete mesh;
     }
 
     std::cout << std::endl;
 
-    std::cout << "#Summary " << std::endl;
+    std::cout << "#Summary Backward-Euler dt ~ dx^2 " << std::endl;
 
     std::cout << "Nx            : " << listNx << std::endl;
     std::cout << "l1-error      : " << err_l1 << std::endl;
@@ -136,6 +260,5 @@ double f (Point a, double t)
 
 double u (Point a, double t)
 {
-    (void)t;
     return std::exp(-3 * t) * std::sin(a.x) * std::sin(a.y) * std::sin(a.z);
 }
