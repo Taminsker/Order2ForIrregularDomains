@@ -300,5 +300,3 @@ bool operator!= (const Point& a, const Point& b)
 
     return (bx && by && bz);
 }
-
-
