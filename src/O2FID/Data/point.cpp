@@ -172,6 +172,11 @@ Point* Point::DetachFromAll ()
 
     for (Point* p : m_listNeighbours)
         p->RemoveThisNeighbourPoint (this);
+    if (m_listNeighbours.size () == 2)
+    {
+        m_listNeighbours.at (0)->AddPointNeighbour (m_listNeighbours.at (1));
+        m_listNeighbours.at (1)->AddPointNeighbour (m_listNeighbours.at (0));
+    }
 
     m_listNeighbours.clear ();
     m_cells.clear ();

@@ -506,7 +506,23 @@ int Mesh::IndexPoints (int i, int j, int k) const
 
 Mesh* Mesh::RemoveThisPoint (int index)
 {
-    m_points.erase (m_points.begin () + index);
+    std::cout << "Attempt to remove : " << index << " on " << m_points.size() << std::endl;
+
+    m_points.at (size_t (index))->DetachFromAll ();
+
+    delete m_points.at (size_t (index));
+
+    m_points.erase (m_points.begin () + index-1);
+
+    for (std::vector<Point*>::iterator it = m_points.begin () + index; it != m_points.end (); ++it)
+    {
+        std::cout << "point : " << (*it)->GetGlobalIndex () << std::flush;
+        (*it)->SetGlobalIndex ((*it)->GetGlobalIndex () - 1);
+        std::cout << " begin : " << (*it)->GetGlobalIndex () << std::endl;
+
+    }
+
+   std::cout << std::endl;
 
     return this;
 }
@@ -527,11 +543,40 @@ Mesh* Mesh::RemoveThesePoints (std::vector<int> listindex)
 
 Mesh* Mesh::RemoveAllNotCartesianPoints ()
 {
-    for (Point * p : m_points)
+    std::vector<Point*> cartesian = {};
+    std::vector<Point*> notcartesian = {};
+
+    size_t G = size_t (GetNumberOfCartesianPoints ());
+    size_t N = size_t (m_points.size ());
+
+    cartesian.reserve (G);
+    notcartesian.reserve (N - G);
+
+    for (size_t i = 0; i < G; ++i)
     {
-        if (p->GetGlobalIndex () >= GetNumberOfCartesianPoints ())
-            RemoveThisPoint (p->GetGlobalIndex ());
+        Point* p = m_points.at (i);
+
+        p->SetLocate (ON_DOMAIN_EXTERN_OMEGA);
+        cartesian.push_back (p);
     }
+
+    for (size_t i = G; i < N; ++i)
+    {
+        Point* p = m_points.at (i);
+        notcartesian.push_back (p);
+    }
+
+    m_points = cartesian;
+
+    size_t NC = size_t (notcartesian.size ());
+
+    for (size_t i = 0; i < NC; ++i)
+    {
+        Point* p = notcartesian.at (i);
+        p->DetachFromAll ();
+        delete p;
+    }
+    notcartesian.clear ();
 
     return this;
 }
