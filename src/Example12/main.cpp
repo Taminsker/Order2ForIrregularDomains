@@ -3,13 +3,15 @@
 #include <iostream>
 #include <cmath>
 #include "Eigen/SparseCore"
+#include "Eigen/Dense"
+#include "Eigen/Core"
+
 
 #define SPACER std::left << std::setw(20)
 
 
-double phi (Point p, double t = 0); // fonction levelset
-double f (Point a, double t = 0.); // fonction de second membre
-double u (Point a, double t = 0.);
+double phi (Point p, double t = 0.); // fonction levelset
+double T (Point p, double t = 0.);
 
 int main(int argc, char* argv[])
 {
@@ -17,101 +19,140 @@ int main(int argc, char* argv[])
     (void)argv;
 
     std::cout << "-----------------------------------------" << std::endl;
-    std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
+    std::cout << "            EXAMPLE 12 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
-    std::vector<double> err_l1 = {}; // erreur l1
-    std::vector<double> err_linf = {}; // erreur linf
-    std::vector<double> err_rela = {}; // erreur relative
-    std::vector<double> h = {}; // pas d'espace h
 
-    for (size_t idx = 0; idx < listNx.size (); ++idx)
+    int Nx = 400;
+    int Ny = Nx;
+
+
+    // Construction du MESH
+    Mesh* mesh = new Mesh ();
+
+    mesh->SetBounds (new Point(-2, -2, 0), new Point(2, 2, 0));
+    mesh->Set_Nx(Nx);
+    mesh->Set_Ny(Ny);
+    //        mesh->Set_Nz(Nz);
+    mesh->Build ();
+
+    double hx = mesh->Get_hx ();
+    double hy = mesh->Get_hx ();
+    double hz = mesh->Get_hz ();
+    int N = mesh->GetNumberOfTotalPoints ();
+    double dt = 0.5 * std::min (1. / (1./ hx + 1./ hy), hx);
+    //    double dt = 0.5 / (1./ hx + 1./ hy);
+
+
+    // Construction des vecteurs phi fonction de levelset
+    Vector phi_vec = FunToVec (mesh, phi);
+
+    // Ajout des points de bord
+    std::vector<int> listPoint = MakeBorderPoints (mesh, &phi_vec);
+    phi_vec = FunToVec (mesh, phi);
+
+    mesh->Print ();
+
+    // Construction de la matrice du Laplacien
+    Matrix As;
+    Matrix At;
+
+    // Construction du vecteur de second membre
+    Vector b;
+
+    // Matrix
+    Matrix A;
+
+    // T_num
+    Vector T_num = FunToVec (mesh, T);
+
+    // W
+    std::vector<Point*> Wold, Wnew;
+    Wnew = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
+    Wold = Wnew;
+
+    // Écriture dans des fichiers
+    Writer writer (mesh);
+    writer.SetFilename (std::string ("example_12_") + std::to_string (Nx));
+    writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
+    writer.SetVectorNumerical (&T_num);
+    writer.SetVectorW_new (&Wnew);
+    writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
+    writer.SetVectorPhi (&phi_vec);
+
+    writer.WriteNow ();
+
+
+
+    double theta = 1.;
+    int IterMax = 50;
+
+    bool mybool = true;
+
+    for (int timer = 1; timer <= IterMax && mybool; ++timer)
     {
-        int Nx = listNx.at (idx);
+        double time = timer * dt;
 
-        // Construction du MESH
-        Mesh* mesh = new Mesh ();
+        std::cout << "-----------------------------------------------" << std::endl;
+        std::cout << INDENT << "Time : " << time << " (" << timer << "/" << IterMax << ") --- theta : " << theta << std::endl;
+        std::cout << "-----------------------------------------------" << std::endl;
 
-        mesh->SetBounds (new Point(-0.5, 0, 0), new Point(0.5, 0, 0));
-        mesh->Set_Nx(Nx);
-//        mesh->Set_Ny(Ny);
-//        mesh->Set_Nz(Nz);
-        mesh->Build ();
+        phi_vec = IteratePhi (mesh, &Wold, dt, &phi_vec);
+//        ReInitPhi (mesh, &phi_vec, &listPoint, dt);
 
-        // Construction de vecteur phi fonction de levelset
-        Vector phi_vec = FunToVec (mesh, phi);
+        mesh->RemoveAllNotCartesianPoints ();
 
-        // Ajout des points de bord
-        std::vector<int> listPoint = MakeBorderPoints (mesh, &phi_vec);
+        listPoint = MakeBorderPoints (mesh, &phi_vec);
 
         mesh->Print ();
 
-        // Construction de la matrice du Laplacien
-        Matrix A = Laplacian (mesh);
+        N = mesh->GetNumberOfTotalPoints ();
 
-        // Construction du vecteur de second membre
-        Vector b = FunToVec (mesh, f);
+        Vector Temp = T_num;
 
-        // Imposition de Dirichlet sur les points situés sur le bord du domaine Omega
-        ImposeDirichlet (mesh, &A, &b, u, listPoint);
+        if (int(listPoint.size ()) <= mesh->GetNumberOfCartesianPoints ())
+        {
+            As = Laplacian (mesh);
+            At.resize (N, N);
+            At.setIdentity ();
+            At *= 1./ dt;
 
-        // Imposition de Dirichlet sur les points situés sur le bord du grand domaine
-        //
-        //  ImposeDirichlet (mesh, &A, &b, u, {0, mesh->GetNumberOfCartesianPoints ()-1});
-        //
+            Extrapole (mesh, &Temp);
 
-        // Vecteur de solution numérique
-        Vector u_num = Solve (A, b, IMPLICIT);
+            //        A_cn = (0.5 * As + At);
+            //        b = At * T_num;
+            //        b -= 0.5 * T_num;
 
-        // Vecteur de solution analytique
-        Vector u_ana = FunToVec (mesh, u);
+            b = (At + (1. - theta) * As) * T_num;
+            A = At - theta * As;
 
-        // Transforme les deux vecteurs en 0 sur EXTERNOMEGA pour calculer des erreurs
-        mesh->MakeZeroOnExternOmegaInVector (&u_ana);
-        mesh->MakeZeroOnExternOmegaInVector (&u_num);
+            ImposeDirichlet (mesh, &A, &b, T, listPoint);
 
-        // Erreur en valeur absolue
-        Vector err_abs = GetErrorAbs (mesh, u_ana, u_num);
 
-        // Erreur l1
-        err_l1.push_back (GetErrorl1 (mesh, u_ana, u_num));
+            T_num = Solve (A, b, IMPLICIT);
+        } else
+        {
+            mybool = false;
+        }
 
-        // Erreur linf
-        err_linf.push_back (GetErrorlinf (mesh, u_ana, u_num));
 
-        // Erreur relative
-        err_rela.push_back (GetErrorRela (mesh, u_ana, u_num));
+        Wold = Wnew;
+        Extrapole (mesh, &Wold);
 
-        // Pas h du maillage (rayon de la boule ?)
-        Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
-        h.push_back (std::sqrt(p|p));
+        Wnew = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
 
-        // Écriture dans des fichiers
-        Writer writer (mesh);
-        writer.SetFilename (std::string ("example_1_") + std::to_string (Nx));
-//        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
-        writer.SetVectorNumerical (&u_num);
-        writer.SetVectorAnalytical (&u_ana);
-        writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
-        writer.SetVectorErrorAbs (&err_abs);
+        writer.SetCurrentIteration (timer);
+        writer.SetVectorNumerical (&T_num);
+        writer.SetVectorAnalytical (&Temp);
+        writer.SetVectorPhi (&phi_vec);
+        writer.SetVectorW_new (&Wnew);
+        writer.SetVectorW_old (&Wold);
 
         writer.WriteNow ();
-
-        delete mesh;
     }
 
-    std::cout << std::endl;
+    delete mesh;
 
-    std::cout << "#Summary " << std::endl;
-
-    std::cout << "Nx            : " << listNx << std::endl;
-    std::cout << "l1-error      : " << err_l1 << std::endl;
-    std::cout << "Order         : " << Order(err_l1, h) << std::endl;
-    std::cout << "linf-error    : " << err_linf << std::endl;
-    std::cout << "Order         : " << Order(err_linf, h) << std::endl;
-    std::cout << "rela-error    : " << err_rela << std::endl;
-    std::cout << "Order         : " << Order(err_rela, h) << std::endl;
 
     return 0;
 }
@@ -120,21 +161,27 @@ double phi (Point p, double t)
 {
     (void)t;
 
-    return fabs(p.x) - 0.313;
+    return (p|p) - 0.4*0.4;
 }
 
-double f (Point a, double t)
+double T (Point p, double t)
 {
     (void)t;
 
-    double c = std::cos(2. * M_PI * a.x);
-    double s = std::sin(2. * M_PI * a.x);
+    switch (p.GetLocate ())
+    {
+    case ON_DOMAIN_INTERN_OMEGA:
+        //        std::cout << "Request Intern" << std::endl;
+        return 0;
+    case ON_BORDER_OMEGA:
+        //        std::cout << "Request Border" << std::endl;
+        return -0.5;
+    case ON_DOMAIN_EXTERN_OMEGA:
+        //        std::cout << "Request Extern" << std::endl;
+        return -0.5;
+    }
 
-    return 8. * (1. - 2. * M_PI * M_PI * a.x * a.x) * s + 32. * M_PI * a. x * c;
+    return -0.5;
 }
 
-double u (Point a, double t)
-{
-    (void)t;
-    return 4. * a.x * a.x * std::sin(2. * M_PI * a.x);
-}
+
