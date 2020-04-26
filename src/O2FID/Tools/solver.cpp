@@ -37,7 +37,7 @@ Vector Solve (const Matrix &A, const Vector &b, TYPE type)
 
             Eigen::ConjugateGradient<Matrix, Eigen::Lower|Eigen::Upper> cg; // déclare la fonction gradient conjugé
 //            cg.setMaxIterations(int(log(A.size()))); // De base à N.
-            cg.setTolerance(1e-5); // De base à la precision de la machine.
+            cg.setTolerance(1e-15); // De base à la precision de la machine.
 
 //            cg.preconditioner ().compute(A);
             cg.compute(A); // Calcule la matrice A
@@ -55,7 +55,7 @@ Vector Solve (const Matrix &A, const Vector &b, TYPE type)
 
             solver.compute(A);
 //            solver.setMaxIterations(int(log(A.size()))); // De base à N.
-            solver.setTolerance(1e-5); // De base à la precision de la machine.
+            solver.setTolerance(1e-15); // De base à la precision de la machine.
             sol = solver.solve(b);
             std::cout << INDENT << "Iterations      : " << solver.iterations() << std::endl;
             std::cout << INDENT << "Estimated error : " << solver.error()      << std::endl;

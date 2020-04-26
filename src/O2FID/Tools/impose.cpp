@@ -17,15 +17,17 @@ void ImposeDirichlet (Mesh * mesh,
     for (int i : listIndex) {
         // On déplace au 2nd membre les apparitions de P_i avec valeur imposée g(P_i)
 
-        *secondMember -= g(mesh->GetPoint (i), t) * A->row (i).transpose ();
+        *secondMember -= g(*mesh->GetPoint (i), t) * A->row (i).transpose ();
 
         A->row (i) *= 0.;
         A->coeffRef (i,i) = 1.;
 
-        secondMember->coeffRef (i) = g(mesh->GetPoint (i), t);
+        secondMember->coeffRef (i) = g(*mesh->GetPoint (i), t);
     }
 
     *A = A->transpose ().pruned ();
+
+    std::cout << *A << std::endl;
 
     return;
 }
@@ -34,10 +36,13 @@ void ImposeDirichlet (Mesh * mesh,
 void ImposeDirichlet (Mesh * mesh,
                       Matrix * A,
                       Vector* secondMember,
-                      std::vector<double> g_list, // construit avec Funtovec 1
+                      Vector* g_list, // construit avec Funtovec 1
                       std::vector <int> listIndex,
                       double t)
 {
+    (void) mesh;
+    (void)t;
+
     for (int i : listIndex) {A->row (i) *= 0.;} // On met la i-ème ligne à 0
 
     *A = A->transpose (); // Pour pouvoir manipuler les colonnes de A
@@ -54,6 +59,8 @@ void ImposeDirichlet (Mesh * mesh,
     }
 
     *A = A->transpose ().pruned ();
+
+    std::cout << *A << std::endl;
 
     return;
 }

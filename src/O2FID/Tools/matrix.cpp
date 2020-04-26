@@ -41,34 +41,41 @@ Matrix Laplacian (Mesh * mesh)
         for (int j = 0; j < Ny; ++j)
             for (int i = 0; i < Nx; ++i)
             {
+                std::cout << "i = " << i << std::endl;
 
                 int idx = mesh->GetGlobalIndexOfPoint (i, j, k);
 
                 int idx_L = mesh->GetGlobalIndexOfPoint (i-1, j, k); // Left
                 int idx_R = mesh->GetGlobalIndexOfPoint (i+1, j, k); // Right
 
+                double aprim = 0.;
                 // Si le point est sur le bord de gauche : Laplacien décentré aval
-                if (i == 0) {
-                  A.coeffRef (idx, idx + 1) = -5. / (hx * hx);
-                  A.coeffRef (idx, idx + 2) = 4. / (hx * hx);
-                  A.coeffRef (idx, idx + 3) = -1. / (hx * hx);
-                  double aprim = 2. / (hx * hx);
-                }
+//                if (i == 0) {
+//                    std::cout << "\ti=0" << std::endl;
+//                    A.coeffRef (idx, idx + 1) = -5. / (hx * hx);
+//                    A.coeffRef (idx, idx + 2) = 4. / (hx * hx);
+//                    A.coeffRef (idx, idx + 3) = -1. / (hx * hx);
+//                    aprim = 2. / (hx * hx);
+//                }
 
-                // Si le point est sur le bord de droite : Laplacien décentré amont
-                else if (i == Nx-1) {
-                  A.coeffRef (idx, idx - 1) = -5. / (hx * hx);
-                  A.coeffRef (idx, idx - 2) = 4. / (hx * hx);
-                  A.coeffRef (idx, idx - 3) = -1. / (hx * hx);
-                  double aprim = 2. / (hx * hx);
-                }
+//                // Si le point est sur le bord de droite : Laplacien décentré amont
+//                else if (i == Nx-1) {
+//                    std::cout << "\ti = Nx-1" << std::endl;
 
-                // Si le point n'est pas sur un bord en direction x : Laplacien classique
-                else {
-                  A.coeffRef (idx,idx_L) = b;
-                  A.coeffRef (idx,idx_R) = b;
-                  double aprim = -2. / (hx * hx);
-                }
+//                    A.coeffRef (idx, idx - 1) = -5. / (hx * hx);
+//                    A.coeffRef (idx, idx - 2) = 4. / (hx * hx);
+//                    A.coeffRef (idx, idx - 3) = -1. / (hx * hx);
+//                    aprim = 2. / (hx * hx);
+//                }
+
+//                // Si le point n'est pas sur un bord en direction x : Laplacien classique
+//                else {
+//                    std::cout << "\ti = other" << std::endl;
+
+                    A.coeffRef (idx,idx_L) = b;
+                    A.coeffRef (idx,idx_R) = b;
+                    aprim = -2. / (hx * hx);
+//                }
 
                 if (dim == DIM_2D || dim == DIM_3D)
                 {
@@ -77,25 +84,25 @@ Matrix Laplacian (Mesh * mesh)
 
                     // Si le point est sur le bord de devant : Laplacien décentré aval
                     if (j == 0) {
-                      A.coeffRef (idx, idx + 1 * Nx) = -5. / (hy * hy);
-                      A.coeffRef (idx, idx + 2 * Nx) = 4. / (hy * hy);
-                      A.coeffRef (idx, idx + 3 * Nx) = -1. / (hy * hy);
-                      aprim += 2. / (hy * hy);
+                        A.coeffRef (idx, idx + 1 * Nx) = -5. / (hy * hy);
+                        A.coeffRef (idx, idx + 2 * Nx) = 4. / (hy * hy);
+                        A.coeffRef (idx, idx + 3 * Nx) = -1. / (hy * hy);
+                        aprim += 2. / (hy * hy);
                     }
 
                     // Si le point est sur le bord de derrière : Laplacien décentré amont
                     else if (j == Ny-1) {
-                      A.coeffRef (idx, idx - 1 * Nx) = -5. / (hy * hy);
-                      A.coeffRef (idx, idx - 2 * Nx) = 4. / (hy * hy);
-                      A.coeffRef (idx, idx - 3 * Nx) = -1. / (hy * hy);
-                      aprim += 2. / (hy * hy);
+                        A.coeffRef (idx, idx - 1 * Nx) = -5. / (hy * hy);
+                        A.coeffRef (idx, idx - 2 * Nx) = 4. / (hy * hy);
+                        A.coeffRef (idx, idx - 3 * Nx) = -1. / (hy * hy);
+                        aprim += 2. / (hy * hy);
                     }
 
                     // Si le point n'est pas sur un bord en direction y : Laplacien classique
                     else {
-                      A.coeffRef (idx,idx_F) = c;
-                      A.coeffRef (idx,idx_B) = c;
-                      aprim += -2. / (hy * hy);
+                        A.coeffRef (idx,idx_F) = c;
+                        A.coeffRef (idx,idx_B) = c;
+                        aprim += -2. / (hy * hy);
                     }
 
                     if (dim == DIM_3D)
@@ -105,30 +112,30 @@ Matrix Laplacian (Mesh * mesh)
 
                         // Si le point est sur le bord du bas : Laplacien décentré aval
                         if (k == 0) {
-                          A.coeffRef (idx, idx + 1 * Nx * Ny) = -5. / (hz * hz);
-                          A.coeffRef (idx, idx + 2 * Nx * Ny) = 4. / (hz * hz);
-                          A.coeffRef (idx, idx + 3 * Nx * Ny) = -1. / (hz * hz);
-                          aprim += 2. / (hz * hz);
+                            A.coeffRef (idx, idx + 1 * Nx * Ny) = -5. / (hz * hz);
+                            A.coeffRef (idx, idx + 2 * Nx * Ny) = 4. / (hz * hz);
+                            A.coeffRef (idx, idx + 3 * Nx * Ny) = -1. / (hz * hz);
+                            aprim += 2. / (hz * hz);
                         }
 
                         // Si le point est sur le bord du haut : Laplacien décentré amont
                         else if (k == Nz-1) {
-                          A.coeffRef (idx, idx - 1 * Nx * Ny) = -5. / (hz * hz);
-                          A.coeffRef (idx, idx - 2 * Nx * Ny) = 4. / (hz * hz);
-                          A.coeffRef (idx, idx - 3 * Nx * Ny) = -1. / (hz * hz);
-                          aprim += 2. / (hz * hz);
+                            A.coeffRef (idx, idx - 1 * Nx * Ny) = -5. / (hz * hz);
+                            A.coeffRef (idx, idx - 2 * Nx * Ny) = 4. / (hz * hz);
+                            A.coeffRef (idx, idx - 3 * Nx * Ny) = -1. / (hz * hz);
+                            aprim += 2. / (hz * hz);
                         }
 
                         // Si le point n'est pas sur un bord en direction z : Laplacien classique
                         else {
-                          A.coeffRef (idx,idx_D) = d;
-                          A.coeffRef (idx,idx_U) = d;
-                          aprim += -2. / (hz * hz);
+                            A.coeffRef (idx,idx_D) = d;
+                            A.coeffRef (idx,idx_U) = d;
+                            aprim += -2. / (hz * hz);
                         }
                     } // fin if dim 3
                 } // fin if dim 2 ou 3
 
-                A.coeffRef (idx,idx) = aprim);
+                A.coeffRef (idx,idx) = aprim;
             } // fin for i,j,k
 
 
@@ -143,7 +150,7 @@ Matrix Laplacian (Mesh * mesh)
     //    A = A.selfadjointView<Eigen::Upper> ();
     //    A += A.transpose ();
 
-    //    std::cout << A << std::endl;
+        std::cout << A << std::endl;
 
     // On met à jour les interactions
 
@@ -185,6 +192,8 @@ Matrix Laplacian (Mesh * mesh)
     std::cout << INDENT << "Numeric zeros have been deleted." << std::endl;
 
     std::cout << std::endl;
+
+    std::cout << A << std::endl;
 
     return A;
 }
@@ -343,7 +352,7 @@ void RemovePeriodicity (Mesh* mesh, Matrix* A)
     int Ny = mesh->Get_Ny ();
     int Nz = mesh->Get_Nz ();
 
-    int N = mesh->GetNumberOfCartesianPoints ();
+    //    int N = mesh->GetNumberOfCartesianPoints ();
     DIM dim = mesh->GetDimension ();
 
 

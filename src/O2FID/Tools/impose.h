@@ -35,7 +35,7 @@ void ImposeDirichlet (Mesh* mesh,
 void ImposeDirichlet (Mesh* mesh,
                       Matrix* A,
                       Vector* secondMember,
-                      std::vector<double> g_list,
+                      Vector* g_list,
                       std::vector <int> listIndex,
                       double t = 0.);
 
