@@ -108,6 +108,7 @@ int main(int argc, char* argv[])
     std::cout << "#Summary " << std::endl;
 
     std::cout << "Nx            : " << listNx << std::endl;
+    std::cout << "Ny            : " << listNx << std::endl;
     std::cout << "l1-error      : " << err_l1 << std::endl;
     std::cout << "Order         : " << Order(err_l1, h) << std::endl;
     std::cout << "linf-error    : " << err_linf << std::endl;

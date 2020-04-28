@@ -12,6 +12,8 @@ std::vector <int> MakeBorderPoints (Mesh * mesh, Vector * phi_list)
     int GridPoints = 0;
     int NewPoint = 0;
 
+    double maximum = std::max (mesh->Get_hx (), std::max (mesh->Get_hy (), mesh->Get_hz ())) + 1e-3;
+
     for (int i = 0; i < numberOfPointsOnGrid; i++)
     {
 
@@ -46,6 +48,9 @@ std::vector <int> MakeBorderPoints (Mesh * mesh, Vector * phi_list)
 
             // Même signe
             if (phi_curr * phi_neigh > 0.)
+                continue;
+
+            if (EuclidianDist (*p_curr, *p_neigh) > maximum)
                 continue;
 
             double dist = fabs(phi_curr) / (fabs(phi_curr) + fabs(phi_neigh));

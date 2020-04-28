@@ -49,7 +49,13 @@ double GetErrorRela (Mesh * mesh,
 {
     (void)mesh;
 
-    double error_rela = ((u_ana - u_num).squaredNorm ()) / u_ana.squaredNorm ();
+    double hx = (std::abs(mesh->Get_hx()) < 1e-15) ? 1 : mesh->Get_hx();
+    double hy = (std::abs(mesh->Get_hy()) < 1e-15) ? 1 : mesh->Get_hy();
+    double hz = (std::abs(mesh->Get_hz()) < 1e-15) ? 1 : mesh->Get_hz();
+
+    double coeff = hx * hy * hz;
+
+    double error_rela = std::sqrt (coeff * (u_ana - u_num).squaredNorm ()) / std::sqrt (coeff * u_ana.squaredNorm ());
     std::cout << "# Error rela has been calculated : " << error_rela << std::endl;
     std::cout << std::endl;
 
