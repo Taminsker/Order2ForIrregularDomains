@@ -106,3 +106,216 @@ DFIdxCoeff Reverse (DFIdxCoeff D)
 
     return N;
 }
+
+void DFOrderBuild (int der, ORDERS order, std::vector<int>* idxs, std::vector<double>* coeffs)
+{
+    DFStruct DF;
+
+    if (der == 1)
+    {
+        switch (order)
+        {
+        case ORDER_1_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order1.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order1.coeffs;
+            break;
+        case ORDER_1_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order1.idxs;
+            *coeffs = DF.Derivative_1.Central.Order1.coeffs;
+            break;
+        case ORDER_1_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order1.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order1.coeffs;
+            break;
+        case ORDER_2_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order2.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order2.coeffs;
+            break;
+        case ORDER_2_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order2.idxs;
+            *coeffs = DF.Derivative_1.Central.Order2.coeffs;
+            break;
+        case ORDER_2_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order2.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order2.coeffs;
+            break;
+        case ORDER_3_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order3.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order3.coeffs;
+            break;
+        case ORDER_3_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order3.idxs;
+            *coeffs = DF.Derivative_1.Central.Order3.coeffs;
+            break;
+        case ORDER_3_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order3.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order3.coeffs;
+            break;
+        case ORDER_4_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order4.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order4.coeffs;
+            break;
+        case ORDER_4_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order4.idxs;
+            *coeffs = DF.Derivative_1.Central.Order4.coeffs;
+            break;
+        case ORDER_4_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order4.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order4.coeffs;
+            break;
+        case ORDER_5_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order5.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order5.coeffs;
+            break;
+        case ORDER_5_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order5.idxs;
+            *coeffs = DF.Derivative_1.Central.Order5.coeffs;
+            break;
+        case ORDER_5_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order5.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order5.coeffs;
+            break;
+        case ORDER_6_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order6.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order6.coeffs;
+            break;
+        case ORDER_6_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order6.idxs;
+            *coeffs = DF.Derivative_1.Central.Order6.coeffs;
+            break;
+        case ORDER_6_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order6.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order6.coeffs;
+            break;
+        case ORDER_7_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order7.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order7.coeffs;
+            break;
+        case ORDER_7_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order7.idxs;
+            *coeffs = DF.Derivative_1.Central.Order7.coeffs;
+            break;
+        case ORDER_7_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order7.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order7.coeffs;
+            break;
+        case ORDER_8_FORWARD:
+            *idxs = DF.Derivative_1.Forward.Order8.idxs;
+            *coeffs = DF.Derivative_1.Forward.Order8.coeffs;
+            break;
+        case ORDER_8_CENTRAL:
+            *idxs = DF.Derivative_1.Central.Order8.idxs;
+            *coeffs = DF.Derivative_1.Central.Order8.coeffs;
+            break;
+        case ORDER_8_BACKWARD:
+            *idxs = DF.Derivative_1.Backward.Order8.idxs;
+            *coeffs = DF.Derivative_1.Backward.Order8.coeffs;
+            break;
+        }
+
+    } else if (der == 2)
+    {
+        switch (order)
+        {
+        case ORDER_1_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order1.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order1.coeffs;
+            break;
+        case ORDER_1_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order1.idxs;
+            *coeffs = DF.Derivative_2.Central.Order1.coeffs;
+            break;
+        case ORDER_1_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order1.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order1.coeffs;
+            break;
+        case ORDER_2_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order2.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order2.coeffs;
+            break;
+        case ORDER_2_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order2.idxs;
+            *coeffs = DF.Derivative_2.Central.Order2.coeffs;
+            break;
+        case ORDER_2_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order2.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order2.coeffs;
+            break;
+        case ORDER_3_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order3.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order3.coeffs;
+            break;
+        case ORDER_3_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order3.idxs;
+            *coeffs = DF.Derivative_2.Central.Order3.coeffs;
+            break;
+        case ORDER_3_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order3.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order3.coeffs;
+            break;
+        case ORDER_4_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order4.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order4.coeffs;
+            break;
+        case ORDER_4_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order4.idxs;
+            *coeffs = DF.Derivative_2.Central.Order4.coeffs;
+            break;
+        case ORDER_4_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order4.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order4.coeffs;
+            break;
+        case ORDER_5_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order5.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order5.coeffs;
+            break;
+        case ORDER_5_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order5.idxs;
+            *coeffs = DF.Derivative_2.Central.Order5.coeffs;
+            break;
+        case ORDER_5_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order5.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order5.coeffs;
+            break;
+        case ORDER_6_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order6.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order6.coeffs;
+            break;
+        case ORDER_6_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order6.idxs;
+            *coeffs = DF.Derivative_2.Central.Order6.coeffs;
+            break;
+        case ORDER_6_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order6.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order6.coeffs;
+            break;
+        case ORDER_7_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order7.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order7.coeffs;
+            break;
+        case ORDER_7_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order7.idxs;
+            *coeffs = DF.Derivative_2.Central.Order7.coeffs;
+            break;
+        case ORDER_7_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order7.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order7.coeffs;
+            break;
+        case ORDER_8_FORWARD:
+            *idxs = DF.Derivative_2.Forward.Order8.idxs;
+            *coeffs = DF.Derivative_2.Forward.Order8.coeffs;
+            break;
+        case ORDER_8_CENTRAL:
+            *idxs = DF.Derivative_2.Central.Order8.idxs;
+            *coeffs = DF.Derivative_2.Central.Order8.coeffs;
+            break;
+        case ORDER_8_BACKWARD:
+            *idxs = DF.Derivative_2.Backward.Order8.idxs;
+            *coeffs = DF.Derivative_2.Backward.Order8.coeffs;
+            break;
+        }
+
+    }
+
+    return;
+}

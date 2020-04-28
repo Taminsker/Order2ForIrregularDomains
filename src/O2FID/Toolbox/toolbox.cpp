@@ -104,3 +104,39 @@ void Extrapole (Mesh* mesh, std::vector<Point*>* vec)
     return;
 }
 
+void ExtendToNeighbours(Mesh* mesh, std::vector<int>* vec)
+{
+    auto R = *vec;
+    size_t N = vec->size ();
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        auto neigh1 = mesh->GetPoint (vec->at (i))->GetListNeighbours ();
+
+        for (auto p : neigh1)
+        {
+            auto neigh2 = p->GetListNeighbours ();
+
+            for (auto n : neigh2)
+            {
+                auto neigh3 = n->GetListNeighbours ();
+
+                for (auto v : neigh3)
+                    R.push_back (v->GetGlobalIndex ());
+
+                R.push_back (n->GetGlobalIndex ());
+            }
+
+            R.push_back (p->GetGlobalIndex ());
+        }
+    }
+
+    std::sort(R.begin(), R.end());
+    R.erase(std::unique(R.begin(), R.end()), R.end());
+
+    *vec = R;
+
+    return;
+}
+
+

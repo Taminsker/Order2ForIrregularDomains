@@ -61,6 +61,7 @@ void Extrapole (Mesh* mesh, Vector* vec);
 
 void Extrapole (Mesh* mesh, std::vector<Point*>* vec);
 
+void ExtendToNeighbours(Mesh* mesh, std::vector<int>* vec);
 
 /** @} */
 
