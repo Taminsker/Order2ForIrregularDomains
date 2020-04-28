@@ -10,6 +10,7 @@ Writer::Writer (Mesh * mesh) :
     m_sol_ana (nullptr),
     m_error_abs (nullptr),
     m_phi_value (nullptr),
+    m_norm_phi (nullptr),
     m_normals (nullptr),
     m_Wnew (nullptr),
     m_Wold (nullptr)
@@ -46,6 +47,13 @@ void Writer::SetVectorPhi (Vector *vector)
     m_phi_value = vector;
     return;
 }
+
+void Writer::SetNormPhi (Vector *vector)
+{
+    m_norm_phi = vector;
+    return;
+}
+
 void Writer::SetVectorNormals (std::vector<Point *> *vector)
 {
     m_normals = vector;
@@ -328,6 +336,9 @@ void Writer::WriteVTK ()
 
     if (m_phi_value != nullptr && m_phi_value->rows () == numPoints)
         WriteInFile (file, "Phi_Value", m_phi_value);
+
+    if (m_norm_phi != nullptr && m_norm_phi->rows () == numPoints)
+        WriteInFile (file, "NormGradPhi", m_norm_phi);
 
     if (m_normals != nullptr && int(m_normals->size ()) == numPoints)
     {

@@ -55,6 +55,9 @@ public:
 
     void SetVectorPhi (Vector* vector);
 
+    void SetNormPhi (Vector* vector);
+
+
     void SetVectorNormals(std::vector<Point*>* vector);
 
     void SetVectorW_new(std::vector<Point*>* vector);
@@ -147,6 +150,11 @@ protected:
      * @brief Pointeur vers un vecteur de valeurs de phi
      */
     Vector* m_phi_value;
+
+    /**
+     * @brief m_norm_phi
+     */
+    Vector* m_norm_phi;
 
     /**
      * @brief Pointeur vers un vecteur de normals

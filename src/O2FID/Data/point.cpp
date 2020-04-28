@@ -284,9 +284,9 @@ bool operator>= (const Point& a, const Point& b)
 bool operator== (const Point& a, const Point& b)
 {
     double eps = 1e-10;
-    bool bx = (abs(a.x - b.x) < eps);
-    bool by = (abs(a.y - b.y) < eps);
-    bool bz = (abs(a.z - b.z) < eps);
+    bool bx = (fabs(a.x - b.x) < eps);
+    bool by = (fabs(a.y - b.y) < eps);
+    bool bz = (fabs(a.z - b.z) < eps);
 
     return (bx && by && bz);
 }
@@ -294,9 +294,9 @@ bool operator== (const Point& a, const Point& b)
 bool operator!= (const Point& a, const Point& b)
 {
     double eps = 1e-10;
-    bool bx = (abs(a.x - b.x) > eps);
-    bool by = (abs(a.y - b.y) > eps);
-    bool bz = (abs(a.z - b.z) > eps);
+    bool bx = (fabs(a.x - b.x) > eps);
+    bool by = (fabs(a.y - b.y) > eps);
+    bool bz = (fabs(a.z - b.z) > eps);
 
     return (bx && by && bz);
 }
