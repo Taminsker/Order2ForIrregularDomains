@@ -6,6 +6,8 @@
 #include "../Data/data.h"
 #include "../Data/datatypedefinitions.h"
 
+#include "../Toolbox/differencefinite.h"
+
 #include <cmath>
 
 /*!
@@ -45,6 +47,8 @@ void InsertBeta (Mesh* mesh, Matrix* A, Vector* beta);
 
 
 void RemovePeriodicity (Mesh* mesh, Matrix* A);
+
+Matrix Gradient (Mesh* mesh, ORDERS order);
 
 /*! @} End of Doxygen Groups*/
 

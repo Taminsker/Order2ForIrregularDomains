@@ -41,7 +41,7 @@ Matrix Laplacian (Mesh * mesh)
         for (int j = 0; j < Ny; ++j)
             for (int i = 0; i < Nx; ++i)
             {
-                std::cout << "i = " << i << std::endl;
+                //                std::cout << "i = " << i << std::endl;
 
                 int idx = mesh->GetGlobalIndexOfPoint (i, j, k);
 
@@ -49,89 +49,90 @@ Matrix Laplacian (Mesh * mesh)
                 int idx_R = mesh->GetGlobalIndexOfPoint (i+1, j, k); // Right
 
                 double aprim = 0.;
-                // Si le point est sur le bord de gauche : Laplacien décentré aval
-//                if (i == 0) {
-//                    std::cout << "\ti=0" << std::endl;
-//                    A.coeffRef (idx, idx + 1) = -5. / (hx * hx);
-//                    A.coeffRef (idx, idx + 2) = 4. / (hx * hx);
-//                    A.coeffRef (idx, idx + 3) = -1. / (hx * hx);
-//                    aprim = 2. / (hx * hx);
-//                }
 
-//                // Si le point est sur le bord de droite : Laplacien décentré amont
-//                else if (i == Nx-1) {
-//                    std::cout << "\ti = Nx-1" << std::endl;
+                ////                 Si le point est sur le bord de gauche : Laplacien décentré aval
+                //                if (i == 0) {
+                ////                    std::cout << "\ti=0" << std::endl;
+                //                    A.coeffRef (idx, idx + 1) = -5. / (hx * hx);
+                //                    A.coeffRef (idx, idx + 2) = 4. / (hx * hx);
+                //                    A.coeffRef (idx, idx + 3) = -1. / (hx * hx);
+                //                    aprim = 2. / (hx * hx);
+                //                }
 
-//                    A.coeffRef (idx, idx - 1) = -5. / (hx * hx);
-//                    A.coeffRef (idx, idx - 2) = 4. / (hx * hx);
-//                    A.coeffRef (idx, idx - 3) = -1. / (hx * hx);
-//                    aprim = 2. / (hx * hx);
-//                }
+                //                // Si le point est sur le bord de droite : Laplacien décentré amont
+                //                else if (i == Nx-1) {
+                ////                    std::cout << "\ti = Nx-1" << std::endl;
 
-//                // Si le point n'est pas sur un bord en direction x : Laplacien classique
-//                else {
-//                    std::cout << "\ti = other" << std::endl;
+                //                    A.coeffRef (idx, idx - 1) = -5. / (hx * hx);
+                //                    A.coeffRef (idx, idx - 2) = 4. / (hx * hx);
+                //                    A.coeffRef (idx, idx - 3) = -1. / (hx * hx);
+                //                    aprim = 2. / (hx * hx);
+                //                }
 
-                    A.coeffRef (idx,idx_L) = b;
-                    A.coeffRef (idx,idx_R) = b;
-                    aprim = -2. / (hx * hx);
-//                }
+                // Si le point n'est pas sur un bord en direction x : Laplacien classique
+                //                else {
+                //                    std::cout << "\ti = other" << std::endl;
+
+                A.coeffRef (idx,idx_L) = b;
+                A.coeffRef (idx,idx_R) = b;
+                aprim = -2. / (hx * hx);
+                //                }
 
                 if (dim == DIM_2D || dim == DIM_3D)
                 {
                     int idx_F = mesh->GetGlobalIndexOfPoint (i, j-1, k); // Front
                     int idx_B = mesh->GetGlobalIndexOfPoint (i, j+1, k); // Back
 
-                    // Si le point est sur le bord de devant : Laplacien décentré aval
-                    if (j == 0) {
-                        A.coeffRef (idx, idx + 1 * Nx) = -5. / (hy * hy);
-                        A.coeffRef (idx, idx + 2 * Nx) = 4. / (hy * hy);
-                        A.coeffRef (idx, idx + 3 * Nx) = -1. / (hy * hy);
-                        aprim += 2. / (hy * hy);
-                    }
+                    //                    // Si le point est sur le bord de devant : Laplacien décentré aval
+                    //                    if (j == 0) {
+                    //                        A.coeffRef (idx, idx + 1 * Nx) = -5. / (hy * hy);
+                    //                        A.coeffRef (idx, idx + 2 * Nx) = 4. / (hy * hy);
+                    //                        A.coeffRef (idx, idx + 3 * Nx) = -1. / (hy * hy);
+                    //                        aprim += 2. / (hy * hy);
+                    //                    }
 
-                    // Si le point est sur le bord de derrière : Laplacien décentré amont
-                    else if (j == Ny-1) {
-                        A.coeffRef (idx, idx - 1 * Nx) = -5. / (hy * hy);
-                        A.coeffRef (idx, idx - 2 * Nx) = 4. / (hy * hy);
-                        A.coeffRef (idx, idx - 3 * Nx) = -1. / (hy * hy);
-                        aprim += 2. / (hy * hy);
-                    }
+                    //                    // Si le point est sur le bord de derrière : Laplacien décentré amont
+                    //                    else if (j == Ny-1) {
+                    //                        A.coeffRef (idx, idx - 1 * Nx) = -5. / (hy * hy);
+                    //                        A.coeffRef (idx, idx - 2 * Nx) = 4. / (hy * hy);
+                    //                        A.coeffRef (idx, idx - 3 * Nx) = -1. / (hy * hy);
+                    //                        aprim += 2. / (hy * hy);
+                    //                    }
 
                     // Si le point n'est pas sur un bord en direction y : Laplacien classique
-                    else {
-                        A.coeffRef (idx,idx_F) = c;
-                        A.coeffRef (idx,idx_B) = c;
-                        aprim += -2. / (hy * hy);
-                    }
+                    //                    else {
+                    A.coeffRef (idx,idx_F) = c;
+                    A.coeffRef (idx,idx_B) = c;
+                    aprim += -2. / (hy * hy);
+                    //                    }
 
                     if (dim == DIM_3D)
                     {
                         int idx_D = mesh->GetGlobalIndexOfPoint (i, j, k-1); // Down
                         int idx_U = mesh->GetGlobalIndexOfPoint (i, j, k+1); // Up
 
-                        // Si le point est sur le bord du bas : Laplacien décentré aval
-                        if (k == 0) {
-                            A.coeffRef (idx, idx + 1 * Nx * Ny) = -5. / (hz * hz);
-                            A.coeffRef (idx, idx + 2 * Nx * Ny) = 4. / (hz * hz);
-                            A.coeffRef (idx, idx + 3 * Nx * Ny) = -1. / (hz * hz);
-                            aprim += 2. / (hz * hz);
-                        }
+                        //                        // Si le point est sur le bord du bas : Laplacien décentré aval
+                        //                        if (k == 0) {
+                        //                            A.coeffRef (idx, idx + 1 * Nx * Ny) = -5. / (hz * hz);
+                        //                            A.coeffRef (idx, idx + 2 * Nx * Ny) = 4. / (hz * hz);
+                        //                            A.coeffRef (idx, idx + 3 * Nx * Ny) = -1. / (hz * hz);
+                        //                            aprim += 2. / (hz * hz);
+                        //                        }
 
-                        // Si le point est sur le bord du haut : Laplacien décentré amont
-                        else if (k == Nz-1) {
-                            A.coeffRef (idx, idx - 1 * Nx * Ny) = -5. / (hz * hz);
-                            A.coeffRef (idx, idx - 2 * Nx * Ny) = 4. / (hz * hz);
-                            A.coeffRef (idx, idx - 3 * Nx * Ny) = -1. / (hz * hz);
-                            aprim += 2. / (hz * hz);
-                        }
+                        //                        // Si le point est sur le bord du haut : Laplacien décentré amont
+                        //                        else if (k == Nz-1) {
+                        //                            A.coeffRef (idx, idx - 1 * Nx * Ny) = -5. / (hz * hz);
+                        //                            A.coeffRef (idx, idx - 2 * Nx * Ny) = 4. / (hz * hz);
+                        //                            A.coeffRef (idx, idx - 3 * Nx * Ny) = -1. / (hz * hz);
+                        //                            aprim += 2. / (hz * hz);
+                        //                        }
 
-                        // Si le point n'est pas sur un bord en direction z : Laplacien classique
-                        else {
-                            A.coeffRef (idx,idx_D) = d;
-                            A.coeffRef (idx,idx_U) = d;
-                            aprim += -2. / (hz * hz);
-                        }
+                        //                        // Si le point n'est pas sur un bord en direction z : Laplacien classique
+                        //                        else {
+                        A.coeffRef (idx,idx_D) = d;
+                        A.coeffRef (idx,idx_U) = d;
+                        aprim += -2. / (hz * hz);
+                        //                        }
                     } // fin if dim 3
                 } // fin if dim 2 ou 3
 
@@ -150,7 +151,7 @@ Matrix Laplacian (Mesh * mesh)
     //    A = A.selfadjointView<Eigen::Upper> ();
     //    A += A.transpose ();
 
-        std::cout << A << std::endl;
+    //        std::cout << A << std::endl;
 
     // On met à jour les interactions
 
@@ -193,7 +194,7 @@ Matrix Laplacian (Mesh * mesh)
 
     std::cout << std::endl;
 
-    std::cout << A << std::endl;
+    //    std::cout << A << std::endl;
 
     return A;
 }
@@ -458,4 +459,266 @@ void RemovePeriodicity (Mesh* mesh, Matrix* A)
     std::cout << std::endl;
 
     return;
+}
+
+Matrix Gradient (Mesh* mesh, ORDERS order)
+{
+    int Nx = mesh->Get_Nx ();
+    int Ny = mesh->Get_Ny ();
+    int Nz = mesh->Get_Nz ();
+
+    double hx = mesh->Get_hx ();
+    double hy = mesh->Get_hy ();
+    double hz = mesh->Get_hz ();
+
+    double maxima = std::max (hx, std::max (hy, hz)) + 1e-15;
+
+    int N = mesh->GetNumberOfTotalPoints ();
+    DIM dim = mesh->GetDimension ();
+
+    Matrix A(N, N);
+
+    auto DF = DFStruct();
+
+    std::vector<int> idxDf;
+    std::vector<double> coeffDf;
+
+    DFOrderBuild (1, order, &idxDf, &coeffDf);
+
+    size_t SizeDf = idxDf.size ();
+
+    A.reserve (Eigen::VectorXi::Constant(N, int(3 * idxDf.size ())));
+
+    for (int k = 0; k < Nz; ++k)
+    {
+        for (int j = 0; j < Ny; ++j)
+        {
+            for (int i = 0; i < Nx; ++i)
+            {
+                Point* p = mesh->GetPoint (i, j, k);
+                int idxGlobal = p->GetGlobalIndex ();
+
+                for (DIM d : {DIM_1D, DIM_2D, DIM_3D})
+                {
+                    if (d > dim)
+                        break;
+
+                    for (size_t s = 0; s < SizeDf; ++s)
+                    {
+                        double coeff = coeffDf.at (s);
+                        int emp = idxDf.at (s);
+
+                        int incI = int(d == DIM_1D);
+                        int incJ = int(d == DIM_2D);
+                        int incK = int(d == DIM_3D);
+
+                        int I = i + incI * emp;
+                        int J = j + incJ * emp;
+                        int K = k + incK * emp;
+
+                        Point* n = mesh->GetPoint (I, J, K);
+                        int idx = n->GetGlobalIndex ();
+
+
+                        switch (d)
+                        {
+                        case DIM_1D:
+                            coeff /= hx;
+                            break;
+                        case DIM_2D:
+                            coeff /= hy;
+                            break;
+                        case DIM_3D:
+                            coeff /= hz;
+                            break;
+                        }
+
+                        if (EuclidianDist (*p, *n) < maxima)
+                            A.coeffRef (idxGlobal, idx) += coeff;
+                    }
+                }
+            }
+        }
+    }
+
+    auto listPointIdx = mesh->GetListOfIndexPoints ();
+//    std::cout << "index : " << listPointIdx << std::endl;
+
+    int G = mesh->GetNumberOfCartesianPoints ();
+
+    // Insertion des points de bords
+
+    for (int idx : listPointIdx)
+    {
+        if (idx < G)
+            continue;
+
+        std::cout << "idx : " << idx << std::endl;
+
+        Point* p = mesh->GetPoint (idx);
+        auto neigh = p->GetListNeighbours ();
+
+        Point* n1 = neigh.front ();
+        Point* n2 = neigh.back ();
+        Point* temp = n1;
+
+        if (*n1 >= *n2)
+        {
+            n1 = n2;
+            n2 = temp;
+        }
+
+        LocalIndexes loc1 = mesh->GetLocalIndexesOfPoint (n1->GetGlobalIndex ());
+        LocalIndexes loc2 = mesh->GetLocalIndexesOfPoint (n2->GetGlobalIndex ());
+
+        int Idiff = loc1.i - loc2.i; // Axe i
+        int Jdiff = loc1.j - loc2.j; // Axe j
+        int Kdiff = loc1.k - loc2.k; // Axe k
+
+        if (Idiff != 0 && Jdiff != 0 && Kdiff != 0)
+        {
+            std::cout << INDENT << "Gradient detects two neighbours of point not aligned..." << std::endl;
+
+            exit(0);
+        }
+
+        // ie n2 + {Idff, Jdiff, Kdiff} = n1
+        // ie n1 - {Idff, Jdiff, Kdiff} = n2
+        // et p est entre n1 et n2
+
+        // Point n1
+        int idxGlobal = n1->GetGlobalIndex ();
+        int i = loc1.i;
+        int j = loc1.j;
+        int k = loc1.k;
+
+        A.row (idxGlobal) *= 0.;
+
+        for (size_t s = 0; s < SizeDf; ++s)
+        {
+            double coeff = coeffDf.at (s);
+            int emp = idxDf.at (s);
+
+            if (emp > Idiff || Idiff == 0)
+            {
+                int idxG = mesh->GetGlobalIndexOfPoint (i + emp, j, k);
+                A.coeffRef (idxGlobal, idxG) = coeff / hx;
+            } else if (emp < Idiff)
+            {
+                emp++;
+                int idxG = mesh->GetGlobalIndexOfPoint (i + emp, j, k);
+                A.coeffRef (idxGlobal, idxG) = coeff / hx;
+
+            } else
+            {
+                A.coeffRef (idxGlobal, idx) = coeff / EuclidianDist (*n1, *p);
+            }
+
+            if (dim == DIM_2D || dim == DIM_3D)
+            {
+                if (emp > Jdiff || Jdiff == 0)
+                {
+                    int idxG = mesh->GetGlobalIndexOfPoint (i, j + emp, k);
+                    A.coeffRef (idxGlobal, idxG) = coeff / hy;
+                } else if (emp < Jdiff)
+                {
+                    emp++;
+                    int idxG = mesh->GetGlobalIndexOfPoint (i, j + emp, k);
+                    A.coeffRef (idxGlobal, idxG) = coeff / hy;
+
+                } else
+                {
+                    A.coeffRef (idxGlobal, idx) = coeff / EuclidianDist (*n1, *p);
+                }
+
+                if (dim == DIM_3D)
+                {
+                    if (emp > Kdiff || Kdiff == 0)
+                    {
+                        int idxG = mesh->GetGlobalIndexOfPoint (i, j, k + emp);
+                        A.coeffRef (idxGlobal, idxG) = coeff / hz;
+                    } else if (emp < Kdiff)
+                    {
+                        emp++;
+                        int idxG = mesh->GetGlobalIndexOfPoint (i, j, k + emp);
+                        A.coeffRef (idxGlobal, idxG) = coeff / hz;
+
+                    } else
+                    {
+                        A.coeffRef (idxGlobal, idx) = coeff / EuclidianDist (*n1, *p);
+                    }
+                }
+            }
+        }
+
+
+        // Point n2
+        idxGlobal = n2->GetGlobalIndex ();
+        i = loc2.i;
+        j = loc2.j;
+        k = loc2.k;
+
+        A.row (idxGlobal) *= 0.;
+
+        for (size_t s = 0; s < SizeDf; ++s)
+        {
+            double coeff = coeffDf.at (s);
+            int emp = idxDf.at (s);
+
+            if (emp < -1 * Idiff || Idiff == 0)
+            {
+                int idxG = mesh->GetGlobalIndexOfPoint (i + emp, j, k);
+                A.coeffRef (idxGlobal, idxG) = coeff / hx;
+            } else if (emp > -1 * Idiff)
+            {
+                emp--;
+                int idxG = mesh->GetGlobalIndexOfPoint (i + emp, j, k);
+                A.coeffRef (idxGlobal, idxG) = coeff / hx;
+
+            } else
+            {
+                A.coeffRef (idxGlobal, idx) = coeff / EuclidianDist (*n1, *p);
+            }
+
+            if (dim == DIM_2D || dim == DIM_3D)
+            {
+                if (emp < -1 * Jdiff || Jdiff == 0)
+                {
+                    int idxG = mesh->GetGlobalIndexOfPoint (i, j + emp, k);
+                    A.coeffRef (idxGlobal, idxG) = coeff / hy;
+                } else if (emp > -1 * Jdiff)
+                {
+                    emp--;
+                    int idxG = mesh->GetGlobalIndexOfPoint (i, j + emp, k);
+                    A.coeffRef (idxGlobal, idxG) = coeff / hy;
+
+                } else
+                {
+                    A.coeffRef (idxGlobal, idx) = coeff / EuclidianDist (*n1, *p);
+                }
+
+                if (dim == DIM_3D)
+                {
+                    if (emp < -1 * Kdiff || Kdiff == 0)
+                    {
+                        int idxG = mesh->GetGlobalIndexOfPoint (i, j, k + emp);
+                        A.coeffRef (idxGlobal, idxG) = coeff / hz;
+                    } else if (emp > -1 * Kdiff)
+                    {
+                        emp--;
+                        int idxG = mesh->GetGlobalIndexOfPoint (i, j, k + emp);
+                        A.coeffRef (idxGlobal, idxG) = coeff / hz;
+
+                    } else
+                    {
+                        A.coeffRef (idxGlobal, idx) = coeff / EuclidianDist (*n1, *p);
+                    }
+                }
+            }
+        }
+
+        A.coeffRef (idx, idx) = 1.;
+    }
+
+    return A.pruned ();
 }

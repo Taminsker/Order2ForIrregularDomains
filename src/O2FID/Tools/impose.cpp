@@ -27,7 +27,7 @@ void ImposeDirichlet (Mesh * mesh,
 
     *A = A->transpose ().pruned ();
 
-    std::cout << *A << std::endl;
+//    std::cout << *A << std::endl;
 
     return;
 }
@@ -60,7 +60,7 @@ void ImposeDirichlet (Mesh * mesh,
 
     *A = A->transpose ().pruned ();
 
-    std::cout << *A << std::endl;
+//    std::cout << *A << std::endl;
 
     return;
 }
