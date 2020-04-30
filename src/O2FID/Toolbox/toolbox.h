@@ -31,13 +31,16 @@ class Point;
 template <typename T>
 std::vector<T*>* AutoClearVector(std::vector<T*>* vec)
 {
+    if (vec == nullptr)
+        return vec;
+
     for (size_t i = 0; i < vec->size (); ++i)
     {
-        delete vec->at (i);
-        vec->at (i) = nullptr;
+        auto a = vec->at (i);
+        delete a;
     }
 
-    vec->clear ();
+    vec->erase (vec->begin (), vec->end ());
 
     return vec;
 }

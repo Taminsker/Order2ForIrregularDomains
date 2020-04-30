@@ -13,11 +13,20 @@ Writer::Writer (Mesh * mesh) :
     m_norm_phi (nullptr),
     m_normals (nullptr),
     m_Wnew (nullptr),
-    m_Wold (nullptr)
+    m_Wold (nullptr),
+    m_grad_phi (nullptr),
+    m_grad_temperature (nullptr)
 {}
 
 Writer::~Writer ()
-{}
+{
+    delete m_Wnew;
+    delete m_Wold;
+    delete m_grad_phi;
+    delete m_grad_temperature;
+    delete m_normals;
+
+}
 void Writer::SetVectorAnalytical (Vector *vector)
 {
     m_sol_ana = vector;
@@ -56,7 +65,8 @@ void Writer::SetNormPhi (Vector *vector)
 
 void Writer::SetVectorNormals (std::vector<Point *> *vector)
 {
-    m_normals = vector;
+    delete m_normals;
+    m_normals = new std::vector<Point *>(*vector);
     return;
 }
 
@@ -71,6 +81,20 @@ void Writer::SetVectorW_old (std::vector<Point *>* vector)
 {
     delete m_Wold;
     m_Wold = new std::vector<Point *>(*vector);
+    return;
+}
+
+void Writer::SetVectorGradPhi (std::vector<Point *> *vector)
+{
+    delete m_grad_phi;
+    m_grad_phi = new std::vector<Point *>(*vector);
+    return;
+}
+
+void Writer::SetVectorGradTemperature (std::vector<Point *> *vector)
+{
+    delete m_grad_temperature;
+    m_grad_temperature = new std::vector<Point *>(*vector);
     return;
 }
 
@@ -372,6 +396,28 @@ void Writer::WriteVTK ()
         file << std::endl;
 
         std::cout << INDENT << "(VTK) POINT_DATA W_Old was written." << std::endl;
+    }
+
+    if (m_grad_phi != nullptr && int(m_grad_phi->size ()) == numPoints)
+    {
+        file << "VECTORS GradientPhi double" << std::endl;
+        for (size_t i = 0; i < m_grad_phi->size (); ++i)
+            file << *m_grad_phi->at (i) << std::endl;
+
+        file << std::endl;
+
+        std::cout << INDENT << "(VTK) POINT_DATA GradPhi was written." << std::endl;
+    }
+
+    if (m_grad_temperature != nullptr && int(m_grad_temperature->size ()) == numPoints)
+    {
+        file << "VECTORS GradientTemperature double" << std::endl;
+        for (size_t i = 0; i < m_grad_temperature->size (); ++i)
+            file << *m_grad_temperature->at (i) << std::endl;
+
+        file << std::endl;
+
+        std::cout << INDENT << "(VTK) POINT_DATA GradTemperature was written." << std::endl;
     }
 
     file.close ();

@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     std::cout << "-----------------------------------------" << std::endl;
 
 
-    int Nx = 400;
+    int Nx = 100;
     int Ny = Nx;
 
 
@@ -66,26 +66,51 @@ int main(int argc, char* argv[])
     // T_num
     Vector T_num = FunToVec (mesh, T);
 
-    // W
-    std::vector<Point*> Wold, Wnew;
-    Wnew = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
-    Wold = Wnew;
+//    Field field;
+//    int NumPoints = 5;
+
+
+//    for (size_t i = 0; i < NumPoints; ++i)
+//    {
+////        std::cout << "i : " << i << std::endl;
+//        field.W.push_back (new Point());
+//        field.Normals.push_back (new Point());
+//        field.GradPhi.push_back (new Point());
+//        field.GradTemperature.push_back (new Point());
+//    }
+
+
+//    delete mesh;
+//    return 0;
+
+
+    // Field;
+    std::vector<Point*> Wold;
+    Field field = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
+    Wold = field.W;
+
+    Vector GradPhi = GradNorm (mesh, &phi_vec);
 
     // Écriture dans des fichiers
     Writer writer (mesh);
     writer.SetFilename (std::string ("example_12_") + std::to_string (Nx));
     writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
     writer.SetVectorNumerical (&T_num);
-    writer.SetVectorW_new (&Wnew);
+    writer.SetVectorW_new (&field.W);
+
     writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
     writer.SetVectorPhi (&phi_vec);
+//    writer.SetVectorNormals (field.Normals);
+//    writer.SetVectorGradPhi (field.GradPhi);
+//    writer.SetVectorGradTemperature (field.GradTemperature);
+//    writer.SetNormPhi (&GradPhi);
 
     writer.WriteNow ();
 
 
 
     double theta = 1.;
-    int IterMax = 50;
+    int IterMax = 1;
 
     bool mybool = true;
 
@@ -98,7 +123,9 @@ int main(int argc, char* argv[])
         std::cout << "-----------------------------------------------" << std::endl;
 
         phi_vec = IteratePhi (mesh, &Wold, dt, &phi_vec);
-//        ReInitPhi (mesh, &phi_vec, &listPoint, dt);
+        //        ReInitPhi (mesh, &phi_vec, &listPoint, dt);
+
+//        GradPhi = GradNorm (mesh, &phi_vec);
 
         mesh->RemoveAllNotCartesianPoints ();
 
@@ -113,43 +140,54 @@ int main(int argc, char* argv[])
         if (int(listPoint.size ()) <= mesh->GetNumberOfCartesianPoints ())
         {
             As = Laplacian (mesh);
+
             At.resize (N, N);
             At.setIdentity ();
             At *= 1./ dt;
 
             Extrapole (mesh, &Temp);
 
+            Extrapole (mesh, &T_num);
+
             //        A_cn = (0.5 * As + At);
             //        b = At * T_num;
             //        b -= 0.5 * T_num;
 
             b = (At + (1. - theta) * As) * T_num;
+            //            b = T_num;
             A = At - theta * As;
 
             ImposeDirichlet (mesh, &A, &b, T, listPoint);
 
 
-            T_num = Solve (A, b, IMPLICIT);
+//            T_num = Solve (A, b, IMPLICIT);
         } else
         {
             mybool = false;
         }
 
 
-        Wold = Wnew;
+//        AutoClearVector(&Wold);
+        Wold = field.W;
         Extrapole (mesh, &Wold);
 
-        Wnew = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
+        field = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
 
+        Extrapole (mesh, &phi_vec);
         writer.SetCurrentIteration (timer);
         writer.SetVectorNumerical (&T_num);
-        writer.SetVectorAnalytical (&Temp);
+        //        writer.SetVectorAnalytical (&Temp);
         writer.SetVectorPhi (&phi_vec);
-        writer.SetVectorW_new (&Wnew);
+//        writer.SetNormPhi (&GradPhi);
+//        writer.SetVectorW_new (field.W);
+//        writer.SetVectorNormals (field.Normals);
+//        writer.SetVectorGradPhi (field.GradPhi);
+//        writer.SetVectorGradTemperature (field.GradTemperature);
         writer.SetVectorW_old (&Wold);
-
         writer.WriteNow ();
     }
+
+    AutoClearVector(&Wold);
 
     delete mesh;
 

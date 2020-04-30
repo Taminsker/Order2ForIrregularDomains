@@ -81,8 +81,10 @@ void Make(Point* minima, Point* extrema, int Nt, STYLE style, std::vector<int> l
         mesh->Set_Ny (std::max(Ny, 1));
         mesh->Set_Nz (std::max(Nz, 1));
 
+        std::cout.clear();
         mesh->Build ();
         mesh->Print ();
+        std::cout.setstate(std::ios_base::failbit);
 
         double hx = mesh->Get_hx ();
         double hy = mesh->Get_hy ();
@@ -140,7 +142,7 @@ void Make(Point* minima, Point* extrema, int Nt, STYLE style, std::vector<int> l
         writer.WriteNow ();
         compt++;
 
-        for (int it = 1; it <= Nt; it++)
+        for (int it = 1; it <= (int(i+1) * int(i+1) * Nt); it++)
         {
             std::cout.clear();
             std::cout << "\r" << INDENT << "Iteration : index : " << i << "/" << n << " it : " << it << "/" << Nt << "                 "<< std::flush;

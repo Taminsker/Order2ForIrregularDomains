@@ -98,6 +98,8 @@ void ImposeNeumann (  Mesh *mesh,
                       INTERPOLATION_NORMAL interpolationType = DEGRE_1,
                       double t = 0.);
 
+void ImposeZeroDirichletExtBorder (Mesh* mesh, Matrix* A, Vector* a1, Vector* a2 = nullptr, Vector* a3 = nullptr);
+
 
 /*! @} End of Doxygen Groups*/
 

@@ -27,7 +27,7 @@ void ImposeDirichlet (Mesh * mesh,
 
     *A = A->transpose ().pruned ();
 
-//    std::cout << *A << std::endl;
+    //    std::cout << *A << std::endl;
 
     return;
 }
@@ -60,7 +60,7 @@ void ImposeDirichlet (Mesh * mesh,
 
     *A = A->transpose ().pruned ();
 
-//    std::cout << *A << std::endl;
+    //    std::cout << *A << std::endl;
 
     return;
 }
@@ -321,6 +321,116 @@ void ImposeNeumann (  Mesh *mesh,
     std::cout << "\r" << INDENT << "All points have been imposed.                                 " << std::endl;
 
     A->pruned ();
+
+    return;
+}
+
+void ImposeZeroDirichletExtBorder (Mesh* mesh, Matrix* A, Vector* a1, Vector* a2, Vector* a3)
+{
+
+    std::cout << "# Impose 0 on exterieur border " << std::endl;
+
+    int Nx = mesh->Get_Nx ();
+    int Ny = mesh->Get_Ny ();
+    int Nz = mesh->Get_Nz ();
+
+    //    int N = mesh->GetNumberOfCartesianPoints ();
+    DIM dim = mesh->GetDimension ();
+
+    std::vector<int> indexes = {};
+
+    if (dim == DIM_1D)
+    {
+        indexes = {0, Nx-1};
+
+    } else if (dim == DIM_2D)
+    {
+        for (int i = 0; i < Nx; ++i)
+        {
+            indexes.push_back (mesh->GetGlobalIndexOfPoint (i, 0));
+            indexes.push_back (mesh->GetGlobalIndexOfPoint (i, Ny-1));
+        }
+
+        for (int j = 0; j < Ny; ++j)
+        {
+            // Interaction gauche droite
+
+            indexes.push_back (mesh->GetGlobalIndexOfPoint (0, j));
+            indexes.push_back (mesh->GetGlobalIndexOfPoint (Nx-1, j));
+        }
+    } else
+    {
+
+        for (int k = 0; k < Nz; ++k)
+        {
+            for (int i = 0; i < Nx; ++i)
+            {
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, 0, k));
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, Ny-1, k));
+            }
+
+            for (int j = 0; j < Ny; ++j)
+            {
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (0, j, k));
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (Nx-1, j, k));
+            }
+        }
+
+        for (int i = 0; i < Nx; ++i)
+        {
+            for (int j = 0; j < Ny; ++j)
+            {
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, j, 0));
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, j, Nz-1));
+            }
+
+            for (int k = 0; k < Nz; ++k)
+            {
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, 0, k));
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, Ny-1, k));
+            }
+        }
+
+        for (int j = 0; j < Ny; ++j)
+        {
+            for (int i = 0; i < Nx; ++i)
+            {
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, j, 0));
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (i, j, Nz-1));
+            }
+
+            for (int k = 0; k < Nz; ++k)
+            {
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (0, j, k));
+                indexes.push_back (mesh->GetGlobalIndexOfPoint (Nx-1, j, k));
+            }
+        }
+    }
+
+    Vector Zero;
+    Zero.resize (mesh->GetNumberOfTotalPoints ());
+    Zero.setZero ();
+    auto C1 = *A;
+
+    if (a1 != nullptr)
+        ImposeDirichlet (mesh, &C1, a1, &Zero, indexes);
+
+    if (a2 != nullptr)
+    {
+        C1 = *A;
+        ImposeDirichlet (mesh, &C1, a2, &Zero, indexes);
+    }
+
+
+    if (a3 != nullptr)
+    {
+        C1 = *A;
+        ImposeDirichlet (mesh, &C1, a3, &Zero, indexes);
+    }
+
+    *A = C1.pruned ();
+
+    std::cout << std::endl;
 
     return;
 }

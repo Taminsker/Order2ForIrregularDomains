@@ -81,8 +81,11 @@ void Make(Point* minima, Point* extrema, int Nt, STYLE style, std::vector<int> l
         mesh->Set_Ny (std::max(Ny, 1));
         mesh->Set_Nz (std::max(Nz, 1));
 
+        std::cout.clear();
         mesh->Build ();
         mesh->Print ();
+        std::cout.setstate(std::ios_base::failbit);
+
 
         double hx = mesh->Get_hx ();
         double hy = mesh->Get_hy ();
@@ -171,8 +174,6 @@ void Make(Point* minima, Point* extrema, int Nt, STYLE style, std::vector<int> l
                 Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
                 h.push_back (std::sqrt(p|p));
             }
-
-
 
             if (it%1 == 0)
             {

@@ -8,8 +8,7 @@
 
 
 double phi (Point p, double t = 0); // fonction levelset
-double f (Point a, double t = 0.); // fonction de second membre
-double u (Point a, double t = 0.);
+double T (Point a, double t = 0.);
 
 int main(int argc, char* argv[])
 {
@@ -17,14 +16,16 @@ int main(int argc, char* argv[])
     (void)argv;
 
     std::cout << "-----------------------------------------" << std::endl;
-    std::cout << "            EXAMPLE 1 - O2FID            " << std::endl;
+    std::cout << "           EXAMPLE 10 - O2FID            " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    std::vector<int> listNx = {41, 61, 161}; // liste des Nx
+    std::vector<int> listNx = {41, 81, 161}; // liste des Nx
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
     std::vector<double> err_rela = {}; // erreur relative
     std::vector<double> h = {}; // pas d'espace h
+
+    int Nt = 30;
 
     for (size_t idx = 0; idx < listNx.size (); ++idx)
     {
@@ -33,70 +34,132 @@ int main(int argc, char* argv[])
         // Construction du MESH
         Mesh* mesh = new Mesh ();
 
-        mesh->SetBounds (new Point(-0.5, 0, 0), new Point(0.5, 0, 0));
+        mesh->SetBounds (new Point(), new Point(1));
         mesh->Set_Nx(Nx);
-//        mesh->Set_Ny(Ny);
-//        mesh->Set_Nz(Nz);
+
         mesh->Build ();
+
+        double dt = mesh->Get_hx ();
 
         // Construction de vecteur phi fonction de levelset
         Vector phi_vec = FunToVec (mesh, phi);
 
         // Ajout des points de bord
         std::vector<int> listPoint = MakeBorderPoints (mesh, &phi_vec);
+        //        ExtendToNeighbours (mesh, &listPoint);
 
         mesh->Print ();
 
-        // Construction de la matrice du Laplacien
-        Matrix A = Laplacian (mesh);
+        // Vecteur de solution
+        Vector u_num, u_ana;
+        u_num = u_ana = FunToVec (mesh, T, 0.);
 
-        // Construction du vecteur de second membre
-        Vector b = FunToVec (mesh, f);
+        // Matrice
+        int N = mesh->GetNumberOfTotalPoints ();
 
-        // Imposition de Dirichlet sur les points situés sur le bord du domaine Omega
-        ImposeDirichlet (mesh, &A, &b, u, listPoint);
+        Matrix A = -1. * Laplacian (mesh);
+        //        RemovePeriodicity (mesh, &A);
 
-        // Imposition de Dirichlet sur les points situés sur le bord du grand domaine
-        //
-        //  ImposeDirichlet (mesh, &A, &b, u, {0, mesh->GetNumberOfCartesianPoints ()-1});
-        //
+        Matrix Id (N, N);
+        Id.setIdentity ();
 
-        // Vecteur de solution numérique
-        Vector u_num = Solve (A, b, IMPLICIT);
+        Matrix Al = (1./ dt) * Id + A;
+        Matrix Ar = (1./ dt) * Id;
 
-        // Vecteur de solution analytique
-        Vector u_ana = FunToVec (mesh, u);
+        Vector b;
 
-        // Transforme les deux vecteurs en 0 sur EXTERNOMEGA pour calculer des erreurs
-        mesh->MakeZeroOnExternOmegaInVector (&u_ana);
-        mesh->MakeZeroOnExternOmegaInVector (&u_num);
+        // Field;
+        Field field;
+        std::vector<Point*> Wold;
+        GetWField (&field, mesh, &phi_vec, &u_num, &listPoint, 1.);
+        Wold = field.W;
 
-        // Erreur en valeur absolue
         Vector err_abs = GetErrorAbs (mesh, u_ana, u_num);
-
-        // Erreur l1
-        err_l1.push_back (GetErrorl1 (mesh, u_ana, u_num));
-
-        // Erreur linf
-        err_linf.push_back (GetErrorlinf (mesh, u_ana, u_num));
-
-        // Erreur relative
-        err_rela.push_back (GetErrorRela (mesh, u_ana, u_num));
-
-        // Pas h du maillage (rayon de la boule ?)
-        Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
-        h.push_back (std::sqrt(p|p));
 
         // Écriture dans des fichiers
         Writer writer (mesh);
-        writer.SetFilename (std::string ("example_1_") + std::to_string (Nx));
-//        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
+        writer.SetFilename (std::string ("example_10_") + std::to_string (Nx));
+        writer.SetCurrentIteration (0); // Itérations lorsqu'il y a du temps
         writer.SetVectorNumerical (&u_num);
-        writer.SetVectorAnalytical (&u_ana);
+        writer.SetVectorW_new (&field.W);
+
         writer.SetWriteBothDomainsOn (); // Écrire sur le domaine entier ?
+        writer.SetVectorPhi (&phi_vec);
+        writer.SetVectorNormals (&field.Normals);
+        writer.SetVectorGradPhi (&field.GradPhi);
+        writer.SetVectorGradTemperature (&field.GradTemperature);
         writer.SetVectorErrorAbs (&err_abs);
 
         writer.WriteNow ();
+
+        for (int it = 1; it <= Nt; ++it)
+        {
+            double t = double(it) * dt;
+
+            std::cout << "-----------------------------------------------" << std::endl;
+            std::cout << INDENT << "Time : " << t << " (" << it << "/" << Nt << ") " << std::endl;
+            std::cout << "-----------------------------------------------" << std::endl;
+
+            phi_vec = IteratePhi (mesh, &Wold, dt, &phi_vec);
+            //        ReInitPhi (mesh, &phi_vec, &listPoint, dt);
+
+            mesh->RemoveAllNotCartesianPoints ();
+
+            listPoint = MakeBorderPoints (mesh, &phi_vec);
+
+            Matrix As = Al;
+            Vector b = Ar * u_num;
+
+            ImposeDirichlet (mesh, &As, &b, T, listPoint, t);
+
+            u_num = Solve (As, b, IMPLICIT);
+
+            Extrapole (mesh, &u_num);
+            for (int idx : listPoint)
+                u_num.coeffRef (idx) = T(*mesh->GetPoint (idx), t);
+
+            u_ana = FunToVec (mesh, T, t);
+
+            // Erreur en valeur absolue
+            err_abs = GetErrorAbs (mesh, u_ana, u_num);
+
+            if (it == Nt - 1)
+            {
+                // Erreur l1
+                err_l1.push_back (GetErrorl1 (mesh, u_ana, u_num));
+
+                // Erreur linf
+                err_linf.push_back (GetErrorlinf (mesh, u_ana, u_num));
+
+                // Erreur relative
+                err_rela.push_back (GetErrorRela (mesh, u_ana, u_num));
+
+                // Pas h du maillage (rayon de la boule ?)
+                Point p = {mesh->Get_hx (), mesh->Get_hy (), mesh->Get_hz ()};
+                h.push_back (std::sqrt(p|p));
+            }
+
+            // Écriture dans des fichiers
+
+            Wold = field.W;
+            Extrapole (mesh, &Wold);
+
+    //        Wnew = GetWField (mesh, &phi_vec, &T_num, &listPoint, 1.);
+
+
+            Extrapole (mesh, &phi_vec);
+            writer.SetCurrentIteration (it);
+            writer.SetVectorNumerical (&u_num);
+    //        writer.SetVectorAnalytical (&Temp);
+            writer.SetVectorPhi (&phi_vec);
+//            writer.SetNormPhi (&GradPhi);
+            writer.SetVectorW_new (&field.W);
+            writer.SetVectorNormals (&field.Normals);
+            writer.SetVectorGradPhi (&field.GradPhi);
+            writer.SetVectorGradTemperature (&field.GradTemperature);
+            writer.SetVectorW_old (&Wold);
+            writer.WriteNow ();
+        }
 
         delete mesh;
     }
@@ -120,21 +183,15 @@ double phi (Point p, double t)
 {
     (void)t;
 
-    return fabs(p.x) - 0.313;
+    return p.x - 0.5;
 }
 
-double f (Point a, double t)
+double T (Point a, double t)
 {
     (void)t;
 
-    double c = std::cos(2. * M_PI * a.x);
-    double s = std::sin(2. * M_PI * a.x);
-
-    return 8. * (1. - 2. * M_PI * M_PI * a.x * a.x) * s + 32. * M_PI * a. x * c;
-}
-
-double u (Point a, double t)
-{
-    (void)t;
-    return 4. * a.x * a.x * std::sin(2. * M_PI * a.x);
+    if (a.GetLocate () == ON_BORDER_OMEGA || a.GetLocate () == ON_DOMAIN_INTERN_OMEGA)
+        return std::exp(t - a.x + 0.5) - 1.;
+    else
+        return 0.;
 }

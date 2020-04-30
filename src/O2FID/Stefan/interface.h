@@ -24,5 +24,7 @@ Vector Weno(Mesh* mesh, Vector* u, std::vector<Point*>* W);
 
 void ReInitPhi (Mesh* mesh, Vector* phi, std::vector<int>* idxsBorder, double dt);
 
+Vector GradNorm(Mesh* mesh, Vector* u);
+
 
 #endif // INTERFACE_H

@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     Point min = {-1., 0, 0};
     Point max = {1., 0, 0};
 
-    int Nt = 51;
+    int Nt = 300;
     auto Nx = {41, 81, 161};
     auto No = {0, 0, 0};
 

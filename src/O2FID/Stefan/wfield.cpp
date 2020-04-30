@@ -2,14 +2,15 @@
 
 
 
-std::vector<Point*> GetWField(Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
+Field GetWField(Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
 {
-    auto W = BuildWOnBorder (mesh, phi, sol, idxsBorder, h0);
-    ExtendWToAllDomain (mesh, &W, idxsBorder);
-    return W;
+    Field field = BuildWOnBorder (mesh, phi, sol, idxsBorder, h0);
+    ExtendWToAllDomain (&field, mesh,  idxsBorder);
+
+    return field;
 }
 
-std::vector<Point*> BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
+Field BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
 {
     std::cout << "# Build W vectors on border." << std::endl;
 
@@ -17,7 +18,29 @@ std::vector<Point*> BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::v
 
     DIM dim = mesh->GetDimension ();
 
-    std::vector<Point*> W (NumPoints);
+    Field field;
+
+//    std::cout << "W size : " << field.W.size () << " ikdsghabsh" << std::endl;
+//    std::cout << field.W << std::endl;
+
+//    field.W.resize (NumPoints);
+//    field.Normals.resize (NumPoints);
+//    field.GradPhi.resize (NumPoints);
+//    field.GradTemperature.resize (NumPoints);
+
+//    std::cout << "gradphi size : " << field.GradPhi.size ()<< std::endl;
+//    std::cout << "W size : " << field.W.size ()<< std::endl;
+//    std::cout << "Normals size : " << field.Normals.size ()<< std::endl;
+//    std::cout << "GradTemperature size : " << field.GradTemperature.size ()<< std::endl;
+
+    for (size_t i = 0; i < NumPoints; ++i)
+    {
+//        std::cout << "i : " << i << std::endl;
+        field.W.push_back (new Point());
+        field.Normals.push_back (new Point());
+        field.GradPhi.push_back (new Point());
+        field.GradTemperature.push_back (new Point());
+    }
 
     for (int idx : *idxsBorder)
     {
@@ -29,7 +52,6 @@ std::vector<Point*> BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::v
 
         size_t NumNeigh = listNeigh_p.size ();
         std::vector<double> Quantity (NumNeigh, 0.);
-        std::vector<Point> Normals (NumNeigh, Point());
 
         for (size_t i = 0; i < NumNeigh; ++i)
         {
@@ -40,9 +62,14 @@ std::vector<Point*> BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::v
             std::vector<Point*> listNeigh_p_n = p_n->GetListNeighbours ();
 
             // Gradient de Phi en p_n
-            Point GradPhi;
+            Point* GradPhi = field.GradPhi.at (size_t (p_n->GetGlobalIndex ()));
             // Gradient de T en p_n
-            Point GradT;
+            Point* GradT = field.GradTemperature.at (size_t (p_n->GetGlobalIndex ()));
+            Point* Normal = field.Normals.at(size_t (p_n->GetGlobalIndex ()));
+            GradPhi->operator= ({0., 0., 0.});
+            GradT->operator= ({0., 0., 0.});
+            Normal->operator= ({0., 0., 0.});
+
 
             for (Point* v : listNeigh_p_n)
             {
@@ -52,47 +79,48 @@ std::vector<Point*> BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::v
 
                 if (diff == Point(diff.x, 0, 0))
                 {
-                    GradPhi.x += signe * phi->coeff(v->GetGlobalIndex ());
-                    GradT.x += signe * sol->coeff(v->GetGlobalIndex ());
 
-                    dist.x += fabs(diff.x);
+                    GradPhi->x = GradPhi->x + signe * double(phi->coeff(v->GetGlobalIndex ()));
+                    GradT->x = GradT->x + signe * double(sol->coeff(v->GetGlobalIndex ()));
+                    dist.x = dist.x + fabs(diff.x);
 
                 } else if (diff == Point(0, diff.y, 0) && dim >= DIM_2D)
                 {
-                    GradPhi.y += signe * phi->coeff(v->GetGlobalIndex ());
-                    GradT.y += signe * sol->coeff(v->GetGlobalIndex ());
-
-                    dist.y += fabs(diff.y);
+                    GradPhi->y = GradPhi->y + signe * double(phi->coeff(v->GetGlobalIndex ()));
+                    GradT->y = GradT->y + signe * double(sol->coeff(v->GetGlobalIndex ()));
+                    dist.y = dist.y + fabs(diff.y);
 
                 } else if (diff == Point(0, 0, diff.z) && dim == DIM_3D)
                 {
-                    GradPhi.z += signe * phi->coeff(v->GetGlobalIndex ());
-                    GradT.z += signe * sol->coeff(v->GetGlobalIndex ());
-
-                    dist.z += fabs(diff.z);
+                    GradPhi->z = GradPhi->z + signe * (phi->coeff(v->GetGlobalIndex ()));
+                    GradT->z = GradT->y + signe * (sol->coeff(v->GetGlobalIndex ()));
+                    dist.z = dist.z + fabs(diff.z);
                 }
                 else
                 {
-                    std::cerr << "ERROR" << std::endl;
+                    std::cerr << INDENT << "ERROR Build on border :" << std::endl;
+                    std::cerr << INDENT << "Point (" << p_n->GetGlobalIndex () << ")\t-\t" << *p_n << std::endl;
+                    std::cerr << INDENT << "and Point (" << v->GetGlobalIndex () << ")\t-\t" << *v << std::endl;
+                    std::cerr << INDENT << "Are not aligned but neighbours..." << std::endl;
                     exit(0);
                 }
             }
 
-            GradPhi.x = GradPhi.x / dist.x;
+            GradPhi->x = GradPhi->x / dist.x;
             if (dim >= DIM_2D)
-                GradPhi.y = GradPhi.y / dist.y;
+                GradPhi->y = GradPhi->y / dist.y;
             if (dim == DIM_3D)
-                GradPhi.z = GradPhi.z / dist.z;
+                GradPhi->z = GradPhi->z / dist.z;
 
-            Normals.at (i) = GradPhi / std::sqrt (GradPhi|GradPhi);
+            *Normal = *GradPhi / std::sqrt (*GradPhi|*GradPhi);
 
-            GradT.x = GradT.x / dist.x;
+            GradT->x = GradT->x / dist.x;
             if (dim >= DIM_2D)
-                GradT.y = GradT.y / dist.y;
+                GradT->y = GradT->y / dist.y;
             if (dim == DIM_3D)
-                GradT.z = GradT.z / dist.z;
+                GradT->z = GradT->z / dist.z;
 
-            Quantity.at (i) = (GradT|Normals.at (i));
+            Quantity.at (i) = (*GradT|*Normal);
         }
 
         size_t idx_min = 0;
@@ -127,23 +155,27 @@ std::vector<Point*> BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::v
         double dist_min = EuclidianDist (*p, *p_min);
         double dist_max = EuclidianDist (*p, *p_max);
 
-        Point normal_min = Normals.at (idx_min);
-        Point normal_max = Normals.at (idx_max);
+        Point* normal_min = field.Normals.at (size_t (p_min->GetGlobalIndex ()));
+        Point* normal_max = field.Normals.at (size_t (p_max->GetGlobalIndex ()));
 
-        Point Normal_p = dist_min * normal_min + dist_max * normal_max;
+        Point Normal_p = dist_min * *normal_min + dist_max * *normal_max;
         Normal_p = Normal_p / (dist_min + dist_max);
+        *field.Normals.at (size_t (p->GetGlobalIndex ())) = Normal_p;
 
-        W.at (size_t (idx)) = new Point(S * Normal_p);
+        *field.W.at (size_t (idx)) = S * Normal_p;
     }
 
     std::cout << "\r" << INDENT << "Build W on border is done.       " << std::endl;
 
-    return W;
+    return field;
 }
 
 
-void ExtendWToAllDomain (Mesh* mesh, std::vector<Point*>* W, std::vector<int>* idxsBorder)
+void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder)
 {
+    std::cout << "# Extend W to all domain." << std::endl;
+
+
     std::vector<int> indexes = mesh->GetListOfIndexPoints ();
 
     // LapW = 0 avec W = W_bordIdxs
@@ -152,6 +184,7 @@ void ExtendWToAllDomain (Mesh* mesh, std::vector<Point*>* W, std::vector<int>* i
     int NumPoints = mesh->GetNumberOfTotalPoints ();
 
     Matrix A = Laplacian (mesh);
+    RemovePeriodicity (mesh, &A);
 
     Vector bx(Vector::Zero (NumPoints));
     Vector by = bx;
@@ -166,7 +199,7 @@ void ExtendWToAllDomain (Mesh* mesh, std::vector<Point*>* W, std::vector<int>* i
     {
         // On déplace au 2nd membre les apparitions de P_i avec valeur imposée g(P_i)
 
-        Point* w = W->at (size_t(i));
+        Point* w = field->W.at (size_t(i));
 
         bx -= w->x * A.row (i).transpose ();
 
@@ -189,7 +222,7 @@ void ExtendWToAllDomain (Mesh* mesh, std::vector<Point*>* W, std::vector<int>* i
 
     Vector Wx, Wy, Wz = bx;
 
-    RemovePeriodicity (mesh, &A);
+    ImposeZeroDirichletExtBorder (mesh, &A, &bx, &by, &bz);
 
     Wx = Solve (A, bx, IMPLICIT);
 
@@ -199,15 +232,12 @@ void ExtendWToAllDomain (Mesh* mesh, std::vector<Point*>* W, std::vector<int>* i
     if (dim == DIM_3D)
         Wz = Solve (A, bz, IMPLICIT);
 
-//    AutoClearVector (W);
 
     size_t NumCartesian = size_t (mesh->GetNumberOfCartesianPoints ());
 
-//    *W = std::vector<Point*>(NumCartesian);
-
     for (size_t i = 0; i < NumCartesian; ++i)
     {
-        delete W->at (i);
+        delete field->W.at (i);
 
         Point* w = new Point();
 
@@ -217,7 +247,7 @@ void ExtendWToAllDomain (Mesh* mesh, std::vector<Point*>* W, std::vector<int>* i
         if (dim == DIM_3D)
             w->z = Wz.coeff (int(i));
 
-        W->at (i) = w;
+        field->W.at (i) = w;
     }
 
     std::cout << INDENT << "Extend W is done.       " << std::endl;

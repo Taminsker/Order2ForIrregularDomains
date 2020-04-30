@@ -63,6 +63,10 @@ public:
     void SetVectorW_new(std::vector<Point*>* vector);
 
     void SetVectorW_old(std::vector<Point*>* vector);
+
+    void SetVectorGradPhi(std::vector<Point*>* vector);
+    void SetVectorGradTemperature(std::vector<Point*>* vector);
+
     /**
      * @brief On dit que le fichier écrit en sortie comportera le domaine entier sur lequel on travaille
      * @return rien
@@ -171,6 +175,9 @@ protected:
      */
     std::vector<Point*>* m_Wold;
 
+    std::vector<Point*>* m_grad_phi;
+
+    std::vector<Point*>* m_grad_temperature;
 
     /**
      * @brief WriteVTK

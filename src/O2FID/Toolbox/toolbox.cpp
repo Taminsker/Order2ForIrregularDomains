@@ -45,11 +45,8 @@ void Extrapole (Mesh* mesh, Vector* vec)
 {
     int N = mesh->GetNumberOfTotalPoints ();
     int G = mesh->GetNumberOfCartesianPoints ();
-    Vector R(N);
-    R.setZero ();
 
-    for(int i = 0; i < G; ++i)
-        R.coeffRef (i) = vec->coeffRef (i);
+    vec->conservativeResize (N);
 
     for (int i = G; i < N; ++i)
     {
@@ -58,13 +55,11 @@ void Extrapole (Mesh* mesh, Vector* vec)
 
         for (Point* p_n : neigh)
         {
-            sum += vec->coeffRef (p_n->GetGlobalIndex ());
+            sum += vec->coeff (p_n->GetGlobalIndex ());
         }
 
-        R.coeffRef (i) = sum / double(neigh.size ());
+        vec->coeffRef (i) = sum / double(neigh.size ());
     }
-
-    *vec = R;
 
     return;
 }
@@ -95,12 +90,13 @@ void Extrapole (Mesh* mesh, std::vector<Point*>* vec)
         }
 
         R.at (i) = new Point(*sum / double(neigh.size () - size_t(count)));
+        delete sum;
+
     }
 
     AutoClearVector(vec);
 
-    *vec = R;
-
+    vec->swap (R);
     return;
 }
 
