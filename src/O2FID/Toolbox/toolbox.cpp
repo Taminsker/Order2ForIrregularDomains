@@ -1,3 +1,4 @@
+/** @file toolbox.cpp */
 
 #include "../Data/data.h"
 #include "../Mesh/mesh.h"
@@ -69,10 +70,11 @@ void Extrapole (Mesh* mesh, std::vector<Point*>* vec)
     size_t N = size_t (mesh->GetNumberOfTotalPoints ());
     size_t G = size_t(mesh->GetNumberOfCartesianPoints ());
 
-    std::vector<Point*> R(N);
+    vec->resize (N);
+//    std::vector<Point*> R(N);
 
-    for(size_t i = 0; i < G; ++i)
-        R.at (i) = new Point (*vec->at (i));
+//    for(size_t i = 0; i < G; ++i)
+//        R.at (i) = new Point (*vec->at (i));
 
     for (size_t i = G; i < N; ++i)
     {
@@ -89,14 +91,14 @@ void Extrapole (Mesh* mesh, std::vector<Point*>* vec)
                 count++;
         }
 
-        R.at (i) = new Point(*sum / double(neigh.size () - size_t(count)));
+        if (vec->at (i) != nullptr)
+            delete vec->at (i);
+
+        vec->at (i) = new Point(*sum / double(neigh.size () - size_t(count)));
+
         delete sum;
 
     }
-
-    AutoClearVector(vec);
-
-    vec->swap (R);
     return;
 }
 

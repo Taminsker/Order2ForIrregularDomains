@@ -65,7 +65,9 @@ Point& Point::operator= (std::initializer_list<int> ilist)
 }
 
 Point::~Point ()
-{}
+{
+//    DetachFromAll ();
+}
 
 
 Point* Point::SetGlobalIndex (int index)

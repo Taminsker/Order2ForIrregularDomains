@@ -1,3 +1,5 @@
+/** @file differencefinite.cpp */
+
 #include "differencefinite.h"
 
 

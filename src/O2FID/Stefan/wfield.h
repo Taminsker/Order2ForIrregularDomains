@@ -1,3 +1,5 @@
+/** @file wfield.h */
+
 #ifndef WFIELD_H
 #define WFIELD_H
 
@@ -12,54 +14,72 @@
 
 #include "../Toolbox/differencefinite.h"
 
+#include "field.h"
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <vector>
+/*!
+ *  \addtogroup Outils
+ *  @{
+ */
 
-class Field
-{
-public:
-    std::vector<Point*> W;
-    std::vector<Point*> Normals;
-    std::vector<Point*> GradTemperature;
-    std::vector<Point*> GradPhi;
+/**
+ * @brief Construit le champs de vecteur W sur le domaine.
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param phi un pointeur vers un vecteur de valeur représentant phi sur le maillage.
+ * @param sol un pointeur vers un vecteur de solution numérique.
+ * @param idxsBorder liste des indices de points de bords.
+ * @param h0 réel associé au problème.
+ * @return Un pointeur vers un objet Field.
+ */
+Field* GetWField (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0 = 1);
 
-    Field() :
-        W(std::vector<Point*>()),
-        Normals(std::vector<Point*>()),
-        GradTemperature(std::vector<Point*>()),
-        GradPhi(std::vector<Point*>())
-    {}
+/**
+ * @brief Contruit le champs de vecteur W sur le bord
+ * @param field pointeur vers l'objet regroupant les différents vecteurs.
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param phi un pointeur vers un vecteur de valeur représentant phi sur le maillage.
+ * @param idxsBorder liste des indices de points de bords.
+ * @param h0 réel associé au problème.
+ * @return Un vecteur de pointeur de Point, ici les W.
+ */
+std::vector<Point*> BuildWOnBorder (Field* field, Mesh* mesh, Vector* phi, std::vector<int>* idxsBorder, double h0);
 
-    ~Field ()
-    {
-        AutoClearVector(&W);
-        AutoClearVector(&Normals);
-        AutoClearVector(&GradTemperature);
-        AutoClearVector(&GradPhi);
-    }
-    Field& operator= (const Field& f)
-    {
-        AutoClearVector(&W);
-        AutoClearVector(&Normals);
-        AutoClearVector(&GradTemperature);
-        AutoClearVector(&GradPhi);
+/**
+ * @brief Étend le champs de vecteur W à tout le domaine à partir des valeurs sur le bord (résoud Lap W = 0 avec conditions de Dirichlet).
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param idxsBorder liste des indices de points de bords.
+ * @param W le champs de vecteurs associé au domaine.
+ */
+void ExtendWToAllDomain (Mesh* mesh, std::vector<int>* idxsBorder, std::vector<Point*>* W);
 
-        W = f.W;
-        Normals = f.Normals;
-        GradTemperature = f.GradTemperature;
-        GradPhi = f.GradPhi;
+/**
+ * @brief Calcul de gradient associé associé au vecteur vec sur le domaine.
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param vec un pointeur vers un vecteur de valeur sur le maillage.
+ * @param normalized booléen de normalisation.
+ * @param order ordre associé à l'approximation @see DFStruct.
+ * @return vecteur de gradient de vec en chaque point du maillage.
+ */
+std::vector<Point*> ComputeGradient (Mesh* mesh, Vector* vec, bool normalized, ORDERS order = ORDER_2_CENTRAL);
 
-        return *this;
-    }
-};
+/**
+ * @brief Calcul de la norme d'un champs de vecteurs sur le maillage.
+ * @param vec le champs de vecteurs dont la norme va être calculée.
+ * @return Un vecteur de valeurs réelles.
+ */
+Vector ComputeNorm(std::vector<Point*>* vec);
 
-Field GetWField (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0 = 1);
+/**
+ * @brief Calcul du dt optimal en fonction d'un champs vectoriel.
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param field le champs vectoriel utilisé (voir la condition de CFL).
+ * @return dt optimal.
+ */
+double Compute_dt(Mesh* mesh, Field* field);
 
-Field BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0);
-
-void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder);
+/** @} */
 
 #endif // WFIELD_H

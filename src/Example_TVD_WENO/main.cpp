@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
     std::cout << "         EXAMPLE TVD WENO - O2FID        " << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-//    std::vector<int> listNx = {21, 41, 81, 201}; // liste des Nx
-    std::vector<int> listNx = {41}; // liste des Nx
+    //    std::vector<int> listNx = {21, 41, 81, 201}; // liste des Nx
+    std::vector<int> listNx = {151}; // liste des Nx
 
     std::vector<double> err_l1 = {}; // erreur l1
     std::vector<double> err_linf = {}; // erreur linf
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     {
         int Nx = listNx.at (idx);
         int Ny = Nx;
-        int Nz = 1;
+        //        int Nz = 1;
         int Nt = 20;
 
         // Construction du MESH
@@ -54,11 +54,6 @@ int main(int argc, char* argv[])
         //        ExtendToNeighbours (mesh, &listPoint);
 
         mesh->Print ();
-
-        //        std::cout << Gradient (mesh, ORDER_2_CENTRAL) << std::endl;
-
-        //        delete mesh;
-        //        return 0;
 
         // Construction du vecteur de second membre
         std::vector<Point*> W;
@@ -93,13 +88,23 @@ int main(int argc, char* argv[])
 
             std::cout << "t : " << t << std::endl;
 
-            if (true)
+            if (false)
             {
-                // TVD scheme
+                // TVD scheme RK3
                 Vector u_n = u_num;
                 Vector u_1 = u_n + dt * Weno (mesh, &u_n, &W);
                 Vector u_2 = 3./4. * u_n + 1./ 4. * u_1 + 1./ 4. * dt * Weno (mesh, &u_1, &W);
                 u_num = 1./ 3. * u_n + 2. / 3. * u_2 + 2./ 3. * dt * Weno (mesh, &u_2, &W);
+            }
+
+            if (true)
+            {
+                // TVD scheme RK4
+                Vector u_0 = u_num;
+                Vector u_1 = u_0 + dt / 2. * Weno (mesh, &u_0, &W);
+                Vector u_2 = u_1 + dt / 2. * (-1. * Weno(mesh, &u_0, &W) + Weno(mesh, &u_1, &W));
+                Vector u_3 = u_2 + dt / 2. * (-1. *Weno(mesh, &u_1, &W) + 2. * Weno(mesh, &u_2, &W));
+                u_num = u_3 + dt / 6. * (Weno(mesh, &u_0, &W) + 2. * Weno(mesh, &u_1, &W) - 4. * Weno(mesh, &u_2, &W) + Weno(mesh, &u_3, &W));
             }
 
             if (false)
@@ -124,21 +129,8 @@ int main(int argc, char* argv[])
                         u_num.coeffRef (idx) = tmp.coeff (idx) + dt * (1. / mesh->Get_hx () * (tmp.coeff (idx_i) - tmp.coeff (idx)) + 1./mesh->Get_hy () * (tmp.coeff (idx_j) - tmp.coeff (idx)));
                     }
 
-//                u_num = tmp;
+                //                u_num = tmp;
             }
-
-            //            Extrapole (mesh, &u_num);
-            //            for (int idx : listPoint)
-            //                u_num.coeffRef (idx) = u(*mesh->GetPoint (idx), t+dt);
-
-            //            u_ana = FunToVec (mesh, u, t);
-
-            //            mesh->MakeZeroOnExternOmegaInVector (&u_num);
-            //            mesh->MakeZeroOnExternOmegaInVector (&u_ana);
-
-
-            // Erreur en valeur absolue
-            //            err_abs = GetErrorAbs (mesh, u_ana, u_num);
 
             if (it == Nt - 1)
             {
@@ -167,7 +159,7 @@ int main(int argc, char* argv[])
             writer.WriteNow ();
         }
 
-        AutoClearVector(W);
+        AutoClearVector(&W);
 
         delete mesh;
     }
@@ -193,11 +185,7 @@ double phi (Point p, double t)
     (void)t;
     (void)p;
 
-    //    return EuclidianDist (p, Point()) - 0.5*0.5;
-
     double eps = 1e-10;
-
-    //    return p.x - .3333;
 
     if (fabs(p.x - 1.) < eps || fabs(p.y - 1.) < eps || fabs(p.x + 1.) < eps || fabs(p.y + 1.) < eps)
         return 0.;
@@ -216,8 +204,6 @@ double f (Point a, double t)
 double u (Point a, double t)
 {
     (void)t;
-
-    double eps = 1e-10;
 
     if (fabs(a.x) < 0.5 && fabs(a.y) < 0.5)
         return std::sin(2. * M_PI * (a.x + t)) * std::sin(2. * M_PI * (a.y + t));

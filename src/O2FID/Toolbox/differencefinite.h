@@ -1,3 +1,5 @@
+/** @file differencefinite.h */
+
 #ifndef DIFFFINITE_H
 #define DIFFFINITE_H
 
@@ -6,6 +8,14 @@
 
 #include "toolbox.h"
 
+/*!
+ *  \addtogroup Outils
+ *  @{
+ */
+
+/**
+  * @brief Énumérateur sur les schémas DF disponibles
+  */
 typedef enum
 {
     ORDER_1_FORWARD,
@@ -35,6 +45,9 @@ typedef enum
 } ORDERS;
 
 
+/**
+ * @brief Structure DF regroupant les indices des points du schémas et les poids associés
+ */
 struct DFIdxCoeff
 {
     std::vector<int> idxs = {};
@@ -42,6 +55,9 @@ struct DFIdxCoeff
 
 };
 
+/**
+ * @brief Structure regroupant les ordres disponibles (voir DFIdxCoeff).
+ */
 struct DFOrders
 {
     DFIdxCoeff Order1;
@@ -54,6 +70,9 @@ struct DFOrders
     DFIdxCoeff Order8;
 };
 
+/**
+ * @brief Structure DF particulière pour la dérivée n-ième.
+ */
 struct DerivativeStruct
 {
     DFOrders Backward;
@@ -61,16 +80,49 @@ struct DerivativeStruct
     DFOrders Forward;
 };
 
+/**
+ * @brief Structure DF regroupant les dérivées actuellement disponibles.
+ */
 struct DFStruct
 {
+    /**
+     * @brief Dérivée première
+     */
     DerivativeStruct Derivative_1;
+
+    /**
+     * @brief Dérivée seconde
+     */
     DerivativeStruct Derivative_2;
 
+    /**
+     * @brief Cosntructeur
+     */
     DFStruct();
 };
 
+/**
+ * @brief Constructeur de schéma DF.
+ * @param der degré de la dérivée à approximer.
+ * @param order ordre demandé avec précision amont, aval ou centré
+ * @param idxs pointeur vers le stockage des indices de points.
+ * @param coeffs pointeur vers le stockage des poids.
+ */
 void DFOrderBuild (int der, ORDERS order, std::vector<int>* idxs, std::vector<double>* coeffs);
 
+/**
+ * @brief Inversion d'une structure DF (voir le lien entre avant et aval).
+ * @param O structure à inverser.
+ * @return la structure O inversé.
+ */
 DFOrders Reverse (DFOrders O);
+
+/**
+ * @brief Inversion d'une structure DF (voir le lien entre avant et aval).
+ * @param D structure à inverser.
+ * @return la structure D inversé.
+ */
 DFIdxCoeff Reverse (DFIdxCoeff D);
+
+/** @} */
 #endif // DIFFFINITE_H

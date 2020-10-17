@@ -38,16 +38,26 @@ void Sort_Neighbours (Point* P);
 
 
 /**
- * @brief InsertBeta
- * @param mesh
- * @param A
- * @param beta
+ * @brief Insertion du beta pour l'équation de Poisson.
+ * @param mesh un pointeur vers un objet Mesh.
+ * @param A un pointeur vers un objet de type Matrix.
+ * @param beta un pointeur vers un vecteur qui représente beta sur le maillage.
  */
 void InsertBeta (Mesh* mesh, Matrix* A, Vector* beta);
 
-
+/**
+ * @brief Fonction destinée à supprimer la périodicité induite par la classe Mesh sur une matrice.
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param A un pointeur vers un objet de type Matrix.
+ */
 void RemovePeriodicity (Mesh* mesh, Matrix* A);
 
+/**
+ * @brief Fonction de création d'un matrice représentant l'opérateur gradient sur le maillage.
+ * @param mesh un pointeur vers un objet de type Mesh.
+ * @param order un enum d'ordre voir la structure DF.
+ * @return Une matrice.
+ */
 Matrix Gradient (Mesh* mesh, ORDERS order);
 
 /*! @} End of Doxygen Groups*/

@@ -1,4 +1,6 @@
-/** \file impose.h */
+/** \file impose.h */\
+
+
 #ifndef IMPOSE_H
 #define IMPOSE_H
 

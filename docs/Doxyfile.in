@@ -1,7 +1,8 @@
 OUTPUT_DIRECTORY       = @CMAKE_SOURCE_DIR@/docs/doc_doxygen
 INPUT                  = @CMAKE_SOURCE_DIR@/src/O2FID
 EXCLUDE_PATTERNS       = *.txt
-PROJECT_NAME           = "O2fid"
+PROJECT_NAME           = "Bibliothèque partagée O2fid"
+GENERATE_MAN           = YES
 QUIET                  = YES
 WARNINGS                = YES
 OUTPUT_LANGUAGE        = French

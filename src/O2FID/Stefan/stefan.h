@@ -1,3 +1,5 @@
+/** \file stefan.h */
+
 #ifndef STEFAN_H
 #define STEFAN_H
 

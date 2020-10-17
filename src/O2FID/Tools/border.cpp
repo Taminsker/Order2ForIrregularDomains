@@ -1,3 +1,5 @@
+/** @file border.cpp */
+
 #include "border.h"
 
 
@@ -50,6 +52,7 @@ std::vector <int> MakeBorderPoints (Mesh * mesh, Vector * phi_list)
             if (phi_curr * phi_neigh > 0.)
                 continue;
 
+            // trop éloigné /!\ attention symétrie
             if (EuclidianDist (*p_curr, *p_neigh) > maximum)
                 continue;
 

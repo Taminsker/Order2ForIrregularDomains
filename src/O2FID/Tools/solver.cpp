@@ -1,3 +1,5 @@
+/** \file solver.cpp */
+
 #include "solver.h"
 
 #include <Eigen/IterativeLinearSolvers> // pour le gradient conjugué
@@ -36,31 +38,26 @@ Vector Solve (const Matrix &A, const Vector &b, TYPE type)
             std::cout << INDENT << "Symmetric matrix detected." <<  std::endl;
 
             Eigen::ConjugateGradient<Matrix, Eigen::Lower|Eigen::Upper> cg; // déclare la fonction gradient conjugé
-//            cg.setMaxIterations(int(log(A.size()))); // De base à N.
             cg.setTolerance(1e-15); // De base à la precision de la machine.
 
-//            cg.preconditioner ().compute(A);
             cg.compute(A); // Calcule la matrice A
             sol = cg.solve(b); // Solution du problème
             std::cout << INDENT << "Iterations        : " << cg.iterations() << std::endl;
             std::cout << INDENT << "Estimated error   : " << cg.error() << std::endl;
-//            sol = cg.solve(b); // met à jour la solution finale
+
         }
         else // Si non matrice hermitienne on utilise le bi-gradient conjugé
         {
             std::cout << INDENT << "Asymmetric matrix detected." <<  std::endl;
 
             Eigen::BiCGSTAB<Matrix> solver;
-//                        solver.preconditioner ().compute(A);
 
             solver.compute(A);
-//            solver.setMaxIterations(int(log(A.size()))); // De base à N.
             solver.setTolerance(1e-15); // De base à la precision de la machine.
             sol = solver.solve(b);
+
             std::cout << INDENT << "Iterations      : " << solver.iterations() << std::endl;
             std::cout << INDENT << "Estimated error : " << solver.error()      << std::endl;
-            /* ... update b ... */
-//            sol = solver.solve(b); // solve again
         }
     }
 

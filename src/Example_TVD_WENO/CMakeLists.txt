@@ -1,6 +1,6 @@
 
 
-option(EXAMPLE_TVD_WENO "Build Example TVD WENO" ON)
+option(EXAMPLE_TVD_WENO "Build Example TVD WENO" OFF)
 
 if(EXAMPLE_TVD_WENO)
     message("-- Example TVD WENO ON")

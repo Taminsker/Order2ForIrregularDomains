@@ -1,3 +1,5 @@
+/** @file errors.cpp */
+
 #include "errors.h"
 
 double GetErrorl1 (Mesh * mesh,
@@ -5,9 +7,9 @@ double GetErrorl1 (Mesh * mesh,
                    const Vector &u_num)
 {
     double error_l1;
-    double hx = (std::abs(mesh->Get_hx()) < 1e-15) ? 1 : mesh->Get_hx();
-    double hy = (std::abs(mesh->Get_hy()) < 1e-15) ? 1 : mesh->Get_hy();
-    double hz = (std::abs(mesh->Get_hz()) < 1e-15) ? 1 : mesh->Get_hz();
+    double hx = (std::abs(mesh->Get_hx()) < 1e-15) ? 1. : mesh->Get_hx();
+    double hy = (std::abs(mesh->Get_hy()) < 1e-15) ? 1. : mesh->Get_hy();
+    double hz = (std::abs(mesh->Get_hz()) < 1e-15) ? 1. : mesh->Get_hz();
     Vector u_abs = (u_ana - u_num).cwiseAbs();
     error_l1 = u_abs.sum() * hx * hy * hz;
 
@@ -21,6 +23,12 @@ double GetErrorlinf (Mesh * mesh,
                      const Vector &u_num)
 {
     (void)mesh;
+
+//    double hx = (std::abs(mesh->Get_hx()) < 1e-15) ? 1. : mesh->Get_hx();
+//    double hy = (std::abs(mesh->Get_hy()) < 1e-15) ? 1. : mesh->Get_hy();
+//    double hz = (std::abs(mesh->Get_hz()) < 1e-15) ? 1. : mesh->Get_hz();
+
+//    double coeff = hx * hy * hz;
 
     Vector u_abs = (u_ana - u_num).cwiseAbs();
     double error_linf = u_abs.maxCoeff();

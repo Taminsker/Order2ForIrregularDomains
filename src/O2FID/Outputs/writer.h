@@ -1,4 +1,5 @@
 /** \file writer.h */
+
 #ifndef WRITER_H
 #define WRITER_H
 
@@ -53,18 +54,53 @@ public:
      */
     void SetFilename (std::string filename);
 
+    /**
+     * @brief Définition du vecteur qui contient les valeurs de phi.
+     * @param vector qui est un Vector (voir le fichier datatypedefintions.h).
+     * @return rien.
+     */
     void SetVectorPhi (Vector* vector);
 
+    /**
+     * @brief Définition du vecteur qui contient les valeurs de ||Grad phi||.
+     * @param vector qui est un Vector (voir le fichier datatypedefintions.h).
+     * @return rien.
+     */
     void SetNormPhi (Vector* vector);
 
-
+    /**
+     * @brief Définition du vecteur qui contient les vecteurs normaux à l'interface.
+     * @param vector qui est un std::vecteur de pointeurs vers des objets de type Point.
+     * @return rien.
+     */
     void SetVectorNormals(std::vector<Point*>* vector);
 
+    /**
+     * @brief Définition du vecteur qui contient les vecteurs W sur le domaine (nouveau W à l'itération courante issu du nouveau phi).
+     * @param vector qui est un std::vecteur de pointeurs vers des objets de type Point.
+     * @return rien.
+     */
     void SetVectorW_new(std::vector<Point*>* vector);
 
+    /**
+     * @brief Définition du vecteur qui contient les vecteurs W sur le domaine (ancien W à l'itération courante issu de l'ancien phi).
+     * @param vector qui est un std::vecteur de pointeurs vers des objets de type Point.
+     * @return rien.
+     */
     void SetVectorW_old(std::vector<Point*>* vector);
 
+    /**
+     * @brief Définition du vecteur qui contient les vecteurs gradients de phi.
+     * @param vector qui est un std::vecteur de pointeurs vers des objets de type Point.
+     * @return rien.
+     */
     void SetVectorGradPhi(std::vector<Point*>* vector);
+
+    /**
+     * @brief Définition du vecteur qui contient les vecteurs gradients de de la solution numérique.
+     * @param vector qui est un std::vecteur de pointeurs vers des objets de type Point.
+     * @return rien.
+     */
     void SetVectorGradTemperature(std::vector<Point*>* vector);
 
     /**
@@ -88,7 +124,6 @@ public:
      * @brief Les fichiers ".dat" ne seront pas écrit
      */
     void SetWriterDatFileOff();
-
 
     /**
      * @brief Définition du numéro de l'itération courante (apparaitra dans le nom de fichier en sortie).
@@ -156,7 +191,7 @@ protected:
     Vector* m_phi_value;
 
     /**
-     * @brief m_norm_phi
+     * @brief Pointeur vers un vecteur de valeurs de la norme de phi
      */
     Vector* m_norm_phi;
 
@@ -175,8 +210,14 @@ protected:
      */
     std::vector<Point*>* m_Wold;
 
+    /**
+     * @brief Pointeur vers les gradients de phi sur le domaine.
+     */
     std::vector<Point*>* m_grad_phi;
 
+    /**
+     * @brief Pointeur vers les gradients de la solution numérique sur le domaine.
+     */
     std::vector<Point*>* m_grad_temperature;
 
     /**

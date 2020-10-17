@@ -1,46 +1,33 @@
+/** @file wfield.cpp*/
+
 #include "wfield.h"
+#include "interface.h"
 
 
 
-Field GetWField(Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
+Field* GetWField(Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
 {
-    Field field = BuildWOnBorder (mesh, phi, sol, idxsBorder, h0);
-    ExtendWToAllDomain (&field, mesh,  idxsBorder);
+    Field* field = new Field();
+    field->Normals = ComputeGradient (mesh, phi, true, ORDER_2_CENTRAL);
+    field->GradPhi = ComputeGradient (mesh, phi, false, ORDER_2_CENTRAL);
+    field->GradTemperature = ComputeGradient (mesh, sol, false, ORDER_2_CENTRAL);
+
+    field->W = BuildWOnBorder (field, mesh, phi, idxsBorder, h0);
+    ExtendWToAllDomain (mesh,  idxsBorder, &field->W);
 
     return field;
 }
 
-Field BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* idxsBorder, double h0)
+std::vector<Point*> BuildWOnBorder (Field* field, Mesh* mesh, Vector* phi, std::vector<int>* idxsBorder, double h0)
 {
     std::cout << "# Build W vectors on border." << std::endl;
 
     size_t NumPoints = size_t (mesh->GetNumberOfTotalPoints ());
 
-    DIM dim = mesh->GetDimension ();
-
-    Field field;
-
-//    std::cout << "W size : " << field.W.size () << " ikdsghabsh" << std::endl;
-//    std::cout << field.W << std::endl;
-
-//    field.W.resize (NumPoints);
-//    field.Normals.resize (NumPoints);
-//    field.GradPhi.resize (NumPoints);
-//    field.GradTemperature.resize (NumPoints);
-
-//    std::cout << "gradphi size : " << field.GradPhi.size ()<< std::endl;
-//    std::cout << "W size : " << field.W.size ()<< std::endl;
-//    std::cout << "Normals size : " << field.Normals.size ()<< std::endl;
-//    std::cout << "GradTemperature size : " << field.GradTemperature.size ()<< std::endl;
+    std::vector<Point*> W(NumPoints);
 
     for (size_t i = 0; i < NumPoints; ++i)
-    {
-//        std::cout << "i : " << i << std::endl;
-        field.W.push_back (new Point());
-        field.Normals.push_back (new Point());
-        field.GradPhi.push_back (new Point());
-        field.GradTemperature.push_back (new Point());
-    }
+        W.at (i) = new Point();
 
     for (int idx : *idxsBorder)
     {
@@ -61,79 +48,28 @@ Field BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* id
 
             std::vector<Point*> listNeigh_p_n = p_n->GetListNeighbours ();
 
-            // Gradient de Phi en p_n
-            Point* GradPhi = field.GradPhi.at (size_t (p_n->GetGlobalIndex ()));
             // Gradient de T en p_n
-            Point* GradT = field.GradTemperature.at (size_t (p_n->GetGlobalIndex ()));
-            Point* Normal = field.Normals.at(size_t (p_n->GetGlobalIndex ()));
-            GradPhi->operator= ({0., 0., 0.});
-            GradT->operator= ({0., 0., 0.});
-            Normal->operator= ({0., 0., 0.});
+            Point* GradTemperature = field->GradTemperature.at (size_t (p_n->GetGlobalIndex ()));
+            Point* Normal = field->Normals.at(size_t (p_n->GetGlobalIndex ()));
 
+            Quantity.at (i) = (*GradTemperature|*Normal);
 
-            for (Point* v : listNeigh_p_n)
-            {
-                Point diff = *p_n - *v;
-
-                double signe = (*p <= *v ? 1: -1);
-
-                if (diff == Point(diff.x, 0, 0))
-                {
-
-                    GradPhi->x = GradPhi->x + signe * double(phi->coeff(v->GetGlobalIndex ()));
-                    GradT->x = GradT->x + signe * double(sol->coeff(v->GetGlobalIndex ()));
-                    dist.x = dist.x + fabs(diff.x);
-
-                } else if (diff == Point(0, diff.y, 0) && dim >= DIM_2D)
-                {
-                    GradPhi->y = GradPhi->y + signe * double(phi->coeff(v->GetGlobalIndex ()));
-                    GradT->y = GradT->y + signe * double(sol->coeff(v->GetGlobalIndex ()));
-                    dist.y = dist.y + fabs(diff.y);
-
-                } else if (diff == Point(0, 0, diff.z) && dim == DIM_3D)
-                {
-                    GradPhi->z = GradPhi->z + signe * (phi->coeff(v->GetGlobalIndex ()));
-                    GradT->z = GradT->y + signe * (sol->coeff(v->GetGlobalIndex ()));
-                    dist.z = dist.z + fabs(diff.z);
-                }
-                else
-                {
-                    std::cerr << INDENT << "ERROR Build on border :" << std::endl;
-                    std::cerr << INDENT << "Point (" << p_n->GetGlobalIndex () << ")\t-\t" << *p_n << std::endl;
-                    std::cerr << INDENT << "and Point (" << v->GetGlobalIndex () << ")\t-\t" << *v << std::endl;
-                    std::cerr << INDENT << "Are not aligned but neighbours..." << std::endl;
-                    exit(0);
-                }
-            }
-
-            GradPhi->x = GradPhi->x / dist.x;
-            if (dim >= DIM_2D)
-                GradPhi->y = GradPhi->y / dist.y;
-            if (dim == DIM_3D)
-                GradPhi->z = GradPhi->z / dist.z;
-
-            *Normal = *GradPhi / std::sqrt (*GradPhi|*GradPhi);
-
-            GradT->x = GradT->x / dist.x;
-            if (dim >= DIM_2D)
-                GradT->y = GradT->y / dist.y;
-            if (dim == DIM_3D)
-                GradT->z = GradT->z / dist.z;
-
-            Quantity.at (i) = (*GradT|*Normal);
         }
+
+        // reconnaissance de celui du voisin à l'interieur et du voisin à l'exterieur
 
         size_t idx_min = 0;
         size_t idx_max = idx_min;
 
-        double phi_min = sol->coeff (listNeigh_p.front ()->GetGlobalIndex ());
+        double phi_min = phi->coeff (listNeigh_p.front ()->GetGlobalIndex ());
         double phi_max = phi_min;
 
         for (size_t i = 0; i < NumNeigh; ++i)
         {
             Point* p_n = listNeigh_p.at (i);
 
-            double value = sol->coeff (p_n->GetGlobalIndex ());
+            double value = phi->coeff (p_n->GetGlobalIndex ());
+
             if (value < phi_min)
             {
                 phi_min = value;
@@ -144,39 +80,28 @@ Field BuildWOnBorder (Mesh* mesh, Vector* phi, Vector* sol, std::vector<int>* id
             {
                 phi_max = value;
                 idx_max = i;
+
             }
         }
 
+//        double S = -1. / h0 * (Quantity.at (idx_max) - Quantity.at (idx_min));
         double S = -1. / h0 * (Quantity.at (idx_min) - Quantity.at (idx_max));
 
-        Point* p_min = listNeigh_p.at (idx_min);
-        Point* p_max = listNeigh_p.at (idx_max);
 
-        double dist_min = EuclidianDist (*p, *p_min);
-        double dist_max = EuclidianDist (*p, *p_max);
+        Point* Normal_p = field->Normals.at (size_t (idx));
 
-        Point* normal_min = field.Normals.at (size_t (p_min->GetGlobalIndex ()));
-        Point* normal_max = field.Normals.at (size_t (p_max->GetGlobalIndex ()));
+        *W.at (size_t (idx)) = S * *Normal_p;
 
-        Point Normal_p = dist_min * *normal_min + dist_max * *normal_max;
-        Normal_p = Normal_p / (dist_min + dist_max);
-        *field.Normals.at (size_t (p->GetGlobalIndex ())) = Normal_p;
-
-        *field.W.at (size_t (idx)) = S * Normal_p;
     }
 
     std::cout << "\r" << INDENT << "Build W on border is done.       " << std::endl;
 
-    return field;
+    return W;
 }
 
-
-void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder)
+void ExtendWToAllDomain (Mesh* mesh, std::vector<int>* idxsBorder, std::vector<Point*>* W)
 {
     std::cout << "# Extend W to all domain." << std::endl;
-
-
-    std::vector<int> indexes = mesh->GetListOfIndexPoints ();
 
     // LapW = 0 avec W = W_bordIdxs
 
@@ -184,7 +109,7 @@ void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder)
     int NumPoints = mesh->GetNumberOfTotalPoints ();
 
     Matrix A = Laplacian (mesh);
-    RemovePeriodicity (mesh, &A);
+    //    RemovePeriodicity (mesh, &A);
 
     Vector bx(Vector::Zero (NumPoints));
     Vector by = bx;
@@ -199,10 +124,9 @@ void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder)
     {
         // On déplace au 2nd membre les apparitions de P_i avec valeur imposée g(P_i)
 
-        Point* w = field->W.at (size_t(i));
+        Point* w = W->at (size_t(i));
 
         bx -= w->x * A.row (i).transpose ();
-
         if (dim >= DIM_2D)
             by -= w->y * A.row (i).transpose ();
         if (dim == DIM_3D)
@@ -220,7 +144,10 @@ void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder)
 
     A = A.transpose ().pruned ();
 
-    Vector Wx, Wy, Wz = bx;
+    Vector Wx(NumPoints), Wy(NumPoints), Wz(NumPoints);
+    Wx.setZero ();
+    Wy.setZero ();
+    Wz.setZero ();
 
     ImposeZeroDirichletExtBorder (mesh, &A, &bx, &by, &bz);
 
@@ -233,24 +160,170 @@ void ExtendWToAllDomain (Field* field, Mesh* mesh, std::vector<int>* idxsBorder)
         Wz = Solve (A, bz, IMPLICIT);
 
 
-    size_t NumCartesian = size_t (mesh->GetNumberOfCartesianPoints ());
-
-    for (size_t i = 0; i < NumCartesian; ++i)
-    {
-        delete field->W.at (i);
-
-        Point* w = new Point();
-
-        w->x = Wx.coeff(int(i));
-        if (dim >= DIM_2D)
-            w->y = Wy.coeff (int(i));
-        if (dim == DIM_3D)
-            w->z = Wz.coeff (int(i));
-
-        field->W.at (i) = w;
-    }
+    for (int i = 0; i < NumPoints; ++i)
+        *W->at (size_t (i)) = {Wx.coeff (i), Wy.coeff (i), Wz.coeff (i)};
 
     std::cout << INDENT << "Extend W is done.       " << std::endl;
 
     return;
 }
+
+std::vector<Point*> ComputeGradient (Mesh* mesh, Vector* vec, bool normalized, ORDERS order)
+{
+    int Nx = mesh->Get_Nx ();
+    int Ny = mesh->Get_Ny ();
+    int Nz = mesh->Get_Nz ();
+
+    double hx = mesh->Get_hx ();
+    double hy = mesh->Get_hy ();
+    double hz = mesh->Get_hz ();
+
+    size_t N = size_t (mesh->GetNumberOfTotalPoints ());
+
+    DIM dim = mesh->GetDimension ();
+
+    std::vector<Point*> R(N);
+
+    for (size_t i = 0; i < N; i++)
+        R.at (i) = new Point();
+
+    auto DF = DFStruct();
+
+    std::vector<int> idxDf;
+    std::vector<double> coeffDf;
+
+    DFOrderBuild (1, order, &idxDf, &coeffDf);
+    size_t SizeDf = idxDf.size ();
+
+
+    for (int k = 0; k < Nz; ++k)
+    {
+        for (int j = 0; j < Ny; ++j)
+        {
+            for (int i = 0; i < Nx; ++i)
+            {
+                Point* p = mesh->GetPoint (i, j, k);
+                size_t idx = size_t (p->GetGlobalIndex ());
+
+                Point grad = {0, 0, 0};
+
+                for (DIM d : {DIM_1D, DIM_2D, DIM_3D})
+                {
+                    if (d > dim)
+                        break;
+
+                    for (size_t s = 0; s < SizeDf; ++s)
+                    {
+                        double coeff = coeffDf.at (s);
+                        int emp = idxDf.at (s);
+
+                        int incI = int(d == DIM_1D);
+                        int incJ = int(d == DIM_2D);
+                        int incK = int(d == DIM_3D);
+
+                        int I = i + incI * emp;
+                        int J = j + incJ * emp;
+                        int K = k + incK * emp;
+
+                        Point* n = mesh->GetPoint (I, J, K);
+                        int idx_n = n->GetGlobalIndex ();
+
+                        switch (d)
+                        {
+                        case DIM_1D:
+                            grad.x += coeff * vec->coeff (idx_n) / hx;
+                            break;
+                        case DIM_2D:
+                            grad.y += coeff * vec->coeff (idx_n) / hy;
+                            break;
+                        case DIM_3D:
+                            grad.z += coeff * vec->coeff (idx_n) / hz;
+                            break;
+                        }
+                    }
+                }
+
+                double norm = 1.;
+                if (normalized)
+                    norm = std::sqrt(grad|grad);
+
+                switch (dim)
+                {
+                case DIM_1D:
+                    R.at (idx)->x = grad.x / norm;
+                    break;
+
+                case DIM_2D:
+                    R.at (idx)->x = grad.x / norm;
+                    R.at (idx)->y = grad.y / norm;
+                    break;
+
+                case DIM_3D:
+                    R.at (idx)->x = grad.x / norm;
+                    R.at (idx)->y = grad.y / norm;
+                    R.at (idx)->z = grad.z / norm;
+                    break;
+                }
+            }
+        }
+    }
+
+    Extrapole (mesh, &R);
+
+    return R;
+}
+
+Vector ComputeNorm(std::vector<Point*>* vec)
+{
+    int N = int(vec->size ());
+    Vector R(N);
+    R.setZero ();
+
+    for (size_t i = 0; i < size_t(N); ++i)
+    {
+        auto a = *vec->at (i);
+        R.coeffRef (int(i)) = std::sqrt(a|a);
+    }
+
+    return R;
+}
+
+double Compute_dt(Mesh* mesh, Field* field)
+{
+    double hx = mesh->Get_hx ();
+    double hy = mesh->Get_hy ();
+    double hz = mesh->Get_hz ();
+
+    DIM dim = mesh->GetDimension ();
+    if (dim == DIM_1D)
+        hy = hz = 1.;
+    if (dim == DIM_2D)
+        hz = 1.;
+
+    // dt = min (dt_h, dt_l)
+    // dt_h = 0.5 dx or 0.5 dx^2
+    // dt_l <= 0.5 / (w1/dx + w2/dy + w3/dz)
+
+    double dt_l = 0.;
+
+    double q = 0.;
+
+    double dt_h = 0.5 * hx;
+    //    double dt_h = 0.5 * hx * hx;
+
+    size_t N = field->W.size ();
+    for (size_t i = 0; i < N; ++i)
+    {
+        Point* w = field->W.at (i);
+        q = std::max (q, w->x / hx + w->y / hy + w->z / hz);
+    }
+
+    dt_l = 0.5 / q;
+
+    return std::min(dt_h, dt_l);
+//    return dt_h;
+
+
+}
+
+

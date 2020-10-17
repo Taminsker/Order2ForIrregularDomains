@@ -1,3 +1,5 @@
+/** \file writer.cpp */
+
 #include "writer.h"
 
 Writer::Writer (Mesh * mesh) :
@@ -221,7 +223,7 @@ void Writer::WriteDAT ()
     }
 
 
-    // Impression du vecteur d'erreurs en valeurs absolues si disponibles
+    // Impression du vecteur d'erreurs en valeurs absolues si disponible
     if (m_error_abs != nullptr && m_error_abs->rows () >= numPoints)
     {
         filename_copy = m_filename + std::string ("_error_abs.dat");
@@ -236,6 +238,103 @@ void Writer::WriteDAT ()
 
         file.close ();
     }
+
+    // Impression du vecteur de vecteur normaux si disponible
+    if (m_normals != nullptr && int(m_normals->size ()) >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_normals.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
+        file.open (filename_copy);
+
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "v_x"  << SPACE << "v_y" << SPACE << "v_z" << std::endl;
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << SPACE << *this->m_normals->at (size_t (i)) << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de vecteur W si disponible
+    if (m_Wnew != nullptr && int(m_Wnew->size ()) >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_W.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
+        file.open (filename_copy);
+
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "w_x"  << SPACE << "w_y" << SPACE << "w_z" << std::endl;
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << SPACE << *this->m_Wnew->at (size_t (i)) << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de vecteur GradPhi si disponible
+    if (m_grad_phi != nullptr && int(m_grad_phi->size ()) >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_grad_phi.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
+        file.open (filename_copy);
+
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "GP_x"  << SPACE << "GP_y" << SPACE << "GP_z" << std::endl;
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << SPACE << *this->m_grad_phi->at (size_t (i)) << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de vecteur GradSol si disponible
+    if (m_grad_temperature != nullptr && int(m_grad_temperature->size ()) >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_grad_phi.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
+        file.open (filename_copy);
+
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "GS_x"  << SPACE << "GS_y" << SPACE << "GS_z" << std::endl;
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << SPACE << *this->m_grad_temperature->at (size_t (i)) << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de norme de phi  si disponible
+    if (m_norm_phi != nullptr && m_norm_phi->rows () >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_norm_grad_phi.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
+        file.open (filename_copy);
+
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "NORM_GRAD_PHI" << std::endl;
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << SPACE << m_norm_phi->operator() (i) << std::endl;
+
+        file.close ();
+    }
+
+    // Impression du vecteur de norme de phi  si disponible
+    if (m_phi_value != nullptr && m_phi_value->rows () >= numPoints)
+    {
+        filename_copy = m_filename + std::string ("_phi.dat");
+
+        std::cout << INDENT << "(DAT) Write : " << filename_copy << std::endl;
+
+        file.open (filename_copy);
+
+        file << "#X" << SPACE << "Y" << SPACE << "Z" << SPACE << "PHI" << std::endl;
+        for (int i : indexes)
+            file << *m_mesh->GetPoint (i) << SPACE << m_phi_value->operator() (i) << std::endl;
+
+        file.close ();
+    }
+
 
     std::cout << std::endl;
 
@@ -359,32 +458,32 @@ void Writer::WriteVTK ()
         WriteInFile (file, "Error_abs", m_error_abs);
 
     if (m_phi_value != nullptr && m_phi_value->rows () == numPoints)
-        WriteInFile (file, "Phi_Value", m_phi_value);
+        WriteInFile (file, "Phi", m_phi_value);
 
     if (m_norm_phi != nullptr && m_norm_phi->rows () == numPoints)
-        WriteInFile (file, "NormGradPhi", m_norm_phi);
+        WriteInFile (file, "Norm_gradient_phi", m_norm_phi);
 
     if (m_normals != nullptr && int(m_normals->size ()) == numPoints)
     {
-        file << "NORMALS Normal double" << std::endl;
+        file << "VECTORS Normals double" << std::endl;
         for (size_t i = 0; i < m_normals->size (); ++i)
             file << *m_normals->at (i) << std::endl;
 
         file << std::endl;
 
-        std::cout << INDENT << "(VTK) POINT_DATA Normal was written." << std::endl;
+        std::cout << INDENT << "(VTK) POINT_DATA Normals was written." << std::endl;
 
     }
 
     if (m_Wnew != nullptr && int(m_Wnew->size ()) == numPoints)
     {
-        file << "VECTORS W_Current double" << std::endl;
+        file << "VECTORS W double" << std::endl;
         for (size_t i = 0; i < m_Wnew->size (); ++i)
             file << *m_Wnew->at (i) << std::endl;
 
         file << std::endl;
 
-        std::cout << INDENT << "(VTK) POINT_DATA W_Current was written." << std::endl;
+        std::cout << INDENT << "(VTK) POINT_DATA W was written." << std::endl;
     }
 
     if (m_Wold != nullptr && int(m_Wold->size ()) == numPoints)
@@ -400,24 +499,24 @@ void Writer::WriteVTK ()
 
     if (m_grad_phi != nullptr && int(m_grad_phi->size ()) == numPoints)
     {
-        file << "VECTORS GradientPhi double" << std::endl;
+        file << "VECTORS Gradient_phi double" << std::endl;
         for (size_t i = 0; i < m_grad_phi->size (); ++i)
             file << *m_grad_phi->at (i) << std::endl;
 
         file << std::endl;
 
-        std::cout << INDENT << "(VTK) POINT_DATA GradPhi was written." << std::endl;
+        std::cout << INDENT << "(VTK) POINT_DATA Gradient_phi was written." << std::endl;
     }
 
     if (m_grad_temperature != nullptr && int(m_grad_temperature->size ()) == numPoints)
     {
-        file << "VECTORS GradientTemperature double" << std::endl;
+        file << "VECTORS Gradient_sol double" << std::endl;
         for (size_t i = 0; i < m_grad_temperature->size (); ++i)
             file << *m_grad_temperature->at (i) << std::endl;
 
         file << std::endl;
 
-        std::cout << INDENT << "(VTK) POINT_DATA GradTemperature was written." << std::endl;
+        std::cout << INDENT << "(VTK) POINT_DATA Gradient_sol was written." << std::endl;
     }
 
     file.close ();

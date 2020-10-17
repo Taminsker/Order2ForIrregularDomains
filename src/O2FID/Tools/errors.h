@@ -1,4 +1,5 @@
 /** \file errors.h */
+
 #ifndef ERRORS_H
 #define ERRORS_H
 
